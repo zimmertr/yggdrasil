@@ -19,7 +19,8 @@ permissions:
 jobs:
   release:
     name: Release
-    uses: ./.github/workflows/release.yml
+    # `$/` is this repo at the running commit (GitHub, 2026-07-30).
+    uses: $/.github/workflows/release.yml
     permissions:
       contents: write  # the tag and release, on main only
     with:

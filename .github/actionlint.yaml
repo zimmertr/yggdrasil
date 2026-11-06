@@ -1,0 +1,7 @@
+# actionlint 1.7.12 predates the job.workflow_repository and job.workflow_sha
+# contexts, which a module uses to read its own files (decision record 0022).
+# Drop this once an actionlint release knows them.
+paths:
+  .github/workflows/**/*.yml:
+    ignore:
+      - 'property "workflow_(repository|sha)" is not defined'

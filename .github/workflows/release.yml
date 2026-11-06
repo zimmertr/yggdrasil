@@ -91,7 +91,7 @@ jobs:
     timeout-minutes: 5
     environment: ${{ inputs.environment }}
     permissions:
-      contents: write
+      contents: write  # the tag and the release
     steps:
       # One call makes the tag at this commit and the release, with notes from
       # the merged PR titles. No checkout, so no credential sits on disk.

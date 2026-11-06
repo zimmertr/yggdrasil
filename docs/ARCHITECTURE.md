@@ -12,7 +12,7 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 | Path | Holds | Built in |
 |---|---|---|
 | `.github/workflows/` | yggdrasil's own CI, and the reusable workflows (GitHub requires both here) | #2, #4 |
-| `actions/<name>/` | Composite actions, each with its script and tests | #2, #4 |
+| `actions/<name>/` | Composite actions, if a module ever needs a shared step. None yet (record 0026) | #4 |
 | `defaults/` | The shared conventions: `GitVersion.yml`, `trivy.yaml` | #4 |
 | `profiles/<name>.yml` | The settings each profile sets: `default` and `archived` | #8 |
 | `repos/<name>.yml` | One file per managed repo | #8 |

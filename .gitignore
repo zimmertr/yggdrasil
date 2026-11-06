@@ -1,12 +1,3 @@
-# Python, for the composite actions' scripts and tests
-__pycache__/
-*.pyc
-.venv/
-.pytest_cache/
-.ruff_cache/
-.coverage
-htmlcov/
-
 # Terraform. Keep .terraform.lock.hcl: it pins the providers.
 .terraform/
 *.tfstate

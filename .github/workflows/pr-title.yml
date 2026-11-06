@@ -8,14 +8,19 @@ name: PR Title
 # (`edited`). `synchronize` stays in the list because a check reports against
 # the head commit, so a push with no run of its own would carry no result.
 #
-# Branch protection will require the job name `PR Title`; renaming it strands
-# PRs on a check that never reports.
+# Branch protection requires the job name `PR Title`; renaming it strands PRs
+# on a check that never reports.
 #
 # `pull_request`, not the `pull_request_target` the action's README suggests: a
 # fork's run gets a read-only token and no secrets, and this job needs neither.
+#
+# Also the pr-title module: other repos call this file with `workflow_call`
+# from a job on the same four `pull_request` types, and see the check as
+# `<caller job> / PR Title`. Decision record 0028.
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
+  workflow_call:
 
 concurrency:
   group: pr-title-${{ github.event.pull_request.number }}
@@ -31,7 +36,8 @@ jobs:
     permissions:
       pull-requests: read # the action reads the PR's current title from the API
     steps:
-      # The types must match GitVersion.yml's three patterns exactly.
+      # The types must match the three patterns in GitVersion.yml and
+      # defaults/GitVersion.yml exactly.
       - uses: amannn/action-semantic-pull-request@2252a14e810aa9b85c2d560bd7070c802206ecf6 # v6.1.2
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -51,3 +51,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0025](0025-no-breaking-change-check.md) | No breaking-change check: each caller's own CI catches a breaking release | 2026-11-05 | Accepted |
 | [0026](0026-modules-carry-only-what-callers-use.md) | The modules carry only what hevy-trainer-sync and Bluebird use today, in shell, `jq` and `yq`, with no Python | 2026-11-05 | Accepted |
 | [0027](0027-release-module.md) | The release module runs GitVersion's image, previews each PR's version, and makes the tag and release in one `gh release create` | 2026-11-05 | Accepted |
+| [0028](0028-pr-title-module-is-yggdrasils-own-check.md) | The pr-title module is yggdrasil's own PR Title workflow, callable with `workflow_call` | 2026-11-05 | Accepted |

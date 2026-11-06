@@ -4,7 +4,7 @@
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05: "Yes, and then consumes subscribe to these versions and must be bumped… auto-merge non-breaking…"
 - Issues and PRs: #1, #3, #4
-- Cited in code as: decision record 0004, in `GitVersion.yml` and `tests/gitversion/test.sh`, which checks this record's rules on every PR (0025)
+- Cited in code as: decision record 0004, in `GitVersion.yml`
 - Guide: [`CLAUDE.md`](../../CLAUDE.md), Rules, "One version for every module"
 
 ## Context

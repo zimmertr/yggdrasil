@@ -22,11 +22,10 @@ Every job runs a `make` target, in the same pinned container a local run uses. R
 
 | Workflow | Job | Runs | Fails on |
 |---|---|---|---|
-| `checks.yml` | `actionlint` | `make actionlint`: actionlint, with shellcheck on every `run:`. Then `make shellcheck` over every shell script outside the workflows | Any finding in `.github/workflows/` or in a script listed in the `Makefile`'s `SHELL_SCRIPTS` |
+| `checks.yml` | `actionlint` | `make actionlint`: actionlint, with shellcheck on every `run:` | Any finding in `.github/workflows/` |
 | `checks.yml` | `zizmor` | `make zizmor`: zizmor's pedantic audits, online with the job's read-only token, findings as PR annotations | Any finding: an unpinned action or a version comment that is missing or wrong, `${{ }}` inside `run:`, a checkout that keeps credentials, `pull_request_target`, broad permissions and the rest |
 | `pr-title.yml` | `PR Title` | `amannn/action-semantic-pull-request` on the title, on every edit and push | A title that isn't `type(scope): summary` with a type from `GitVersion.yml`'s patterns. Record: [0020](architectural-decision-records/0020-pr-titles-checked-by-a-community-action.md) |
 | `checks.yml` | `Docs` | `make docs`: lychee over every relative link and heading anchor, and a grep for em dashes | A broken link or anchor, or an em dash |
-| `checks.yml` | `GitVersion Engine` | `make gitversion`: GitVersion, in its pinned image, on made-up histories under `GitVersion.yml` and `defaults/GitVersion.yml` | A version or `Sha` that differs from what record 0004 says: a settings-only commit that releases, a body line that picks the bump, a caller's merge that doesn't release. Record: [0025](architectural-decision-records/0025-gitversion-tested-in-its-own-image.md) |
 
 `checks.yml` also has `workflow_call`, so the release workflow (#4) can run the checks on the merged commit before it builds anything. Record: [0019](architectural-decision-records/0019-community-tools-hold-workflows-and-docs.md)
 

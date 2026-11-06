@@ -24,15 +24,6 @@ services:
       - .:/repo
     working_dir: /repo
 
-  # The engine yggdrasil's releases run. The image ships git and bash, so the
-  # GitVersion Engine test builds its made-up histories in it too. Read-only:
-  # the test writes only to its own temporary directory.
-  gitversion:
-    image: gittools/gitversion:6.8.2@sha256:f10e8320b2cf86f879a9304e074ac11f16b897380e0e4a86dd39682b265da568
-    volumes:
-      - .:/repo:ro
-    working_dir: /repo
-
   # Debian, not Alpine: BusyBox's grep has no --include or --exclude-dir.
   shell:
     image: debian:13-slim@sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2

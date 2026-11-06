@@ -14,9 +14,6 @@ A module reads these at the commit its caller pinned, by checking out `job.workf
 |---|---|
 | `defaults/GitVersion.yml` | yggdrasil's own `GitVersion.yml` without its `ignore` rule, so every merge to a caller's main releases. A first release is v0.1.0, and a repo already tagged counts from its last tag. `feat` is a minor, `!` before the colon a major, every other type a patch, and only the title counts |
 | `defaults/trivy.yaml` | Skips pip's vendored SBOM, `**/pip/_vendor/bom.cdx.json`, which Trivy otherwise reads as installed packages at versions that aren't installed |
-
-The `GitVersion Engine` job checks both GitVersion files against the pinned engine on every PR. Record: [0025](architectural-decision-records/0025-gitversion-tested-in-its-own-image.md)
-
 ## The App
 
 `zimmertr-yggdrasil-bot`, checked with `gh api apps/zimmertr-yggdrasil-bot` on 2026-11-05. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)

@@ -18,9 +18,6 @@ next-version: 'v0.1.0'
 # With the newest commits skipped, GitVersion's `Sha` output is the last module
 # commit, not HEAD. When nothing new counted, the version is one already tagged,
 # so #4's release job skips any version whose tag exists.
-#
-# tests/gitversion/test.sh checks all of this on every PR. A change to this
-# file, or to defaults/GitVersion.yml, adds or edits a case there.
 ignore:
   paths:
     - '^(?!(\.github/workflows|actions|defaults)/)'

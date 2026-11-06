@@ -7,7 +7,7 @@ Signed off by TJ, 2026-11-05. Built from the `initialize-project` interview.
 yggdrasil is the public, GPL-3.0 monorepo for TJ's GitHub and CI configuration. It has two halves:
 
 - **Modules.** Versioned reusable workflows and composite actions. A repo calls one with a pinned `uses:` and its own inputs, instead of copying a pipeline. This closes zimmertr/ai-config#2.
-- **Infrastructure.** Terraform that creates and manages TJ's repos and orgs, and their settings on GitHub, Docker Hub and Cloudflare. ArtifactHub is documented, not managed. This closes zimmertr/ai-config#3.
+- **Infrastructure.** Terraform that creates and manages TJ's repos and orgs, and their settings on GitHub, Docker Hub and Cloudflare. This closes zimmertr/ai-config#3.
 
 The SBOM module (zimmertr/ai-config#13) comes after this project, as one more module.
 
@@ -40,7 +40,6 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 | Template repo | Terraform creates each new repo from a template that already holds the caller workflows, `dependabot.yml`, `LICENSE` and `.gitignore`, so its first PR runs the shared CI | new |
 | Guardrails | The preconditions (11) and `archive_on_destroy` (12) | new |
 | `dockerhub` stack | Docker Hub repositories and their immutable tags | ai-config#3 notes |
-| ArtifactHub | Not managed by Terraform. yggdrasil documents the standard steps for listing a Helm chart (registering it, `artifacthub-repo.yml` for the verified publisher, editing a record in place and never re-registering it), and `initialize-project` points at them | new |
 | `cloudflare` stack | Moved whole from Kubernetes-Manifests `terraform/cloudflare`, with its state | Kubernetes-Manifests |
 
 ## 4. Core components
@@ -95,14 +94,14 @@ Detailed into tasks after sign-off. In order:
 7. **P6 `github` stack.**
    - Import all 17 repos and the five orgs until the plan is empty.
    - Then turn on plan on PR, apply on merge, and the weekly drift plan.
-8. **P7 Docker Hub**, if P1 shows Docker's provider can manage it, plus the ArtifactHub docs.
+8. **P7 Docker Hub**, if P1 shows Docker's provider can manage it.
 9. **P8 `cloudflare` stack.**
    - Move the stack from Kubernetes-Manifests.
    - Point its `cloud` block at `Yggdrasil-Org`, where its workspace already is after the rename.
    - The plan must come back empty before anything else changes.
 10. **P9 ai-config.** `initialize-project` tells new repos to call yggdrasil. ai-config#2 and #3 close.
 
-Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hub, ArtifactHub and Cloudflare. That covers replacing `AUTO_MERGE_PAT` and `GH_PAT` with `zimmertr-yggdrasil-bot`. SBOM (ai-config#13) follows this project.
+Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hub and Cloudflare. That covers replacing `AUTO_MERGE_PAT` and `GH_PAT` with `zimmertr-yggdrasil-bot`. SBOM (ai-config#13) follows this project.
 
 ## 8. Interview choices
 
@@ -118,7 +117,7 @@ Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hu
 | Container image | No | No image pipeline for yggdrasil itself |
 | License | GPL-3.0 | `LICENSE` |
 | Visibility | Public | GitHub's free security features |
-| Upstreams | GitHub, Docker Hub, ArtifactHub, Cloudflare, HCP Terraform | `docs/` lists each provider's limits and terms |
+| Upstreams | GitHub, Docker Hub, Cloudflare, HCP Terraform | `docs/` lists each provider's limits and terms |
 | Terraform runs | Plan on PR, apply on merge | Plan comment, apply job, weekly drift plan |
 | Credential | GitHub App `zimmertr-yggdrasil-bot` | App id and key as yggdrasil secrets; no PAT |
 | Managed repos and orgs | The 17 repos and 5 orgs above (the two strava-heatmap-proxy forks were deleted on 2026-11-05; Email-Infrastructure, Lakebagger/Backend and Lakebagger/Frontend, which held no code, on 2026-11-06) | One YAML file each |
@@ -132,6 +131,6 @@ Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hu
 3. Workflows (P2 to P5) come before Terraform (P6 to P8): each module is proven on hevy-trainer-sync before anything else depends on it.
 4. The HCP org is `Yggdrasil-Org`. Kubernetes-Manifests#1888 points the Cloudflare stack at it.
 5. Added after sign-off, 2026-11-05: requirements 9 to 12, profiles, the template repo, the guardrails and the release module's `dry-run` input. A separate sandbox repo was considered and dropped as more than this needs. This project builds on GitHub's free features. That is where it starts, not a limit: self-hosted runners, other platforms and paid services stay open when they become relevant. Not in this project, and open for later: a fleet report, OpenSSF Scorecard, org-level required workflows, delivery metrics, self-hosted runners, a developer portal.
-6. Settled 2026-11-05: every repo is production, so there are no rollout rings; consumers check daily. Profiles start as `default` and `archived`. ArtifactHub is documented, not managed. One issue per phase. PR plans keep the App's admin-capable token for now; a `security` issue tracks a read-only plan App. All 18 repos adopt the baseline modules plus what fits.
+6. Settled 2026-11-05: every repo is production, so there are no rollout rings; consumers check daily. Profiles start as `default` and `archived`. ArtifactHub is documented, not managed (dropped 2026-11-06, record 0040). One issue per phase. PR plans keep the App's admin-capable token for now; a `security` issue tracks a read-only plan App. All 18 repos adopt the baseline modules plus what fits.
 7. Settled 2026-11-05: the App is `zimmertr-yggdrasil-bot` (App ID 5636772), installed on `zimmertr` and the five orgs. yggdrasil's own auto-merge uses it from the start, so yggdrasil has no `AUTO_MERGE_PAT`. The five orgs are managed in this epic; Lakebagger keeps its org with no repos, since its two were deleted on 2026-11-06.
 8. Settled 2026-11-06, after the #4 audit: Terraform's own typed variables, preconditions and `archive_on_destroy` replace the JSON Schema, the profile files and the `destroy-approved` label (record 0035). A decision record is written only for a decision that shapes the system (record 0036).

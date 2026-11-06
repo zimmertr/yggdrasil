@@ -41,3 +41,5 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0015](0015-skills-live-in-ai-config.md) | Shared skills live only in zimmertr/ai-config, and a repo-specific skill lives only in its repo | 2026-11-05 | Accepted |
 | [0016](0016-pr-plans-keep-the-admin-token-for-now.md) | PR plans run with the App's full token for now | 2026-11-05 | Accepted |
 | [0017](0017-docs-and-records.md) | Every change updates its docs page in the same PR, and every decision gets a record here | 2026-11-05 | Accepted |
+| [0018](0018-checks-run-through-make-in-pinned-containers.md) | Every check runs through a make target in a container pinned by digest, the same way locally and in CI | 2026-11-05 | Accepted |
+| [0019](0019-community-tools-hold-workflows-and-docs.md) | zizmor, lychee and a grep hold every workflow and doc to the repo's rules, instead of a custom check | 2026-11-05 | Accepted |

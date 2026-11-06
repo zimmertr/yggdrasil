@@ -1,6 +1,6 @@
 # CI/CD
 
-How a change gets from a PR to main, and later to every consuming repo. As of 2026-11-05 no workflow exists yet: #2 adds the checks one PR at a time, and this page grows with each.
+How a change gets from a PR to main, and later to every consuming repo. #2 adds the checks one PR at a time, and this page grows with each.
 
 ## From PR to main
 
@@ -14,8 +14,21 @@ flowchart LR
 
 - Every change reaches main through a PR. The repo allows squash merges only, with the PR title as the commit title and the PR body as the message.
 - The PR title is `type(scope): summary`. It picks the next version, and a `!` before the colon marks a change that breaks a caller. Record: [0004](architectural-decision-records/0004-one-version-for-every-module.md)
-- The required checks and branch protection arrive with #2 items 0.4 to 0.9. A check is added to protection only after it has reported once, because a required check that never reports blocks every PR.
 - The release workflow arrives with the modules in #4.
+
+## PR checks
+
+Every job runs a `make` target, in the same pinned container a local run uses. Record: [0018](architectural-decision-records/0018-checks-run-through-make-in-pinned-containers.md)
+
+| Workflow | Job | Runs | Fails on |
+|---|---|---|---|
+| `checks.yml` | `actionlint` | `make actionlint`: actionlint, with shellcheck on every `run:` | Any finding in `.github/workflows/` |
+| `checks.yml` | `zizmor` | `make zizmor`: zizmor's pedantic audits, online with the job's read-only token, findings as PR annotations | Any finding: an unpinned action or a version comment that is missing or wrong, `${{ }}` inside `run:`, a checkout that keeps credentials, `pull_request_target`, broad permissions and the rest |
+| `checks.yml` | `Docs` | `make docs`: lychee over every relative link and heading anchor, and a grep for em dashes | A broken link or anchor, or an em dash |
+
+`checks.yml` also has `workflow_call`, so the release workflow (#4) can run the checks on the merged commit before it builds anything. Record: [0019](architectural-decision-records/0019-community-tools-hold-workflows-and-docs.md)
+
+Branch protection arrives with #2 item 0.9. A check is added to it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR.
 
 ## Settings applied by API
 

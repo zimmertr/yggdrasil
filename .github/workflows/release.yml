@@ -296,34 +296,22 @@ jobs:
 
   # One PR per deploy file, on a fixed branch, so quick releases leave one
   # up-to-date PR, not a pile. After the release, because a chart repo's own
-  # release reads the app's latest one.
+  # release reads the app's latest one. Releases run one at a time, so only a
+  # re-run of an old release could point a deploy back at an older version:
+  # don't re-run one after a newer release; release again instead.
   deploy:
     name: Deploy Bump (${{ matrix.repo }})
     needs: [version, release]
     if: inputs.deploys != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    permissions:
-      contents: read  # the release list, for the newer-release check
+    permissions: {}  # everything here uses the deploy token
     strategy:
       fail-fast: false
       matrix:
         include: ${{ fromJSON(inputs.deploys) }}
     steps:
-      # A re-run that finishes an older release after a newer one shipped must
-      # not move the deploy back onto the older version. Every tag sorted by
-      # version, since GitHub's Latest is whichever release came last.
-      - id: newest
-        env:
-          VERSION: ${{ needs.version.outputs.version }}
-          REPO: ${{ matrix.repo }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          NEWEST=$(gh release list --repo "$GITHUB_REPOSITORY" --json tagName --jq '.[].tagName' | sed 's/^v//' | sort -V | tail -n 1)
-          [ "$NEWEST" = "$VERSION" ] || echo "::notice::v${NEWEST} is newer than v${VERSION}; leaving ${REPO} alone."
-          echo "newest=${NEWEST}" >> "$GITHUB_OUTPUT"
-      - if: steps.newest.outputs.newest == needs.version.outputs.version
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ matrix.repo }}
           token: ${{ secrets.deploy-token }}
@@ -331,8 +319,7 @@ jobs:
       # yq's own action, its image pinned by digest. -e fails the step when the
       # path matches nothing, which would otherwise pass for a deploy already
       # at this version.
-      - if: steps.newest.outputs.newest == needs.version.outputs.version
-        uses: mikefarah/yq@504fc38780cc46be8444ea1b72fb55919fc0bfb0 # v4.54.1
+      - uses: mikefarah/yq@504fc38780cc46be8444ea1b72fb55919fc0bfb0 # v4.54.1
         env:
           VERSION: ${{ needs.version.outputs.version }}
           FILE: ${{ matrix.file }}
@@ -344,7 +331,6 @@ jobs:
       # already holds it. zizmor would have `gh pr create` instead, which does
       # only the last of those; the rest would be shell (record 0033).
       - id: pr  # zizmor: ignore[superfluous-actions]
-        if: steps.newest.outputs.newest == needs.version.outputs.version
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.deploy-token }}

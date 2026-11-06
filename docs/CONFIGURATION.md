@@ -28,7 +28,8 @@ Works out the next version, builds and pushes the caller's images under it and s
 - A re-run finds an image already pushed from this commit and skips its build. One pushed from another commit stops the run.
 - A fixable Critical or High on any image or platform stops the tag and release. The image stays pushed; the fix is the next release.
 - After the release, `peter-evans/create-pull-request` gives each deploy file one PR on its fixed `branch`, rebuilt off the repo's default branch each release, and squash auto-merge is armed (or a plain squash merge when the checks are already green). A PR still open from an earlier release is moved to the newest.
-- A deploy is left alone when a newer release than this one exists, so a late re-run can't move it back. A `set` path that matches nothing fails the job.
+- A `set` path that matches nothing fails the job.
+- Don't re-run an old release after a newer one shipped: its deploy PR would point the deploy back at the older version. Release again instead.
 - `yq` drops a file's blank lines the first time it edits it. Comments stay.
 - The caller sees `<caller job> / Version`, `/ Build & Push (<image>)`, `/ Scan Pushed Image (<image>, <platform>)`, `/ Tag and Release` and `/ Deploy Bump (<repo>)`.
 

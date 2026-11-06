@@ -17,7 +17,7 @@ hevy-trainer-sync bumps one `newTag` line in Kubernetes-Manifests with its own P
 - `yq`'s own action sets the value, and `yq -e` fails the job when the path matches nothing. The action pins its image by digest.
 - `peter-evans/create-pull-request` makes the branch, the commit, the push and the PR, or edits the PR already open. The checkout keeps no credential; the action pushes with its own `token`. The one step left in shell arms auto-merge, with a plain merge when the checks are already green.
 - The job runs after the release, because bluebird-helm's release reads Bluebird's latest release. For a Kubernetes-Manifests bump that costs the few seconds the release takes.
-- The newer-release check sorts every release tag by version, so it doesn't depend on which release GitHub marks Latest.
+- No newer-release check, unlike both repos today. Releases run one at a time, so only a manual re-run of an old release can point a deploy back at an older version. TJ, 2026-11-06, chose to drop it over a version sort in shell (YAGNI).
 ## Evidence
 
 - 2026-11-06: `yq` 4.54.1 on a copy of Kubernetes-Manifests' `misc/hevy2garmin/kustomization.yml` changed the one `newTag` and dropped the file's two blank lines. Every comment stayed. On bluebird-helm's `charts/bluebird/Chart.yaml` it changed only `appVersion`, quotes kept.

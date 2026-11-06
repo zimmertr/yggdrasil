@@ -93,5 +93,5 @@ jobs:
           trivy-config: ${{ hashFiles('trivy.yaml') != '' && 'trivy.yaml' || '.yggdrasil/defaults/trivy.yaml' }}
       - if: failure() && steps.gate.outcome == 'failure'
         env:
-          REMEDY: ${{ matrix.remedy || 'Merge the open Dependabot base-image PR, or if there is none, any PR: the next release rebuilds on the current base.' }}
+          REMEDY: "${{ matrix.remedy || 'Merge the open Dependabot base-image PR, or if there is none, any PR: the next release rebuilds on the current base.' }}"
         run: echo "::error::${REMEDY}"

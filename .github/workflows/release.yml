@@ -2,9 +2,10 @@ name: release
 
 # The release module: the next version; the caller's images built, pushed and
 # scanned by digest; then the git tag and GitHub release, which wait on every
-# scan. A caller runs it on every push to main, and may run it on PRs with
-# `dry-run`, where it says in the job summary what the merge will release and
-# builds the images without pushing them. Decision records 0027 and 0032.
+# scan; then a PR in each deploy repo that points it at the release. A caller
+# runs it on every push to main, and may run it on PRs with `dry-run`, where it
+# says in the job summary what the merge will release and builds the images
+# without pushing them. Decision records 0027, 0032 and 0033.
 #
 # The caller sets `concurrency` (one release at a time) and grants
 # `contents: write`, which only the Tag and Release job uses.
@@ -29,12 +30,24 @@ on:
           and `cache` to false. Empty for none.
         type: string
         default: '[]'
+      deploys:
+        description: >-
+          JSON list of the files to point at the release, one PR each:
+          {"repo": "zimmertr/Kubernetes-Manifests", "file": "path/kustomization.yml",
+          "set": "yq path, such as .appVersion", "branch": "chore/name-image",
+          "title": "chore(scope): bump name"}. The version is appended to the
+          title as " to X.Y.Z". Empty for none.
+        type: string
+        default: '[]'
     secrets:
       dockerhub-username:
         description: Docker Hub user that pushes the images. Needed when `images` isn't empty.
         required: false
       dockerhub-token:
         description: Docker Hub token for that user. Needed when `images` isn't empty.
+        required: false
+      deploy-token:
+        description: Token with contents and pull-requests write on every `deploys` repo. Needed when `deploys` isn't empty.
         required: false
 
 permissions:
@@ -280,3 +293,59 @@ jobs:
         run: |
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
           echo "Released ${TAG}." >> "$GITHUB_STEP_SUMMARY"
+
+  # One PR per deploy file, on a fixed branch, so quick releases leave one
+  # up-to-date PR, not a pile. After the release, because a chart repo's own
+  # release reads the app's latest one. Releases run one at a time, so only a
+  # re-run of an old release could point a deploy back at an older version:
+  # don't re-run one after a newer release; release again instead.
+  deploy:
+    name: Deploy Bump (${{ matrix.repo }})
+    needs: [version, release]
+    if: inputs.deploys != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: {}  # everything here uses the deploy token
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(inputs.deploys) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ matrix.repo }}
+          token: ${{ secrets.deploy-token }}
+          persist-credentials: false
+      # yq's own action, its image pinned by digest. -e fails the step when the
+      # path matches nothing, which would otherwise pass for a deploy already
+      # at this version.
+      - uses: mikefarah/yq@504fc38780cc46be8444ea1b72fb55919fc0bfb0 # v4.54.1
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          FILE: ${{ matrix.file }}
+          SET: ${{ matrix.set }}
+        with:
+          cmd: yq -i "$SET = strenv(VERSION)" "$FILE" && yq -e "($SET) == strenv(VERSION)" "$FILE"
+      # Pushes the fixed branch fresh off the default branch, then opens the PR
+      # or edits the open one to this version. Does nothing when the file
+      # already holds it. zizmor would have `gh pr create` instead, which does
+      # only the last of those; the rest would be shell (record 0033).
+      - id: pr  # zizmor: ignore[superfluous-actions]
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.deploy-token }}
+          branch: ${{ matrix.branch }}
+          commit-message: ${{ matrix.title }} to ${{ needs.version.outputs.version }}
+          title: ${{ matrix.title }} to ${{ needs.version.outputs.version }}
+          body: |
+            Automated by the ${{ github.repository }} v${{ needs.version.outputs.version }} release.
+
+            - Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.version.outputs.version }}
+      # Every push to the branch disarms auto-merge, so arm it each time. The
+      # plain merge covers checks already green, where --auto is refused.
+      - if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
+        env:
+          REPO: ${{ matrix.repo }}
+          PR: ${{ steps.pr.outputs.pull-request-number }}
+          GH_TOKEN: ${{ secrets.deploy-token }}
+        run: gh pr merge "$PR" --repo "$REPO" --auto --squash || gh pr merge "$PR" --repo "$REPO" --squash

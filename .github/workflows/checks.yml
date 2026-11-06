@@ -1,14 +1,12 @@
 name: checks
 
 # The PR checks, each through the make target and container a local run uses
-# (decision records 0018 and 0019). workflow_call lets the release workflow
-# (#4) run them on the merged commit first.
+# (decision records 0018 and 0019).
 #
-# Branch protection will require the job names `actionlint`, `zizmor` and
-# `Docs`; renaming one strands PRs on a check that never reports.
+# Branch protection requires the job names `actionlint`, `zizmor` and `Docs`;
+# renaming one strands PRs on a check that never reports.
 on:
   pull_request:
-  workflow_call:
 
 concurrency:
   group: checks-${{ github.ref }}

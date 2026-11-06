@@ -1,0 +1,26 @@
+name: ci-release
+
+# yggdrasil releases itself through its own release module, so this is also
+# the module's test caller. On a PR it runs in dry-run, and the Version job's
+# summary says what the merge will release. Decision record 0027.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# One release at a time on main; a newer push to a PR replaces its dry run.
+concurrency:
+  group: ci-release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Release
+    uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write  # the tag and release, on main only
+    with:
+      dry-run: ${{ github.event_name == 'pull_request' }}

@@ -72,8 +72,7 @@ TJ okayed both. Before: no branch protection and no code scanning.
 | Secret | Kind | Holds | Used by |
 |---|---|---|---|
 | `YGGDRASIL_BOT_PRIVATE_KEY` | Dependabot | The App's private key, set by TJ | `dependabot-auto-merge.yml` |
-| `YGGDRASIL_BOT_APP_ID` | Dependabot | The App ID of `zimmertr-yggdrasil-bot` | Nothing: the workflow names the App by its public client ID instead. To be deleted |
 
-They are Dependabot secrets because a run Dependabot starts can't read Actions secrets. yggdrasil has no `AUTO_MERGE_PAT`: its auto-merge mints an App token instead. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)
+It is a Dependabot secret because a run Dependabot starts can't read Actions secrets. The workflow names the App by its public client ID, so `YGGDRASIL_BOT_APP_ID`, which held the App ID, was deleted on 2026-11-05 with TJ's okay. yggdrasil has no `AUTO_MERGE_PAT`: its auto-merge mints an App token instead. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)
 
 Never print, log or paste a secret's value. #12 inventories every secret across TJ's repos and services.

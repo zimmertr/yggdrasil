@@ -28,14 +28,18 @@ zizmor:
 # The Docs job.
 docs: links em-dash
 
+# README.md and CLAUDE.md are named as well as globbed: a glob that matches
+# nothing passes with nothing checked, but a named file that's missing fails.
+DOCS_NAMED := README.md CLAUDE.md
+
 # Every relative link in the docs, and the heading it points at. Offline:
 # web links are not checked here.
 links:
-	$(RUN) lychee --offline --include-fragments --no-progress './**/*.md'
+	$(RUN) lychee --offline --include-fragments --no-progress $(DOCS_NAMED) './**/*.md'
 
 # No em dash in any doc (decision record 0017). The pattern is the character's
 # UTF-8 bytes, so this file holds no em dash itself. Only grep's "no match"
 # (exit 1) passes: a match (0) or a grep error (2) fails, so a broken grep
 # can't pass silently.
 em-dash:
-	$(RUN) shell sh -c 'grep -rn --include="*.md" --exclude-dir=.git "$$(printf "\342\200\224")" .; test $$? -eq 1'
+	$(RUN) shell sh -c 'grep -rn --include="*.md" --exclude-dir=.git "$$(printf "\342\200\224")" . $(DOCS_NAMED); test $$? -eq 1'

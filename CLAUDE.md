@@ -4,23 +4,37 @@ TJ's GitHub and CI configuration in one public, GPL-3.0 repo. It has two halves:
 
 ## Documentation
 
-The README is TJ's: keep it accurate and in TJ's voice, and never restructure it.
+Prose lives in `docs/`. A change that makes any of it untrue updates it in the same PR, and every decision gets a record in the same PR, linked from the rule that states it. The README is TJ's: keep it accurate and in TJ's voice, and never restructure it. Record: [0017](docs/architectural-decision-records/0017-docs-and-records.md)
 
 | Doc | Holds |
 |---|---|
+| [`docs/PRD.md`](docs/PRD.md) | The signed-off design: requirements, features, scope, phases |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | The layout, how a repo uses a module, how a setting changes, and which issue builds each part |
+| [`docs/CICD.md`](docs/CICD.md) | From PR to main, the settings applied by API, and every secret |
+| [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md) | Module inputs, the shared defaults, the App's permissions and installations, Terraform's backend |
+| [`docs/DATA.md`](docs/DATA.md) | Each provider's limits and terms, and every quirk found, dated |
+| [`docs/USAGE.md`](docs/USAGE.md) | What TJ sees, and what to do when it breaks |
+| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | The CI-first loop, the `make` targets, how to write tests |
+| [`docs/architectural-decision-records/`](docs/architectural-decision-records/README.md) | One record per decision. The README is the index and says how to write one |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to send a change |
 | [`SECURITY.md`](SECURITY.md) | Supported versions, private reporting, scope |
 
 ## Rules
 
-- **Callers bring their own config.** A module reads everything repo-specific from its `with:` inputs. yggdrasil holds no per-repo pipeline config; the only per-repo data it keeps defines the repos and orgs themselves.
-- **One version for every module.** Every merge that changes a module path releases the next SemVer, and a settings-only change releases nothing. Callers pin the commit SHA with `# vX.Y.Z` beside it. A change that breaks a caller carries `!` in its PR title.
-- **Every repo is production.** No repo gets a module before another; each takes a release the day it ships, and a bad release is fixed forward.
-- **The repo is public.** No tokens, ids or personal data in code, fixtures or logs. Email-Infrastructure and Resume are private: their names and settings may appear here, never their contents.
-- **No `pull_request_target`**, and Terraform plans run only on PRs from this repo's own branches.
-- **One bot identity.** Automation writes as the App `zimmertr-yggdrasil-bot`, through a short-lived token minted per run. Never read or print its private key, or any secret's value.
-- **Settings change only through PRs**, once Terraform manages them (#8). Until then, a settings change is an API call TJ okays first.
-- **Skills live in zimmertr/ai-config only**, linked into `~/.claude/skills`. Never copy one into this repo.
+- **One repo for both halves**, public and GPL-3.0. Record: [0001](docs/architectural-decision-records/0001-one-public-gpl-3-monorepo.md)
+- **Callers bring their own config.** A module reads everything repo-specific from its `with:` inputs. yggdrasil holds no per-repo pipeline config; the only per-repo data it keeps defines the repos and orgs themselves. Record: [0002](docs/architectural-decision-records/0002-callers-bring-their-own-config.md) Dependency config stays in each repo, and only the auto-merge is shared. Record: [0003](docs/architectural-decision-records/0003-dependency-config-stays-per-repo.md)
+- **One version for every module.** Every merge that changes a module path releases the next SemVer, and a settings-only change releases nothing. Callers pin the commit SHA with `# vX.Y.Z` beside it. A change that breaks a caller carries `!` in its PR title. Record: [0004](docs/architectural-decision-records/0004-one-version-for-every-module.md)
+- **Every repo is production.** No repo gets a module before another; each takes a release the day it ships, patch and minor bumps merge themselves, and a bad release is fixed forward. Record: [0005](docs/architectural-decision-records/0005-every-repo-is-production.md)
+- **Shared conventions are defaults.** `GitVersion.yml`, the PR title patterns and `trivy.yaml` ship from `defaults/`, read at the module's pinned ref, and a caller can pass its own. Record: [0006](docs/architectural-decision-records/0006-shared-conventions-ship-as-defaults.md)
+- **One bot identity.** Automation writes as the App `zimmertr-yggdrasil-bot`, through a short-lived token minted per run. Never read or print its private key, or any secret's value. Record: [0007](docs/architectural-decision-records/0007-one-bot-identity.md)
+- **Terraform plans on every PR and applies on merge**, with state in HCP Terraform org `Yggdrasil-Org`, for GitHub, Docker Hub and Cloudflare. ArtifactHub is documented, not managed. Records: [0008](docs/architectural-decision-records/0008-terraform-plan-on-pr-apply-on-merge.md), [0009](docs/architectural-decision-records/0009-providers-in-scope.md)
+- **The repo is public.** No tokens, ids or personal data in code, fixtures or logs. Terraform manages settings, never a repo's files, so Email-Infrastructure's and Resume's names and settings may appear here, never their contents. Record: [0010](docs/architectural-decision-records/0010-safe-in-public.md)
+- **No `pull_request_target`**, and Terraform plans run only on PRs from this repo's own branches, with the App's full token for now (#13). Records: [0010](docs/architectural-decision-records/0010-safe-in-public.md), [0016](docs/architectural-decision-records/0016-pr-plans-keep-the-admin-token-for-now.md)
+- **Guardrails are CI checks**: the breaking-change check, the release `dry-run`, import before apply, the schema that refuses weaker settings, and the `destroy-approved` gate. Record: [0011](docs/architectural-decision-records/0011-guardrails-as-code.md)
+- **One YAML file per repo and per org**, each naming a profile (`default` or `archived`); new repos start from the template. Record: [0012](docs/architectural-decision-records/0012-one-file-per-repo-and-org.md)
+- **Workflows before Terraform**, one issue per phase under #1. Record: [0013](docs/architectural-decision-records/0013-workflows-before-terraform.md)
+- **Settings change only through PRs**, once Terraform manages them (#8). Until then, a settings change is an API call TJ okays first, logged in [`docs/CICD.md`](docs/CICD.md#settings-applied-by-api). Record: [0014](docs/architectural-decision-records/0014-foundation-by-hand-then-imported.md)
+- **Skills live in zimmertr/ai-config only**, linked into `~/.claude/skills`. Never copy one into this repo. Record: [0015](docs/architectural-decision-records/0015-skills-live-in-ai-config.md)
 
 ## Issues
 

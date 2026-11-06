@@ -19,6 +19,13 @@ Works out the next version, then tags the commit and publishes the GitHub releas
 - A `GitVersion.yml` at the caller's root is used. Without one, the module reads `defaults/GitVersion.yml`.
 - The caller sees the checks `<caller job> / Version` and `<caller job> / Tag and Release`.
 
+### `pr-title.yml`
+
+Fails a PR whose title isn't `type(scope): summary` with a type from `defaults/GitVersion.yml`'s patterns, so every merge releases the bump its title says. No inputs. Record: [0028](architectural-decision-records/0028-pr-title-module-is-yggdrasils-own-check.md)
+
+- The caller runs it from `pull_request` with `types: [opened, edited, reopened, synchronize]`, so a title edit reruns it, and grants `pull-requests: read`.
+- The caller sees the check `<caller job> / PR Title`.
+
 ## Shared defaults
 
 A module reads these at the commit its caller pinned, by checking out `job.workflow_repository` at `job.workflow_sha`, and a caller can pass its own file instead. Records: [0006](architectural-decision-records/0006-shared-conventions-ship-as-defaults.md), [0022](architectural-decision-records/0022-modules-load-their-own-files-from-the-job-context.md)

@@ -1,6 +1,6 @@
 # 0004. Every module shares one SemVer, released only when a module path changes, and callers pin the commit
 
-- Status: Accepted
+- Status: Accepted, except the breaking-change check, which 0025 drops
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05: "Yes, and then consumes subscribe to these versions and must be bumped… auto-merge non-breaking…"
 - Issues and PRs: #1, #3, #4

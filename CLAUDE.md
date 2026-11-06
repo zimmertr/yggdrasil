@@ -53,4 +53,6 @@ File issues with the `create-issue` skill from zimmertr/ai-config: the two-sente
 - Actions are pinned to full commit SHAs with the version in a comment. The repo setting `sha_pinning_required` refuses a tag, and zizmor refuses a SHA whose comment is missing or wrong.
 - **Use a maintained tool before writing a check.** zizmor (pedantic) holds the workflows, lychee the doc links, and a grep the em dashes. Write custom code only for a gap no tool covers. Record: [0019](docs/architectural-decision-records/0019-community-tools-hold-workflows-and-docs.md)
 - **CI runs the checks.** Every check is a `make` target in a pinned container from `compose.yml`, run the same way in CI; commit early and read the jobs. Record: [0018](docs/architectural-decision-records/0018-checks-run-through-make-in-pinned-containers.md)
+- **Dependabot's patch and minor updates merge themselves**, armed by a token from `zimmertr-yggdrasil-bot`; majors wait for TJ. Record: [0021](docs/architectural-decision-records/0021-dependabot-with-app-auto-merge.md)
+- **Branch protection** requires the checks below, admins included, with conversations resolved; renaming a job means updating protection in the same PR.
 - Checks today: `actionlint`, `zizmor`, `Docs`, `PR Title` ([`docs/CICD.md`](docs/CICD.md#pr-checks)).

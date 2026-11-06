@@ -29,7 +29,7 @@ Every job runs a `make` target, in the same pinned container a local run uses. R
 
 `checks.yml` also has `workflow_call`, so the release workflow (#4) can run the checks on the merged commit before it builds anything. Record: [0019](architectural-decision-records/0019-community-tools-hold-workflows-and-docs.md)
 
-Branch protection arrives with #2 item 0.9. A check is added to it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR.
+Branch protection requires `actionlint`, `zizmor`, `Docs` and `PR Title` (logged below). A check joins it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR. CodeQL's default setup scans the workflows too.
 
 ## Settings applied by API
 
@@ -50,12 +50,29 @@ Before: merge commits and rebase merges allowed, the squash commit built from th
 
 Each setting was read back from its endpoint after the call.
 
+### 2026-11-05, #2 item 0.9
+
+TJ okayed both. Before: no branch protection and no code scanning.
+
+| Call | Sets |
+|---|---|
+| `gh api -X PUT repos/zimmertr/yggdrasil/branches/main/protection --input protection.json` | Required checks `actionlint`, `zizmor`, `Docs` and `PR Title` from GitHub Actions (app 15368), not strict; a PR for every change with 0 approvals and stale reviews dismissed; admins included; conversations resolved; no force-push, no deletion |
+| `gh api -X PATCH repos/zimmertr/yggdrasil/code-scanning/default-setup -f state=configured -f query_suite=default -f 'languages[]=actions'` | CodeQL default setup for the workflows |
+
+`protection.json` held exactly those fields; the read-back of `branches/main/protection` matched it.
+
+## Dependabot
+
+`.github/dependabot.yml` updates the pinned actions (`github-actions`) and the tool images in `compose.yml` (`docker-compose`) weekly, each version waiting seven days after its release. Security updates skip the wait. Titles are `build(deps): ...`, a patch.
+
+`dependabot-auto-merge.yml` arms squash auto-merge on Dependabot's patch and minor updates, with a token minted from `zimmertr-yggdrasil-bot`, and comments on the PR as the bot. Majors and digest-only updates wait for TJ. Record: [0021](architectural-decision-records/0021-dependabot-with-app-auto-merge.md)
+
 ## Secrets
 
 | Secret | Kind | Holds | Used by |
 |---|---|---|---|
-| `YGGDRASIL_BOT_APP_ID` | Dependabot | The App ID of `zimmertr-yggdrasil-bot` | `dependabot-auto-merge.yml` (#2 item 0.8) |
-| `YGGDRASIL_BOT_PRIVATE_KEY` | Dependabot | The App's private key, set by TJ | `dependabot-auto-merge.yml` (#2 item 0.8) |
+| `YGGDRASIL_BOT_PRIVATE_KEY` | Dependabot | The App's private key, set by TJ | `dependabot-auto-merge.yml` |
+| `YGGDRASIL_BOT_APP_ID` | Dependabot | The App ID of `zimmertr-yggdrasil-bot` | Nothing: the workflow names the App by its public client ID instead. To be deleted |
 
 They are Dependabot secrets because a run Dependabot starts can't read Actions secrets. yggdrasil has no `AUTO_MERGE_PAT`: its auto-merge mints an App token instead. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)
 

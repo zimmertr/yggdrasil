@@ -14,7 +14,7 @@ None yet. Each module documents its inputs here when #4 adds it: the name, wheth
 
 `zimmertr-yggdrasil-bot`, checked with `gh api apps/zimmertr-yggdrasil-bot` on 2026-11-05. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)
 
-- **App ID**: 5636772. Owned by `zimmertr`, installable on any account, no webhook.
+- **App ID**: 5636772. **Client ID**: `Iv23liwzT6dq3xtbxm5P`, which `actions/create-github-app-token` takes as `client-id`. Neither is a secret. Owned by `zimmertr`, installable on any account, no webhook.
 - **Installed on**: `zimmertr` (all repositories), and the orgs Bluebird-Forecast, Fellfield-Game, GPX-Search, TJs-Kubernetes-Service and Lakebagger. TJ installs it on any new owner, because a token minted for one owner can't write to another.
 - **Repository permissions**: Actions, Administration, Contents, Environments, Pull requests and Workflows (read and write); Metadata (read).
 - **Organization permissions**: Administration (read and write); Members (read).

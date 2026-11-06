@@ -2,11 +2,13 @@ name: lint
 
 # The lint module: actionlint, with shellcheck on every `run:`; zizmor's
 # pedantic audits over the caller's workflows, actions and dependabot.yml; and
-# Semgrep's rule that every Dockerfile `FROM` carries a digest. All three run
-# in the images yggdrasil's compose.yml pins, read at the commit the caller
-# pinned, so a caller, yggdrasil's CI and `make actionlint` / `make zizmor` /
-# `make semgrep` here run the same tools (records 0018, 0019, 0022). Decision
-# record 0037.
+# Semgrep's rule that a Dockerfile `FROM` with a tag carries a digest too. A
+# `FROM` with no tag at all passes it, as do `FROM <stage>` and `FROM scratch`:
+# for an image that ships, the docker-build module's hadolint (DL3006) refuses
+# the missing tag first. All three run in the images yggdrasil's compose.yml
+# pins, read at the commit the caller pinned, so a caller, yggdrasil's CI and
+# `make actionlint` / `make zizmor` / `make semgrep` here run the same tools
+# (records 0018, 0019, 0022). Decision record 0037.
 #
 # The caller runs it on `pull_request` and grants `contents: read`, and sees
 # the checks as `<caller job> / actionlint`, `<caller job> / zizmor` and

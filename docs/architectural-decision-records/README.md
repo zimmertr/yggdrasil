@@ -62,3 +62,5 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0035](0035-terraform-guards-itself.md) | The github stack guards itself with typed variables, preconditions and `archive_on_destroy`, with no schema, profile files or destroy label | 2026-11-06 | Accepted |
 | [0036](0036-records-only-for-system-decisions.md) | A decision record is written only for a decision that shapes the system | 2026-11-06 | Accepted |
 | [0037](0037-lint-module.md) | A lint module runs actionlint, zizmor and Semgrep in every repo, in the images `compose.yml` pins | 2026-11-06 | Accepted. Supersedes 0026 in part |
+| [0038](0038-consumers-take-a-trimmed-set-of-repo-files.md) | A repo moving onto the modules takes a trimmed set of `initialize-project`'s repo files once, and adds the rest as later work reaches it | 2026-11-06 | Accepted |
+| [0039](0039-private-repos-run-the-checks-without-requiring-them.md) | A private repo runs the shared checks without requiring them, and has no auto-merge, while TJ's account is on GitHub Free | 2026-11-06 | Accepted |

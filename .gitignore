@@ -1,0 +1,30 @@
+# Python, for the composite actions' scripts and tests
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Terraform. Keep .terraform.lock.hcl: it pins the providers.
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Credentials. The App's private key and any token file never belong here.
+*.pem
+.env
+.env.*
+
+.DS_Store

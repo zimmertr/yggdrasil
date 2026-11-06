@@ -55,3 +55,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0029](0029-auto-merge-module-takes-the-callers-token.md) | The auto-merge module takes each caller's own merge token, not the App's key | 2026-11-05 | Accepted |
 | [0030](0030-docker-build-module.md) | The docker-build module builds `linux/amd64` only, takes the smoke test as a script, and is tested on an empty image | 2026-11-05 | Accepted |
 | [0031](0031-image-scan-module.md) | The image-scan module takes a JSON list of images, scans each once, and converts the report to SARIF | 2026-11-05 | Accepted |
+| [0032](0032-release-module-builds-the-images.md) | The release module builds every image from one JSON list, scans each platform by digest, and releases only after every scan | 2026-11-05 | Accepted |

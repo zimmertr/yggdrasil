@@ -28,7 +28,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0002](0002-callers-bring-their-own-config.md) | Each caller passes its own configuration to a module as inputs | 2026-11-05 | Accepted |
 | [0003](0003-dependency-config-stays-per-repo.md) | Dependency config stays in each repo, and only the auto-merge is shared | 2026-11-05 | Accepted |
 | [0004](0004-one-version-for-every-module.md) | Every module shares one SemVer, released only when a module path changes, and callers pin the commit | 2026-11-05 | Accepted |
-| [0005](0005-every-repo-is-production.md) | Every consumer is production: each takes a release the day it ships, and patch and minor bumps merge themselves | 2026-11-05 | Accepted |
+| [0005](0005-every-repo-is-production.md) | Every consumer is production: each takes a release the day it ships, and patch and minor bumps merge themselves | 2026-11-05 | Superseded by 0023 |
 | [0006](0006-shared-conventions-ship-as-defaults.md) | The versioning, PR title and scan conventions ship from yggdrasil as defaults a caller can override | 2026-11-05 | Accepted |
 | [0007](0007-one-bot-identity.md) | Automation writes as the GitHub App zimmertr-yggdrasil-bot, with a token minted per run, and yggdrasil has no PAT | 2026-11-05 | Accepted |
 | [0008](0008-terraform-plan-on-pr-apply-on-merge.md) | Terraform plans on every PR and applies on merge, with state in HCP Terraform org Yggdrasil-Org | 2026-11-05 | Accepted |
@@ -46,3 +46,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0020](0020-pr-titles-checked-by-a-community-action.md) | PR titles are checked by action-semantic-pull-request, against the same types GitVersion reads | 2026-11-05 | Accepted |
 | [0021](0021-dependabot-with-app-auto-merge.md) | Dependabot updates actions and tool images weekly, and its patch and minor updates merge themselves as the App | 2026-11-05 | Accepted |
 | [0022](0022-modules-load-their-own-files-from-the-job-context.md) | A module loads its own files by checking out `job.workflow_repository` at `job.workflow_sha` | 2026-11-05 | Accepted |
+| [0023](0023-releases-bake-three-days.md) | Every consumer is production: each takes a release once it is three days old, and patch and minor bumps merge themselves | 2026-11-05 | Accepted. Supersedes 0005 |

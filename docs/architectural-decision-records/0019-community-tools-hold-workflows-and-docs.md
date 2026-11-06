@@ -9,7 +9,7 @@
 
 ## Context
 
-yggdrasil's workflows become every consumer's workflows (0005), so a weak pattern here spreads to twenty repos. #2 item 0.5 listed the rules: SHA pins with a version comment, no `${{ }}` inside `run:`, a timeout on every job, checkouts without credentials, no `pull_request_target`, working doc links, and no em dashes.
+yggdrasil's workflows become every consumer's workflows (0023), so a weak pattern here spreads to twenty repos. #2 item 0.5 listed the rules: SHA pins with a version comment, no `${{ }}` inside `run:`, a timeout on every job, checkouts without credentials, no `pull_request_target`, working doc links, and no em dashes.
 
 ## Decision
 

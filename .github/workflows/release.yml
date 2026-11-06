@@ -77,9 +77,9 @@ jobs:
           # A merge that touches nothing GitVersion counts gives back the last
           # tagged version, which is how a settings-only merge releases nothing.
           if [ "$TAGGED" = true ]; then
-            echo "Releases nothing: v${VERSION} is already tagged." >> "$GITHUB_STEP_SUMMARY"
+            echo "Releases nothing: v${VERSION} is already tagged." | tee -a "$GITHUB_STEP_SUMMARY"
           else
-            echo "Releases v${VERSION}." >> "$GITHUB_STEP_SUMMARY"
+            echo "Releases v${VERSION}." | tee -a "$GITHUB_STEP_SUMMARY"
           fi
 
   release:

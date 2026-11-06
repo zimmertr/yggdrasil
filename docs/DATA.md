@@ -44,8 +44,14 @@ Uses: the stack that moves from Kubernetes-Manifests `terraform/cloudflare` (#10
 
 Uses: state and locks for every stack, in org `Yggdrasil-Org`, in local execution mode.
 
-- Docs: [HCP Terraform](https://developer.hashicorp.com/terraform/cloud-docs) and [workspace settings](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/settings). HashiCorp's pricing and terms pages refuse scripted requests, so they were not checked here.
+- Docs: [HCP Terraform](https://developer.hashicorp.com/terraform/cloud-docs) and [workspace settings](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/settings).
+- Pricing: [HashiCorp pricing](https://www.hashicorp.com/en/pricing).
+- Terms: [HashiCorp Website Terms of Service](https://www.hashicorp.com/en/terms-of-service). It covers hashicorp.com itself (last updated March 2018), not the use of HCP Terraform, and the service agreement is not linked here yet.
+
+Both HashiCorp pages answer scripted requests with HTTP 429, so TJ checked them in a browser on 2026-11-05.
 
 Quirks:
+
+- 2026-11-05: the pricing page lists HCP Terraform's Essentials, Standard and Premium plans, each priced per managed resource per month, and no free plan. Its FAQ asks "Is there still a free version of HCP Terraform?". Which plan `Yggdrasil-Org` is on, and whether a stack in local execution mode still counts its resources, is not yet confirmed. #8 confirms both before importing twenty repos.
 
 - 2026-11-05: the org name `yggdrasil` was already taken. TJ renamed the existing `Kubernetes-Manifests` org to `Yggdrasil-Org` instead, which kept the Cloudflare workspace and its state in place (Kubernetes-Manifests#1888).

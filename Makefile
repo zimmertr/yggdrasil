@@ -25,7 +25,8 @@ actionlint:
 zizmor:
 	$(RUN) zizmor --persona=pedantic $(ZIZMOR_ARGS) .
 
-# The semgrep job: every Dockerfile FROM carries a digest. Decision record 0037.
+# The semgrep job: a Dockerfile FROM with a tag carries a digest too. Decision
+# record 0037.
 semgrep:
 	$(RUN) semgrep semgrep scan --metrics=off --disable-version-check --error --config r/dockerfile.audit.dockerfile-source-not-pinned.dockerfile-source-not-pinned .
 

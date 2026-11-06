@@ -17,7 +17,7 @@ Each target runs in a container from `compose.yml`, pinned by tag and digest, an
 | `make check` | Every check below |
 | `make actionlint` | actionlint over every workflow, in the image the lint module's `actionlint` job uses |
 | `make zizmor` | zizmor's pedantic audits, in the image the lint module's `zizmor` job uses. Set `GH_TOKEN` (for example `GH_TOKEN=$(gh auth token) make zizmor`) for the online audits, which include the version comment checks; without it zizmor runs offline and skips them |
-| `make semgrep` | Semgrep's base-image digest rule over every Dockerfile, in the image the lint module's `semgrep` job uses |
+| `make semgrep` | Semgrep's rule that a tagged base image carries a digest, over every Dockerfile, in the image the lint module's `semgrep` job uses |
 | `make docs` | lychee over every relative link and anchor, and the em dash grep, as the `Docs` job runs them |
 ## Tests
 

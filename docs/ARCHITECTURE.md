@@ -68,4 +68,4 @@ Every write that automation makes, in yggdrasil and later in the consumers, uses
 
 ## What is managed
 
-Five orgs (Bluebird-Forecast, Fellfield-Game, GPX-Search, TJs-Kubernetes-Service, Lakebagger) and twenty repos, listed in [PRD.md](PRD.md#4-core-components). Each repo is both managed by Terraform and a consumer of the modules. Record: [0012](architectural-decision-records/0012-one-file-per-repo-and-org.md)
+Five orgs (Bluebird-Forecast, Fellfield-Game, GPX-Search, TJs-Kubernetes-Service, Lakebagger) and seventeen repos, listed in [PRD.md](PRD.md#4-core-components). Each repo is both managed by Terraform and a consumer of the modules. Record: [0012](architectural-decision-records/0012-one-file-per-repo-and-org.md)

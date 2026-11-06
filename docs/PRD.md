@@ -17,7 +17,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 2. **Modules are versioned, and consumers subscribe.** One SemVer covers every module. A consumer pins the commit with the version in a comment. Dependabot (or Renovate) opens a PR for each new release, and the shared auto-merge merges patch and minor bumps; a major waits for TJ. A breaking module change carries `!` in its PR title, which makes it a major. Only a change under the module paths cuts a release, so a settings-only PR bumps nothing downstream.
 3. **Settings change only through PRs.** Every PR posts its `terraform plan`. A merge to main applies it. A weekly plan reports drift.
 4. **Import before apply.** No apply runs against a repo until its import shows no changes. No plan that weakens branch protection or a security setting is applied without TJ's okay.
-5. **Safe in public.** Terraform manages settings and never a repo's existing files (it only creates a new repo from the template), so the two private repos (Email-Infrastructure, Resume) expose their names, descriptions and settings, never their contents. Plans run only on PRs from yggdrasil's own branches, and no workflow uses `pull_request_target`.
+5. **Safe in public.** Terraform manages settings and never a repo's existing files (it only creates a new repo from the template), so the private repo (Resume) exposes its name, description and settings, never its contents. Plans run only on PRs from yggdrasil's own branches, and no workflow uses `pull_request_target`.
 6. **One bot identity.** A GitHub App, `zimmertr-yggdrasil-bot`, owned by `zimmertr` and installed on every owner yggdrasil manages, mints a short-lived token per run. There is no PAT, unless the verification in task P1 proves one is needed.
 7. **Secret values stay out of Terraform** where possible.
 8. **KISS.** Dependency config (`dependabot.yml`, `renovate.json`) stays in each repo. Only the auto-merge logic is shared.
@@ -59,7 +59,7 @@ docs/
 
 Managed orgs at the start (5): Bluebird-Forecast, Fellfield-Game, GPX-Search, TJs-Kubernetes-Service, Lakebagger.
 
-Managed repos at the start (20), every one of them both managed by Terraform and a consumer of the modules: Lakebagger/Backend, Lakebagger/Frontend, yggdrasil, ai-config, bluebird, bluebird-helm, hevy-trainer-sync, Kubernetes-Manifests, TJs-Kubernetes-Service, Email-Infrastructure, Resume, 3D-Models, Bootstrap-Proxmox, Supermicro-X10-Fancontrol, Mountaineers-Activity-Scraper, Ender-6-Klipper-Guide, Personal-Website, zimmertr, Better-Lighter-Pack, Strava-Heatmap-String-Builder.
+Managed repos (17, all under `zimmertr`), every one of them both managed by Terraform and a consumer of the modules: yggdrasil, ai-config, bluebird, bluebird-helm, hevy-trainer-sync, Kubernetes-Manifests, TJs-Kubernetes-Service, Resume, 3D-Models, Bootstrap-Proxmox, Supermicro-X10-Fancontrol, Mountaineers-Activity-Scraper, Ender-6-Klipper-Guide, Personal-Website, zimmertr, Better-Lighter-Pack, Strava-Heatmap-String-Builder.
 
 ## 5. Flows
 
@@ -93,7 +93,7 @@ Detailed into tasks after sign-off. In order:
 5. **P4 Bluebird** switches, keeping its arm64 build, fill image, chart bump, canary and every guard its `docs/CICD.md` records.
 6. **P5 Every other repo.** Kubernetes-Manifests, TJs-Kubernetes-Service, bluebird-helm and the rest each take the baseline modules (PR title check, actionlint, Dependabot with auto-merge), plus the release, image or chart modules wherever the repo ships something. One PR per repo.
 7. **P6 `github` stack.**
-   - Import all 20 repos and the five orgs until the plan is empty.
+   - Import all 17 repos and the five orgs until the plan is empty.
    - Then turn on plan on PR, apply on merge, and the weekly drift plan.
 8. **P7 Docker Hub**, if P1 shows Docker's provider can manage it, plus the ArtifactHub docs.
 9. **P8 `cloudflare` stack.**
@@ -121,8 +121,8 @@ Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hu
 | Upstreams | GitHub, Docker Hub, ArtifactHub, Cloudflare, HCP Terraform | `docs/` lists each provider's limits and terms |
 | Terraform runs | Plan on PR, apply on merge | Plan comment, apply job, weekly drift plan |
 | Credential | GitHub App `zimmertr-yggdrasil-bot` | App id and key as yggdrasil secrets; no PAT |
-| Managed repos and orgs | The 20 repos and 5 orgs above (the two strava-heatmap-proxy forks were deleted on 2026-11-05) | One YAML file each |
-| Consumers in this project | All 20 repos: the baseline modules everywhere, plus what each repo ships; future repos through the template | P3 to P5, P9 |
+| Managed repos and orgs | The 17 repos and 5 orgs above (the two strava-heatmap-proxy forks were deleted on 2026-11-05; Email-Infrastructure, Lakebagger/Backend and Lakebagger/Frontend, which held no code, on 2026-11-06) | One YAML file each |
+| Consumers in this project | All 17 repos: the baseline modules everywhere, plus what each repo ships; future repos through the template | P3 to P5, P9 |
 | Dependency config | Stays per repo | Only auto-merge is shared |
 
 ## Settled at sign-off
@@ -133,5 +133,5 @@ Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hu
 4. The HCP org is `Yggdrasil-Org`. Kubernetes-Manifests#1888 points the Cloudflare stack at it.
 5. Added after sign-off, 2026-11-05: requirements 9 to 12, profiles, the template repo, the guardrails and the release module's `dry-run` input. A separate sandbox repo was considered and dropped as more than this needs. This project builds on GitHub's free features. That is where it starts, not a limit: self-hosted runners, other platforms and paid services stay open when they become relevant. Not in this project, and open for later: a fleet report, OpenSSF Scorecard, org-level required workflows, delivery metrics, self-hosted runners, a developer portal.
 6. Settled 2026-11-05: every repo is production, so there are no rollout rings; consumers check daily. Profiles start as `default` and `archived`. ArtifactHub is documented, not managed. One issue per phase. PR plans keep the App's admin-capable token for now; a `security` issue tracks a read-only plan App. All 18 repos adopt the baseline modules plus what fits.
-7. Settled 2026-11-05: the App is `zimmertr-yggdrasil-bot` (App ID 5636772), installed on `zimmertr` and the five orgs. yggdrasil's own auto-merge uses it from the start, so yggdrasil has no `AUTO_MERGE_PAT`. The five orgs and Lakebagger's two repos are managed in this epic.
+7. Settled 2026-11-05: the App is `zimmertr-yggdrasil-bot` (App ID 5636772), installed on `zimmertr` and the five orgs. yggdrasil's own auto-merge uses it from the start, so yggdrasil has no `AUTO_MERGE_PAT`. The five orgs are managed in this epic; Lakebagger keeps its org with no repos, since its two were deleted on 2026-11-06.
 8. Settled 2026-11-06, after the #4 audit: Terraform's own typed variables, preconditions and `archive_on_destroy` replace the JSON Schema, the profile files and the `destroy-approved` label (record 0035). A decision record is written only for a decision that shapes the system (record 0036).

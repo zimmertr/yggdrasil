@@ -54,6 +54,18 @@ On a PR: hadolint, then the `linux/amd64` image built and loaded but not pushed,
 - The comment's marker is `<!-- <repo name>-image-scan -->`, the one hevy-trainer-sync and Bluebird use today. Dependabot's PRs get the step summary instead, since their token is read-only.
 - The caller sees `<caller job> / Docker Build`.
 
+### `image-scan.yml`
+
+Scans each image's `linux/amd64` half at the caller's latest GitHub release, fixable only, sends the findings to the Security tab, and fails only on a fixable Critical or High. Record: [0031](architectural-decision-records/0031-image-scan-module.md)
+
+| Input | Does |
+|---|---|
+| `images` | Required. A JSON list, one entry per image: `{"image": "zimmertr/bluebird", "category": "trivy-released-image", "remedy": "..."}`. `category` names the Security tab's alert set; keep it the same to keep the history. `remedy` is optional words for the failure message |
+
+- The caller runs it on a `schedule` and `workflow_dispatch`, and grants `contents: read` and `security-events: write`.
+- A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`.
+- The caller sees `<caller job> / Scan released image (<image>)` for each image.
+
 ## Shared defaults
 
 A module reads these at the commit its caller pinned, by checking out `job.workflow_repository` at `job.workflow_sha`, and a caller can pass its own file instead. Records: [0006](architectural-decision-records/0006-shared-conventions-ship-as-defaults.md), [0022](architectural-decision-records/0022-modules-load-their-own-files-from-the-job-context.md)

@@ -1,0 +1,34 @@
+name: ci-docker-build
+
+# The docker-build module's test caller, on tests/docker-build/. Only on PRs
+# that touch the module or its inputs, so other PRs carry no scan comment. Not
+# a required check: a path-filtered check never reports on other PRs.
+# Decision record 0030.
+on:
+  pull_request:
+    paths:
+      - .github/workflows/docker-build.yml
+      - .github/workflows/ci-docker-build.yml
+      - tests/docker-build/**
+      - defaults/trivy.yaml
+
+concurrency:
+  group: ci-docker-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  docker-build:
+    name: Docker Build Test
+    # `$/` is this repo at the running commit.
+    uses: $/.github/workflows/docker-build.yml
+    permissions:
+      contents: read
+      pull-requests: write # the module's sticky scan comment
+    with:
+      context: tests/docker-build
+      build-args: MESSAGE=hello
+      upload-image: true
+      smoke-test: |
+        test "$(docker image inspect "$IMAGE" --format '{{ index .Config.Labels "test.message" }}')" = hello

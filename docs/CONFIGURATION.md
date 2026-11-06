@@ -4,7 +4,20 @@ Every setting yggdrasil depends on, and where each is set. The repo's own settin
 
 ## Module inputs
 
-None yet. Each module documents its inputs here when #4 adds it: the name, whether it is required, its default, and what it changes. A caller passes all of its configuration this way. Record: [0002](architectural-decision-records/0002-callers-bring-their-own-config.md)
+A caller passes all of its configuration as inputs. Record: [0002](architectural-decision-records/0002-callers-bring-their-own-config.md)
+
+### `release.yml`
+
+Works out the next version, then tags the commit and publishes the GitHub release. Record: [0027](architectural-decision-records/0027-release-module.md)
+
+| Input | Default | Does |
+|---|---|---|
+| `environment` | `''` | The GitHub environment the `Tag and Release` job runs in, for its protection rules. Empty runs it in none |
+| `dry-run` | `false` | Works out the version and says it in the job summary, but tags and releases nothing. On a PR, the version is the one the squash merge will get |
+
+- The caller runs it on every push to main, and on PRs with `dry-run: true`. It grants `contents: write` and sets a `concurrency` group so releases run one at a time.
+- A `GitVersion.yml` at the caller's root is used. Without one, the module reads `defaults/GitVersion.yml`.
+- The caller sees the checks `<caller job> / Version` and `<caller job> / Tag and Release`.
 
 ## Shared defaults
 

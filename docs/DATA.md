@@ -14,6 +14,8 @@ Quirks:
 
 - 2026-11-05: Dependabot's metadata reads a calendar-versioned package's year change as a major. tzdata 2025.2 to 2026.6 came through as `version-update:semver-major` (zimmertr/hevy-trainer-sync#36), so it waits for TJ even under patch-and-minor auto-merge.
 - 2026-11-05: a caller can pass only stored secrets to a reusable workflow, never a token it minted in an earlier job. A caller job also can't set `environment:`, so a module that needs an environment takes its name as an input.
+- 2026-07-30 ([changelog](https://github.blog/changelog/2026-07-30-reference-same-repository-actions-with-self-repository-syntax/)): `uses: $/path` is the repo's own action or reusable workflow at the running commit, with no checkout, on runner 2.336.0 or newer. zizmor 1.32.0 asks for it in place of `./`. It covers `uses:` only, so a module still checks itself out to read a file such as `defaults/GitVersion.yml` (0022). actionlint 1.7.12 rejects it and doesn't know `job.workflow_repository` or `job.workflow_sha`; `.github/actionlint.yaml` ignores those three messages.
+- 2026-11-05: a PR's merge commit carries GitHub's "Merge ... into ..." message, so GitVersion run on it can't see the PR title. The release module's dry run builds the squash commit the merge will make instead, and on #28 gave v0.2.0 for a `feat` that followed #25's `feat(defaults)` with no tag yet: GitVersion counted past the `v0.1.0` seed.
 
 Found in #3 with two throwaway repos, a module and a caller pinning it by SHA with `sha_pinning_required` on. The repos are deleted when #3 closes, so the evidence is quoted here rather than linked.
 

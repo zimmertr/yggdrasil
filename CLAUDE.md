@@ -56,4 +56,4 @@ File issues with the `create-issue` skill from zimmertr/ai-config: the two-sente
 - **CI runs the checks.** Every check is a `make` target in a pinned container from `compose.yml`, run the same way in CI; commit early and read the jobs. Record: [0018](docs/architectural-decision-records/0018-checks-run-through-make-in-pinned-containers.md)
 - **Dependabot's patch and minor updates merge themselves**, armed by a token from `zimmertr-yggdrasil-bot`; majors wait for TJ. Record: [0021](docs/architectural-decision-records/0021-dependabot-with-app-auto-merge.md)
 - **Branch protection** requires the checks below, admins included, with conversations resolved; renaming a job means updating protection in the same PR.
-- Checks today: `actionlint`, `zizmor`, `Docs`, `PR Title` ([`docs/CICD.md`](docs/CICD.md#pr-checks)).
+- Checks today: `actionlint`, `zizmor`, `Docs`, `PR Title`, and `Release / Version`, the release dry run ([`docs/CICD.md`](docs/CICD.md#pr-checks)).

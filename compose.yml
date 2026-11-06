@@ -2,23 +2,30 @@
 # live here, not in the Makefile, so Dependabot's docker-compose updates can
 # move them. CI runs the same targets, so local and CI runs use one image set.
 services:
-  python:
-    image: python:3.13-slim@sha256:09a17cad02668ae61ece136b4fd36ac3849e14f670ebedb637ea3e15580525bc
-    volumes:
-      - .:/repo
-    working_dir: /repo
-    environment:
-      PIP_ROOT_USER_ACTION: ignore
-      PIP_DISABLE_PIP_VERSION_CHECK: "1"
-
-  ruff:
-    image: ghcr.io/astral-sh/ruff:0.17.4@sha256:c4b7e7a87e4b07d66b569dd2e6b2ce5a25e38be91dd664dc49b9882be27acd9b
-    volumes:
-      - .:/repo
-    working_dir: /repo
-
   actionlint:
     image: rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+    volumes:
+      - .:/repo
+    working_dir: /repo
+
+  zizmor:
+    image: ghcr.io/zizmorcore/zizmor:1.32.0@sha256:3014cc8f68f663935f69b3c3e0e41f5ce102b268d97db13db0f62208747f860d
+    volumes:
+      - .:/repo
+    working_dir: /repo
+    # Passed through when set: CI sets it, so zizmor also runs its online
+    # audits (known vulnerable actions, impostor commits). Unset, it runs offline.
+    environment:
+      - GH_TOKEN
+
+  lychee:
+    image: lycheeverse/lychee:0.24.2@sha256:e2d19e57cf6ab037026f20b8e449a1f30d9d7f81eef4194763aab2eab20bd28d
+    volumes:
+      - .:/repo
+    working_dir: /repo
+
+  shell:
+    image: alpine:3.24@sha256:3f4d6b32e26703c6082839234f43769d5046b3ac7c910033911d1e71d8cd630a
     volumes:
       - .:/repo
     working_dir: /repo

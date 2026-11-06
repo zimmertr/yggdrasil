@@ -1,41 +1,39 @@
 # Every check CI runs, runnable the same way here. Each target runs in a
 # container from compose.yml; nothing installs on the workstation
-# (docs/DEVELOPMENT.md).
+# (docs/DEVELOPMENT.md, decision record 0018).
 
-# -T: no pseudo-terminal, so output redirected to a file (the job summary)
-# carries no terminal control characters.
-RUN     := docker compose run --rm -T
-INSTALL := pip install -q --require-hashes -r requirements-dev.txt
+# -T: no pseudo-terminal, so output redirected to a file carries no terminal
+# control characters.
+RUN := docker compose run --rm -T
 
-.PHONY: test test-one coverage-summary lint actionlint lock
+# CI passes --format=github, so findings show as annotations on the PR.
+ZIZMOR_ARGS ?=
 
-# The suite under line and branch coverage, as the test job runs it.
-test:
-	$(RUN) python sh -c '$(INSTALL) && \
-	  python -m coverage run -m unittest discover -s tests -t . -v && \
-	  python -m coverage report'
+.PHONY: check actionlint zizmor docs links em-dash
 
-# One module, for iterating on a failure: make test-one MODULE=tests.test_check_policy
-test-one:
-	$(RUN) python sh -c '$(INSTALL) && python -m unittest $(MODULE) -v'
-
-# The coverage table as markdown, for the job summary. Reads the data `make
-# test` left behind.
-coverage-summary:
-	@$(RUN) python sh -c '$(INSTALL) && python -m coverage report --format=markdown'
-
-# The Lint job: ruff under ruff.toml.
-lint:
-	$(RUN) ruff check .
+# Everything the PR checks run.
+check: actionlint zizmor docs
 
 # The actionlint job, over every workflow. The image bundles shellcheck, so
 # run: blocks are checked too.
 actionlint:
 	$(RUN) actionlint -color
 
-# Not a check: rewrites requirements-dev.txt from requirements-dev.in, with
-# hashes, on the image's own Python. Add --upgrade-package NAME to move one pin.
-lock:
-	$(RUN) python sh -c "pip install -q 'pip<26' pip-tools==7.5.3 && \
-	  pip-compile -q --generate-hashes --allow-unsafe --strip-extras \
-	    --output-file=requirements-dev.txt requirements-dev.in"
+# The zizmor job: GitHub Actions security, over workflows, actions and
+# dependabot.yml. The pedantic persona also fails a hash pin without its
+# version comment, and any ${{ }} inside run:. Decision record 0019.
+zizmor:
+	$(RUN) zizmor --persona=pedantic $(ZIZMOR_ARGS) .
+
+# The Docs job.
+docs: links em-dash
+
+# Every relative link in the docs, and the heading it points at. Offline:
+# web links are not checked here.
+links:
+	$(RUN) lychee --offline --include-fragments --no-progress './**/*.md'
+
+# No em dash in any doc (decision record 0017). The pattern is the character's
+# UTF-8 bytes, so this file holds no em dash itself.
+em-dash:
+	$(RUN) shell sh -c '! grep -rn --include="*.md" --exclude-dir=.git "$$(printf "\342\200\224")" .'

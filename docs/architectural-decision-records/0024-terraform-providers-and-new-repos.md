@@ -1,8 +1,8 @@
 # 0024. Terraform creates each new repo from the template, protects it with a ruleset, and fills the GitHub provider's gaps with Mastercard/restapi
 
-- Status: Proposed, for TJ to accept on #3's item 1.3 PR
+- Status: Accepted
 - Date: 2026-11-05
-- Decider: TJ, pending. The tests are #3's item 1.3, and the choices are the agent's recommendation from them.
+- Decider: TJ, 2026-11-05, on #24, the recommendation from #3's tests: "24 can go when you are ready." On rulesets: "I want to use industry best practices for this repo."
 - Issues and PRs: #3, #8, #9
 - Cited in code as: none yet; #8's stack cites it
 - Guide: [`docs/CONFIGURATION.md`](../CONFIGURATION.md#what-terraform-manages)

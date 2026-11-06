@@ -294,9 +294,9 @@ jobs:
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
           echo "Released ${TAG}." >> "$GITHUB_STEP_SUMMARY"
 
-  # One PR per deploy file, on a fixed branch force-pushed fresh off the target's
-  # default branch, so quick releases leave one up-to-date PR, not a pile. After
-  # the release, because a chart repo's own release reads the app's latest one.
+  # One PR per deploy file, on a fixed branch, so quick releases leave one
+  # up-to-date PR, not a pile. After the release, because a chart repo's own
+  # release reads the app's latest one.
   deploy:
     name: Deploy Bump (${{ matrix.repo }})
     needs: [version, release]
@@ -310,58 +310,55 @@ jobs:
       matrix:
         include: ${{ fromJSON(inputs.deploys) }}
     steps:
-      # No checkout and no setup action: the only code here besides git and gh
-      # is yq's image, pinned by digest and fed the file on stdin, so it never
-      # sees the clone's credential. Dependabot doesn't see this pin: bump it
-      # by hand.
-      - env:
+      # A re-run that finishes an older release after a newer one shipped must
+      # not move the deploy back onto the older version. Every tag sorted by
+      # version, since GitHub's Latest is whichever release came last.
+      - id: newest
+        env:
           VERSION: ${{ needs.version.outputs.version }}
           REPO: ${{ matrix.repo }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NEWEST=$(gh release list --repo "$GITHUB_REPOSITORY" --json tagName --jq '.[].tagName' | sed 's/^v//' | sort -V | tail -n 1)
+          [ "$NEWEST" = "$VERSION" ] || echo "::notice::v${NEWEST} is newer than v${VERSION}; leaving ${REPO} alone."
+          echo "newest=${NEWEST}" >> "$GITHUB_OUTPUT"
+      - if: steps.newest.outputs.newest == needs.version.outputs.version
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ matrix.repo }}
+          token: ${{ secrets.deploy-token }}
+          persist-credentials: false
+      # yq's own action, its image pinned by digest. -e fails the step when the
+      # path matches nothing, which would otherwise pass for a deploy already
+      # at this version.
+      - if: steps.newest.outputs.newest == needs.version.outputs.version
+        uses: mikefarah/yq@504fc38780cc46be8444ea1b72fb55919fc0bfb0 # v4.54.1
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
           FILE: ${{ matrix.file }}
           SET: ${{ matrix.set }}
-          BRANCH: ${{ matrix.branch }}
-          TITLE: ${{ matrix.title }} to ${{ needs.version.outputs.version }}
-          RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.version.outputs.version }}
-          RELEASES_TOKEN: ${{ github.token }}
+        with:
+          cmd: yq -i "$SET = strenv(VERSION)" "$FILE" && yq -e "($SET) == strenv(VERSION)" "$FILE"
+      # Pushes the fixed branch fresh off the default branch, then opens the PR
+      # or edits the open one to this version. Does nothing when the file
+      # already holds it.
+      - id: pr
+        if: steps.newest.outputs.newest == needs.version.outputs.version
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.deploy-token }}
+          branch: ${{ matrix.branch }}
+          commit-message: ${{ matrix.title }} to ${{ needs.version.outputs.version }}
+          title: ${{ matrix.title }} to ${{ needs.version.outputs.version }}
+          body: |
+            Automated by the ${{ github.repository }} v${{ needs.version.outputs.version }} release.
+
+            - Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.version.outputs.version }}
+      # Every push to the branch disarms auto-merge, so arm it each time. The
+      # plain merge covers checks already green, where --auto is refused.
+      - if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
+        env:
+          REPO: ${{ matrix.repo }}
+          PR: ${{ steps.pr.outputs.pull-request-number }}
           GH_TOKEN: ${{ secrets.deploy-token }}
-          YQ: mikefarah/yq:4.54.1@sha256:4b3d9475d65571d28cbb19544d3820ec2945e4c8b2f18279394282b8dc3a592e
-        run: |
-          # A re-run that finishes an older release after a newer one shipped
-          # must not move the deploy back onto the older version.
-          NEWEST=$(GH_TOKEN="$RELEASES_TOKEN" gh release list --repo "$GITHUB_REPOSITORY" --json tagName --jq '.[].tagName' \
-            | sed 's/^v//' | sort -V | tail -n 1)
-          if [ "$NEWEST" != "$VERSION" ]; then
-            echo "::notice::v${NEWEST} is newer than v${VERSION}; leaving ${REPO} alone."
-            exit 0
-          fi
-          git clone -q "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" target
-          cd target
-          git checkout -q -B "$BRANCH"
-          docker run --rm -i -e VERSION "$YQ" "${SET} = strenv(VERSION)" < "$FILE" > "$RUNNER_TEMP/bumped"
-          mv "$RUNNER_TEMP/bumped" "$FILE"
-          # A path that matches nothing changes nothing, which would pass for a
-          # deploy already at this version.
-          NOW=$(docker run --rm -i "$YQ" "$SET" < "$FILE")
-          if [ "$NOW" != "$VERSION" ]; then
-            echo "::error::${SET} in ${REPO}/${FILE} reads '${NOW}', not ${VERSION}."
-            exit 1
-          fi
-          if git diff --quiet; then
-            echo "${REPO} is already at ${VERSION}." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          git -c user.name='github-actions[bot]' -c user.email='github-actions[bot]@users.noreply.github.com' \
-            commit -q -am "$TITLE"
-          git push -q -f origin "$BRANCH"
-          BODY=$(printf 'Automated by the %s v%s release.\n\n- Release: %s' "$GITHUB_REPOSITORY" "$VERSION" "$RELEASE_URL")
-          # Both name the version, so a PR carried across releases is edited
-          # to the newest.
-          if [ -n "$(gh pr list --repo "$REPO" --head "$BRANCH" --state open --json number --jq '.[0].number')" ]; then
-            gh pr edit "$BRANCH" --repo "$REPO" --title "$TITLE" --body "$BODY"
-          else
-            gh pr create --repo "$REPO" --head "$BRANCH" --title "$TITLE" --body "$BODY"
-          fi
-          # Every force-push disarms auto-merge, so arm it each time. The plain
-          # merge covers checks already green, where --auto is refused.
-          gh pr merge "$BRANCH" --repo "$REPO" --auto --squash || gh pr merge "$BRANCH" --repo "$REPO" --squash
-          echo "Pointed ${REPO} at ${VERSION}." >> "$GITHUB_STEP_SUMMARY"
+        run: gh pr merge "$PR" --repo "$REPO" --auto --squash || gh pr merge "$PR" --repo "$REPO" --squash

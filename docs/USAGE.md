@@ -9,7 +9,7 @@ What TJ sees from yggdrasil, and what to do when it breaks. As of 2026-11-05 not
 
 ## In yggdrasil
 
-- **A Dependabot PR** for an action or a Python package (#2 item 0.8). Patch and minor merge themselves as `zimmertr-yggdrasil-bot`, which comments on the PR to say so.
+- **A Dependabot PR** for an action or a tool image, weekly. Patch and minor updates merge themselves once the checks pass, armed by `zimmertr-yggdrasil-bot`, which comments on the PR to say so.
 - **A plan comment** on every PR that touches `repos/`, `orgs/`, `profiles/` or `terraform/` (#8), and a weekly drift plan.
 
 ## When it breaks

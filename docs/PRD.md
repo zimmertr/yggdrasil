@@ -31,10 +31,9 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 | Feature | What it does | Source |
 |---|---|---|
 | Release workflow | GitVersion, image build and push, Trivy scan by digest, immutable GitHub release, deploy bump (Kustomize `newTag`, chart `appVersion`, or both) | hevy-trainer-sync and Bluebird `release.yml` |
-| PR workflows | PR title check; image build with hadolint, the Trivy comment and a smoke test; actionlint | `pr-title.yml`, `pr.yml` |
+| PR workflows | PR title check; image build with hadolint, the Trivy comment and a smoke test | `pr-title.yml`, `pr.yml` |
 | Weekly image scan | Rescans the released image | `image-scan.yml` |
 | Dependabot auto-merge | Patch and minor updates merge themselves | `dependabot-auto-merge.yml` |
-| Composite actions | The PR title check, the manifest tag bump, the Trivy count | `check_pr_title.py`, `bump_manifest_tag.py` |
 | Shared conventions | `GitVersion.yml` (SemVer and the bump patterns), the conventional PR title check that reads it, the release process, and `trivy.yaml`, read at the module's pinned ref; a caller can pass its own | today copied in each repo |
 | `github` stack | One YAML file per repo (`repos/<name>.yml`) and per org (`orgs/<name>.yml`), read by Terraform: settings, rulesets, security features, merge settings, immutable releases, org settings | ai-config#3 |
 | Profiles | A repo file names a profile, `default` or `archived`, and inherits its settings, then overrides only what differs. More profiles are added only when a real difference appears | new |
@@ -48,7 +47,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 
 ```
 .github/workflows/      yggdrasil's own CI, and the reusable workflows (GitHub requires them here)
-actions/<name>/         composite actions, with their scripts and tests
+actions/<name>/         composite actions, if a module ever needs a shared step
 defaults/               GitVersion.yml, trivy.yaml
 profiles/<name>.yml     the settings each profile sets
 repos/<name>.yml        one file per managed repo
@@ -77,7 +76,7 @@ Managed repos at the start (20), every one of them both managed by Terraform and
 - GitHub Actions for the modules and for yggdrasil's own CI.
 - Terraform with `integrations/github`, `cloudflare/cloudflare`, and Docker's provider.
 - HCP Terraform org `Yggdrasil-Org` (the `Kubernetes-Manifests` org, renamed on 2026-11-05; `yggdrasil` was taken) for state and locks, in local execution mode. Plans and applies run in Actions.
-- Python and `unittest` for the action scripts, aiming at full coverage with no floor.
+- Shell, `jq` and `yq` inside the modules, with no Python (record 0026).
 - `terraform test` with mock providers, tflint, actionlint, and the Trivy config scan.
 - GitVersion 6.8.2 and Trivy, the versions the consumers use today.
 - Docker for every local command, through a `Makefile`.

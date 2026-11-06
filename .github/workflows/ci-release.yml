@@ -1,8 +1,10 @@
 name: ci-release
 
 # yggdrasil releases itself through its own release module, so this is also
-# the module's test caller. On a PR it runs in dry-run, and the Version job's
-# summary says what the merge will release. Decision record 0027.
+# the module's test caller. On a PR it runs in dry-run: the Version job's
+# summary says what the merge will release, and the module builds
+# tests/docker-build/ for two platforms without pushing it. On main it tags and
+# releases, with no image: yggdrasil ships none. Decision records 0027 and 0032.
 on:
   pull_request:
   push:
@@ -25,3 +27,7 @@ jobs:
       contents: write  # the tag and release, on main only
     with:
       dry-run: ${{ github.event_name == 'pull_request' }}
+      images: >-
+        ${{ github.event_name == 'pull_request'
+            && '[{"image": "zimmertr/yggdrasil-test", "context": "tests/docker-build", "platforms": "linux/amd64,linux/arm64"}]'
+            || '[]' }}

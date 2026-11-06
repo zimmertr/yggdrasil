@@ -8,16 +8,24 @@ A caller passes all of its configuration as inputs. Record: [0002](architectural
 
 ### `release.yml`
 
-Works out the next version, then tags the commit and publishes the GitHub release. Record: [0027](architectural-decision-records/0027-release-module.md)
+Works out the next version, builds and pushes the caller's images under it and scans each by digest, then tags the commit and publishes the GitHub release once every scan passes. Records: [0027](architectural-decision-records/0027-release-module.md), [0032](architectural-decision-records/0032-release-module-builds-the-images.md)
 
 | Input | Default | Does |
 |---|---|---|
 | `environment` | `''` | The GitHub environment the `Tag and Release` job runs in, for its protection rules. Empty runs it in none |
-| `dry-run` | `false` | Works out the version and says it in the job summary, but tags and releases nothing. On a PR, the version is the one the squash merge will get |
+| `dry-run` | `false` | Works out the version and says it in the job summary, and builds every image without pushing it. Scans, tags and releases nothing. On a PR, the version is the one the squash merge will get |
+| `images` | `[]` | A JSON list, one entry per image: `{"image": "zimmertr/bluebird", "context": ".", "file": "fill/Dockerfile", "platforms": "linux/amd64,linux/arm64", "cache": true}`. Only `image` is required. `context` defaults to the repo root, `file` (a path from the repo root) to the context's `Dockerfile`, `platforms` to `linux/amd64`, `cache` to `false` |
 
-- The caller runs it on every push to main, and on PRs with `dry-run: true`. It grants `contents: write` and sets a `concurrency` group so releases run one at a time.
-- A `GitVersion.yml` at the caller's root is used. Without one, the module reads `defaults/GitVersion.yml`.
-- The caller sees the checks `<caller job> / Version` and `<caller job> / Tag and Release`.
+| Secret | Does |
+|---|---|
+| `dockerhub-username`, `dockerhub-token` | The Docker Hub account that pushes. Needed when `images` isn't empty |
+
+- The caller runs it on every push to main. It grants `contents: write` and sets a `concurrency` group so releases run one at a time. A dry run on PRs is optional: it previews the version, but it also builds every image on every platform.
+- A `GitVersion.yml` and a `trivy.yaml` at the caller's root are used. Without them, the module reads its `defaults/`.
+- Every image is built with `APP_VERSION`, `APP_COMMIT` and `APP_BUILT_AT` as build arguments and the OCI version, revision and source labels, tagged with the version only, with an SBOM and `provenance: mode=max`.
+- A re-run finds an image already pushed from this commit and skips its build. One pushed from another commit stops the run.
+- A fixable Critical or High on any image or platform stops the tag and release. The image stays pushed; the fix is the next release.
+- The caller sees `<caller job> / Version`, `/ Build & Push (<image>)`, `/ Scan Pushed Image (<image>, <platform>)` and `/ Tag and Release`.
 
 ### `pr-title.yml`
 

@@ -54,3 +54,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0028](0028-pr-title-module-is-yggdrasils-own-check.md) | The pr-title module is yggdrasil's own PR Title workflow, callable with `workflow_call` | 2026-11-05 | Accepted |
 | [0029](0029-auto-merge-module-takes-the-callers-token.md) | The auto-merge module takes each caller's own merge token, not the App's key | 2026-11-05 | Accepted |
 | [0030](0030-docker-build-module.md) | The docker-build module builds `linux/amd64` only, takes the smoke test as a script, and is tested on an empty image | 2026-11-05 | Accepted |
+| [0031](0031-image-scan-module.md) | The image-scan module takes a JSON list of images, scans each once, and converts the report to SARIF | 2026-11-05 | Accepted |

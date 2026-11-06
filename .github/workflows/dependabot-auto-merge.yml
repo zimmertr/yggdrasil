@@ -12,6 +12,11 @@ name: Dependabot auto-merge
 # .github/workflows.
 on: pull_request
 
+# One run per PR: a rebase that lands mid-run replaces the older run.
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions: {}
 
 jobs:

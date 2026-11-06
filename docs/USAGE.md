@@ -1,6 +1,6 @@
 # Usage
 
-What TJ sees from yggdrasil, and what to do when it breaks. As of 2026-11-05 nothing here runs yet: each section names the issue that turns it on.
+What TJ sees from yggdrasil, and what to do when it breaks. Each part that is not built yet names the issue that turns it on.
 
 ## In a consuming repo
 

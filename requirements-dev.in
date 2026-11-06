@@ -1,0 +1,5 @@
+# The test tools. `make lock` compiles requirements-dev.txt, with hashes, from
+# this file, and every install reads that lock with --require-hashes.
+coverage==7.17.2
+# The policy test parses workflows and action metadata.
+PyYAML==6.0.3

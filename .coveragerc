@@ -1,0 +1,12 @@
+[run]
+branch = True
+# The scripts CI and the modules run. Composite actions' scripts join this
+# list as #4 adds them.
+source =
+    scripts
+
+[report]
+# No floor: the aim is every line and branch, and a gap gets a test or a
+# written reason.
+show_missing = True
+skip_covered = True

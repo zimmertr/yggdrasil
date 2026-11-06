@@ -8,24 +8,29 @@ A caller passes all of its configuration as inputs. Record: [0002](architectural
 
 ### `release.yml`
 
-Works out the next version, builds and pushes the caller's images under it and scans each by digest, then tags the commit and publishes the GitHub release once every scan passes. Records: [0027](architectural-decision-records/0027-release-module.md), [0032](architectural-decision-records/0032-release-module-builds-the-images.md)
+Works out the next version, builds and pushes the caller's images under it and scans each by digest, then tags the commit and publishes the GitHub release once every scan passes, then opens a PR in each deploy repo that points it at the release. Records: [0027](architectural-decision-records/0027-release-module.md), [0032](architectural-decision-records/0032-release-module-builds-the-images.md), [0033](architectural-decision-records/0033-release-module-bumps-deploys-with-yq.md)
 
 | Input | Default | Does |
 |---|---|---|
 | `environment` | `''` | The GitHub environment the `Tag and Release` job runs in, for its protection rules. Empty runs it in none |
 | `dry-run` | `false` | Works out the version and says it in the job summary, and builds every image without pushing it. Scans, tags and releases nothing. On a PR, the version is the one the squash merge will get |
 | `images` | `[]` | A JSON list, one entry per image: `{"image": "zimmertr/bluebird", "context": ".", "file": "fill/Dockerfile", "platforms": "linux/amd64,linux/arm64", "cache": true}`. Only `image` is required. `context` defaults to the repo root, `file` (a path from the repo root) to the context's `Dockerfile`, `platforms` to `linux/amd64`, `cache` to `false` |
+| `deploys` | `[]` | A JSON list, one entry per file to point at the release: `{"repo": "zimmertr/bluebird-helm", "file": "charts/bluebird/Chart.yaml", "set": ".appVersion", "branch": "chore/bump-appversion", "title": "chore(release): bump chart appVersion"}`. `set` is a `yq` path; for a kustomization, `(.images[] \| select(.name == "zimmertr/hevy-trainer-sync")).newTag`, its quotes escaped inside the JSON. The PR title is `title` plus ` to X.Y.Z`. Every field is required |
 
 | Secret | Does |
 |---|---|
 | `dockerhub-username`, `dockerhub-token` | The Docker Hub account that pushes. Needed when `images` isn't empty |
+| `deploy-token` | A token with contents and pull-requests write on every `deploys` repo, such as the caller's `GH_PAT`. Needed when `deploys` isn't empty |
 
 - The caller runs it on every push to main. It grants `contents: write` and sets a `concurrency` group so releases run one at a time. A dry run on PRs is optional: it previews the version, but it also builds every image on every platform.
 - A `GitVersion.yml` and a `trivy.yaml` at the caller's root are used. Without them, the module reads its `defaults/`.
 - Every image is built with `APP_VERSION`, `APP_COMMIT` and `APP_BUILT_AT` as build arguments and the OCI version, revision and source labels, tagged with the version only, with an SBOM and `provenance: mode=max`.
 - A re-run finds an image already pushed from this commit and skips its build. One pushed from another commit stops the run.
 - A fixable Critical or High on any image or platform stops the tag and release. The image stays pushed; the fix is the next release.
-- The caller sees `<caller job> / Version`, `/ Build & Push (<image>)`, `/ Scan Pushed Image (<image>, <platform>)` and `/ Tag and Release`.
+- After the release, each deploy file gets one PR on its fixed `branch`, force-pushed fresh off the repo's default branch each release, with squash auto-merge armed (or a plain squash merge when the checks are already green). A PR still open from an earlier release is moved to the newest.
+- A deploy is left alone when a newer release than this one exists, so a late re-run can't move it back. A `set` path that matches nothing fails the job.
+- `yq` drops a file's blank lines the first time it edits it. Comments stay.
+- The caller sees `<caller job> / Version`, `/ Build & Push (<image>)`, `/ Scan Pushed Image (<image>, <platform>)`, `/ Tag and Release` and `/ Deploy Bump (<repo>)`.
 
 ### `pr-title.yml`
 

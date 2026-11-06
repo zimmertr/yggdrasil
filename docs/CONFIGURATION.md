@@ -81,6 +81,14 @@ Scans each image's `linux/amd64` half at the caller's latest GitHub release, fix
 - A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`.
 - The caller sees `<caller job> / Scan released image (<image>)` for each image.
 
+## An example caller
+
+zimmertr/hevy-trainer-sync calls all five modules, and is the example to copy (#5). Its callers at the commit that finished the switch: [`release.yml`](https://github.com/zimmertr/hevy-trainer-sync/blob/ea07366b189162f99aedf2a5cd6bd03637cbce18/.github/workflows/release.yml), [`pr.yml`](https://github.com/zimmertr/hevy-trainer-sync/blob/ea07366b189162f99aedf2a5cd6bd03637cbce18/.github/workflows/pr.yml), [`pr-title.yml`](https://github.com/zimmertr/hevy-trainer-sync/blob/ea07366b189162f99aedf2a5cd6bd03637cbce18/.github/workflows/pr-title.yml), [`dependabot-auto-merge.yml`](https://github.com/zimmertr/hevy-trainer-sync/blob/ea07366b189162f99aedf2a5cd6bd03637cbce18/.github/workflows/dependabot-auto-merge.yml) and [`image-scan.yml`](https://github.com/zimmertr/hevy-trainer-sync/blob/ea07366b189162f99aedf2a5cd6bd03637cbce18/.github/workflows/image-scan.yml). It keeps no `GitVersion.yml` or `trivy.yaml`, so the defaults below apply.
+
+- Pin every module to a release's commit SHA, with the version in a comment, so Dependabot can move it. Its `github-actions` entry runs daily with `cooldown: default-days: 3` (record [0023](architectural-decision-records/0023-releases-bake-three-days.md)).
+- A caller job's `name` comes first in each check's name: `Docker Build / Docker Build`. Rename the required checks in the same step as the switch.
+- Don't give a caller the same `concurrency` group as the module it calls: `pr-title.yml` already sets one.
+
 ## Shared defaults
 
 A module reads these at the commit its caller pinned, by checking out `job.workflow_repository` at `job.workflow_sha`, and a caller can pass its own file instead. Records: [0006](architectural-decision-records/0006-shared-conventions-ship-as-defaults.md), [0022](architectural-decision-records/0022-modules-load-their-own-files-from-the-job-context.md)
@@ -89,6 +97,7 @@ A module reads these at the commit its caller pinned, by checking out `job.workf
 |---|---|
 | `defaults/GitVersion.yml` | yggdrasil's own `GitVersion.yml` without its `ignore` rule, so every merge to a caller's main releases. A first release is v0.1.0, and a repo already tagged counts from its last tag. `feat` is a minor, `!` before the colon a major, every other type a patch, and only the title counts |
 | `defaults/trivy.yaml` | Skips pip's vendored SBOM, `**/pip/_vendor/bom.cdx.json`, which Trivy otherwise reads as installed packages at versions that aren't installed |
+
 ## The App
 
 `zimmertr-yggdrasil-bot`, checked with `gh api apps/zimmertr-yggdrasil-bot` on 2026-11-05. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)

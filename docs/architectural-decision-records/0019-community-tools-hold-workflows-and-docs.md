@@ -33,6 +33,7 @@ The timeout rule is dropped: no tool checks it, and the modules set their own.
 - 2026-11-05: each pinned image was run over a scratch directory that broke every rule. zizmor flagged `pull_request_target`, a tag-pinned checkout, two checkouts that kept credentials, and `${{ }}` in `run:`. Online it also flagged a SHA borrowed from another action (`impostor-commit`), a missing version comment (exit 12) and a wrong one (exit 13). lychee flagged a missing file and a missing heading (exit 2). The em dash check flagged the dash (exit 1).
 - 2026-11-05: offline, zizmor did not flag the missing or wrong version comment. The comment checks need its online mode, which CI has and a local run without `GH_TOKEN` doesn't.
 - 2026-11-05: the first em dash check used Alpine's BusyBox `grep`, which has no `--include`. It errored, `!` turned the error into a pass, and CI passed with nothing checked. It now runs GNU `grep` on Debian, and only "no match" passes.
+- 2026-11-05: over an empty directory, zizmor and actionlint failed (exit 3), but lychee passed (exit 0) with nothing checked, and so would the grep. Both doc checks now also name `README.md` and `CLAUDE.md`, so a missing file fails them instead (lychee exits 1).
 
 ## Alternatives rejected
 

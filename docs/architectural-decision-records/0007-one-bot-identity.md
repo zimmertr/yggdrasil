@@ -13,7 +13,7 @@ TJ's automation ran on personal tokens: `AUTO_MERGE_PAT` per repo and `GH_PAT` o
 
 ## Decision
 
-The GitHub App `zimmertr-yggdrasil-bot` (App ID 5636772), owned by `zimmertr` and installed on every owner yggdrasil manages, is the one identity automation writes as. Each run mints a short-lived token with a SHA-pinned `actions/create-github-app-token`. yggdrasil's own Dependabot auto-merge uses it from the start, through the Dependabot secrets `YGGDRASIL_BOT_APP_ID` and `YGGDRASIL_BOT_PRIVATE_KEY`. A PAT comes back only if #3 proves one is needed.
+The GitHub App `zimmertr-yggdrasil-bot` (App ID 5636772), owned by `zimmertr` and installed on every owner yggdrasil manages, is the one identity automation writes as. Each run mints a short-lived token with a SHA-pinned `actions/create-github-app-token`. yggdrasil's own Dependabot auto-merge uses it from the start, through the Dependabot secret `YGGDRASIL_BOT_PRIVATE_KEY` and the App's public client ID (0021). A PAT comes back only if #3 proves one is needed.
 
 ## Evidence
 

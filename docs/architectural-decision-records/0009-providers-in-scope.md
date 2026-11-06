@@ -1,6 +1,6 @@
 # 0009. Terraform manages GitHub, Docker Hub and Cloudflare, and ArtifactHub is documented, not managed
 
-- Status: Accepted
+- Status: Superseded in part by 0040
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05: "Github, Dockerhub, ArtifactHub, Cloudflare". On Cloudflare: "Move the stack here". On ArtifactHub, agreeing to drop it from Terraform: "codify how to manage it for future helm charts".
 - Issues and PRs: #8, #9, #10

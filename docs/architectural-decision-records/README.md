@@ -33,7 +33,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0006](0006-shared-conventions-ship-as-defaults.md) | The versioning, PR title and scan conventions ship from yggdrasil as defaults a caller can override | 2026-11-05 | Accepted |
 | [0007](0007-one-bot-identity.md) | Automation writes as the GitHub App zimmertr-yggdrasil-bot, with a token minted per run, and yggdrasil has no PAT | 2026-11-05 | Accepted |
 | [0008](0008-terraform-plan-on-pr-apply-on-merge.md) | Terraform plans on every PR and applies on merge, with state in HCP Terraform org Yggdrasil-Org | 2026-11-05 | Accepted |
-| [0009](0009-providers-in-scope.md) | Terraform manages GitHub, Docker Hub and Cloudflare, and ArtifactHub is documented, not managed | 2026-11-05 | Accepted |
+| [0009](0009-providers-in-scope.md) | Terraform manages GitHub, Docker Hub and Cloudflare, and ArtifactHub is documented, not managed | 2026-11-05 | Superseded in part by 0040 |
 | [0010](0010-safe-in-public.md) | Terraform manages settings, never a repo's files, and plans run only on yggdrasil's own branches | 2026-11-05 | Accepted |
 | [0011](0011-guardrails-as-code.md) | CI refuses breaking changes without `!`, settings that weaken security, and destroys without a label | 2026-11-05 | Accepted, except the breaking-change check (0025), the schema and the destroy gate (0035) |
 | [0012](0012-one-file-per-repo-and-org.md) | Each managed repo and org is one YAML file that names a profile, and new repos start from a template | 2026-11-05 | Accepted, except the profiles (0035) |
@@ -64,3 +64,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0037](0037-lint-module.md) | A lint module runs actionlint, zizmor and Semgrep in every repo, in the images `compose.yml` pins | 2026-11-06 | Accepted. Supersedes 0026 in part |
 | [0038](0038-consumers-take-a-trimmed-set-of-repo-files.md) | A repo moving onto the modules takes a trimmed set of `initialize-project`'s repo files once, and adds the rest as later work reaches it | 2026-11-06 | Accepted |
 | [0039](0039-private-repos-run-the-checks-without-requiring-them.md) | A private repo runs the shared checks without requiring them, and has no auto-merge, while TJ's account is on GitHub Free | 2026-11-06 | Accepted |
+| [0040](0040-no-artifacthub.md) | TJ's Helm charts are not listed on ArtifactHub, and yggdrasil documents no ArtifactHub steps | 2026-11-06 | Accepted. Supersedes 0009 in part |

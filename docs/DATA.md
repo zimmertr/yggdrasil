@@ -55,12 +55,6 @@ Quirks, found in #3 with the throwaway repo `zimmertr/yggdrasil-probe`:
 - 2026-11-05: `docker/docker` 0.7.0's `docker_hub_repository` created a public repo with `immutable_tags_settings = { enabled = true, rules = [".*"] }`, and a second plan found nothing to change. Pushing `v1` again with different content was refused: "tag v1 is already assigned to an image in this repository and cannot be updated due to immutability settings".
 - 2026-11-05: the provider logs in with a username and a personal access token. An older token that could log in, but whose scope was never recorded, failed with "access denied: insufficient scope". The run passed with a token TJ made for it, asked for with the Read, Write, Delete scope.
 
-## ArtifactHub
-
-Uses: the listing of TJ's Helm charts. Documented, not managed by Terraform (#9). Record: [0009](architectural-decision-records/0009-providers-in-scope.md)
-
-- Docs: [ArtifactHub documentation](https://artifacthub.io/docs/).
-
 ## Cloudflare
 
 Uses: the stack that moves from Kubernetes-Manifests `terraform/cloudflare` (#10).

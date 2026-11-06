@@ -53,3 +53,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0027](0027-release-module.md) | The release module runs GitVersion's image, previews each PR's version, and makes the tag and release in one `gh release create` | 2026-11-05 | Accepted |
 | [0028](0028-pr-title-module-is-yggdrasils-own-check.md) | The pr-title module is yggdrasil's own PR Title workflow, callable with `workflow_call` | 2026-11-05 | Accepted |
 | [0029](0029-auto-merge-module-takes-the-callers-token.md) | The auto-merge module takes each caller's own merge token, not the App's key | 2026-11-05 | Accepted |
+| [0030](0030-docker-build-module.md) | The docker-build module builds `linux/amd64` only, takes the smoke test as a script, and is tested on an empty image | 2026-11-05 | Accepted |

@@ -1,0 +1,178 @@
+name: docker-build
+
+# The PR image module: hadolint, then the linux/amd64 image the release would
+# ship, built but not pushed, scanned by Trivy, run through the caller's smoke
+# test, and refused on any fixable Critical or High. hevy-trainer-sync's and
+# Bluebird's Docker Build job. Decision record 0030.
+#
+# The caller runs it on `pull_request` and grants `contents: read` and
+# `pull-requests: write`, for the sticky scan comment.
+on:
+  workflow_call:
+    inputs:
+      context:
+        description: Build context, holding the Dockerfile.
+        type: string
+        default: .
+      build-args:
+        description: Build arguments, one KEY=value per line.
+        type: string
+        default: ''
+      smoke-test:
+        description: Bash run against the built image, whose tag is in $IMAGE (`<repo name>:pr-scan`). A failing command fails the job.
+        type: string
+        default: ''
+      cache:
+        description: Use the GitHub Actions layer cache.
+        type: boolean
+        default: false
+      upload-image:
+        description: Save the image as the artifact `<repo name>-image`, holding `<repo name>-image.tar`, for the caller's later jobs to load.
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write # the sticky scan comment
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # A caller with its own trivy.yaml uses it. Otherwise the module's
+      # default, read at the commit the caller pinned (records 0006, 0022).
+      - if: hashFiles('trivy.yaml') == ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          persist-credentials: false
+      - id: names
+        run: |
+          REPO=${GITHUB_REPOSITORY#*/}
+          TRIVY=trivy.yaml
+          [ -f "$TRIVY" ] || TRIVY=.yggdrasil/defaults/trivy.yaml
+          {
+            echo "image=${REPO,,}:pr-scan"
+            echo "repo=${REPO}"
+            echo "trivy=${TRIVY}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
+        with:
+          dockerfile: ${{ inputs.context }}/Dockerfile
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      # The platform the cluster runs. Loaded into the runner's daemon so Trivy
+      # can scan it and the smoke test can run it; nothing is pushed.
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ${{ inputs.context }}
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: ${{ steps.names.outputs.image }}
+          build-args: ${{ inputs.build-args }}
+          cache-from: ${{ inputs.cache && 'type=gha' || '' }}
+          cache-to: ${{ inputs.cache && 'type=gha,mode=max' || '' }}
+
+      - if: inputs.upload-image
+        env:
+          IMAGE: ${{ steps.names.outputs.image }}
+          REPO: ${{ steps.names.outputs.repo }}
+        run: docker save "$IMAGE" -o "$RUNNER_TEMP/${REPO}-image.tar"
+      - if: inputs.upload-image
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.names.outputs.repo }}-image
+          path: ${{ runner.temp }}/${{ steps.names.outputs.repo }}-image.tar
+          retention-days: 1
+          # The layers are already compressed.
+          compression-level: 1
+
+      # Fixable only: distributions ship CVEs upstream hasn't patched, which
+      # nobody can act on. JSON once; the count, table and comment derive from it.
+      - name: Scan image (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.names.outputs.image }}
+          format: json
+          output: trivy.json
+          ignore-unfixed: true
+          trivy-config: ${{ steps.names.outputs.trivy }}
+
+      - name: Render scan report
+        id: report
+        env:
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ steps.names.outputs.repo }}
+        run: |
+          # `?` on both levels: a report with no results is the clean case.
+          TOTAL=$(jq '[.Results[]?.Vulnerabilities[]?] | length' trivy.json)
+          CRIT_HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' trivy.json)
+          echo "crit_high=${CRIT_HIGH}" >> "$GITHUB_OUTPUT"
+          {
+            echo "<!-- ${REPO}-image-scan -->"
+            echo "### Image vulnerability scan"
+            echo ""
+            echo "Trivy scan of this PR's image at \`${PR_SHA}\` (linux/amd64, fixable vulnerabilities only)."
+            echo ""
+            if [ "$TOTAL" -eq 0 ]; then
+              echo "No fixable vulnerabilities."
+            else
+              echo "**${TOTAL} fixable vulnerabilities, ${CRIT_HIGH} of them Critical or High.** Critical and High fail this check, and the release would refuse them too."
+              echo ""
+              echo "<details><summary>Full report</summary>"
+              echo ""
+              echo '```text'
+              trivy convert --format table trivy.json
+              echo '```'
+              echo ""
+              echo "</details>"
+            fi
+            echo ""
+            echo "_Rewritten on every push. Unfixed OS CVEs are left out._"
+          } > scan-comment.md
+          cat scan-comment.md >> "$GITHUB_STEP_SUMMARY"
+
+      # Found by its hidden marker, so it is edited in place on every push.
+      # Skipped for Dependabot: its runs get a read-only token, so the step
+      # summary above is its only surface.
+      - name: Comment the scan result (sticky)
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ steps.names.outputs.repo }}
+        run: |
+          CID=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"<!-- ${REPO}-image-scan -->\")) | .id" | head -n1)
+          if [ -n "$CID" ]; then
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${CID}" -F body=@scan-comment.md >/dev/null
+          else
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" -F body=@scan-comment.md >/dev/null
+          fi
+
+      - name: Smoke test the built image
+        if: inputs.smoke-test != ''
+        env:
+          IMAGE: ${{ steps.names.outputs.image }}
+          SMOKE_TEST: ${{ inputs.smoke-test }}
+        run: bash -euo pipefail -c "$SMOKE_TEST"
+
+      # The gate, after the comment so a red run still explains itself.
+      - name: Fail on fixable Critical or High vulnerabilities
+        env:
+          CRIT_HIGH: ${{ steps.report.outputs.crit_high }}
+        run: |
+          if [ "$CRIT_HIGH" -gt 0 ]; then
+            echo "::error::${CRIT_HIGH} fixable Critical/High vulnerabilities in this PR's image. The release would refuse it. See the scan comment."
+            exit 1
+          fi

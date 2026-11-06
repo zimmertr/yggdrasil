@@ -1,6 +1,6 @@
 # 0017. Every change updates its docs page in the same PR, and every decision gets a record here
 
-- Status: Accepted
+- Status: Accepted, except a record for every decision, which 0036 narrows
 - Date: 2026-11-05
 - Decider: TJ's standard for new projects, in zimmertr/ai-config's `initialize-project` (`references/docs.md`), applied here by #2.
 - Issues and PRs: #2

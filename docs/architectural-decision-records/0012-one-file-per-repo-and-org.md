@@ -1,6 +1,6 @@
 # 0012. Each managed repo and org is one YAML file that names a profile, and new repos start from a template
 
-- Status: Accepted
+- Status: Accepted, except the profiles, which 0035 replaces with defaults in the stack
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on scope: "Everything updated since Apr 14, 2025… Plus a self-import for yggdrasil too… Also, Personal-Website, Zimmertr, Better Lighter Pack, and Strava heatmap String Builder repos", then "Manage all five + Lakebagger repos". On rollout: "Baseline + what fits".
 - Issues and PRs: #7, #8

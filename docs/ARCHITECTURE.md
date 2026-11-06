@@ -15,11 +15,9 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 | `actions/<name>/` | Composite actions, if a module ever needs a shared step. None yet (record 0026) | #4 |
 | `defaults/` | The shared conventions: `GitVersion.yml`, `trivy.yaml` | #4 |
 | `tests/<module>/` | What a module's test caller builds, such as `tests/docker-build/`'s empty image | #4 |
-| `profiles/<name>.yml` | The settings each profile sets: `default` and `archived` | #8 |
-| `repos/<name>.yml` | One file per managed repo | #8 |
+| `repos/<name>.yml` | One file per managed repo: only what differs from the defaults | #8 |
 | `orgs/<name>.yml` | One file per managed org | #8 |
-| `schemas/` | JSON Schemas for `repos/`, `orgs/` and `profiles/` | #8 |
-| `terraform/github/` | The stack that reads `repos/` and `orgs/` | #8 |
+| `terraform/github/` | The stack that reads `repos/` and `orgs/`, with the defaults and the preconditions that refuse weaker settings | #8 |
 | `terraform/dockerhub/` | Docker Hub repositories and their immutable tags | #9 |
 | `terraform/cloudflare/` | The stack moved from Kubernetes-Manifests, with its state | #10 |
 | `GitVersion.yml` | yggdrasil's own version and the PR title patterns that pick each bump | #2 |
@@ -54,12 +52,13 @@ A job inside a reusable workflow reports its check as `<caller job name> / <modu
 ```mermaid
 flowchart LR
   edit["edit repos/name.yml"] --> pr["PR"]
-  pr --> schema["schema check"]
-  pr --> plan["terraform plan<br/>posted on the PR"]
+  pr --> plan["terraform plan<br/>posted on the PR<br/>preconditions refuse weaker settings"]
   plan --> merge["merge to main"]
   merge --> apply["terraform apply"]
   weekly["weekly drift plan"] -.-> main["main"]
 ```
+
+Terraform guards itself: preconditions refuse a file that turns off branch protection or a security feature, and every repo is archived, never deleted, when it leaves Terraform. Record: [0035](architectural-decision-records/0035-terraform-guards-itself.md)
 
 Until #8 imports them, settings are API calls TJ okays first, logged in [CICD.md](CICD.md#settings-applied-by-api). Record: [0014](architectural-decision-records/0014-foundation-by-hand-then-imported.md)
 

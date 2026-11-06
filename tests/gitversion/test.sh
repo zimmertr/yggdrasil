@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The GitVersion behaviour yggdrasil's releases rest on, checked against the
-# pinned engine on made-up histories (decision record 0004), so Dependabot's
+# pinned engine on made-up histories (decision records 0004 and 0025), so Dependabot's
 # bump of the image runs it too. `make gitversion` runs it in the
 # gittools/gitversion image from compose.yml, which ships git and bash.
 #

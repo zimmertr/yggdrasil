@@ -4,7 +4,7 @@
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05: "Sure… shared gitversion…"
 - Issues and PRs: #1, #4
-- Cited in code as: none
+- Cited in code as: decision record 0006, in `defaults/GitVersion.yml` and `defaults/trivy.yaml`
 - Guide: [`docs/CONFIGURATION.md`](../CONFIGURATION.md), Shared defaults
 
 ## Context

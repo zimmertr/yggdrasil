@@ -4,7 +4,7 @@
 - Date: 2026-11-05
 - Decider: TJ, in #3's plan, 2026-11-05: "try the `job.workflow_sha` context and the OIDC `job_workflow_sha` claim before any duplicated ref input". The first one tried worked.
 - Issues and PRs: #3, #4
-- Cited in code as: none yet; the first module that loads its own files, in #4, cites it
+- Cited in code as: record 0022, in `defaults/GitVersion.yml` and `defaults/trivy.yaml`; the first module that loads its own files, in #4, cites it too
 - Guide: [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md#how-a-repo-uses-a-module)
 
 ## Context

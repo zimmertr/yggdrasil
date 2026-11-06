@@ -48,3 +48,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0022](0022-modules-load-their-own-files-from-the-job-context.md) | A module loads its own files by checking out `job.workflow_repository` at `job.workflow_sha` | 2026-11-05 | Accepted |
 | [0023](0023-releases-bake-three-days.md) | Every consumer is production: each takes a release once it is three days old, and patch and minor bumps merge themselves | 2026-11-05 | Accepted. Supersedes 0005 |
 | [0024](0024-terraform-providers-and-new-repos.md) | Terraform creates each new repo from the template, protects it with a ruleset, and fills the GitHub provider's gaps with Mastercard/restapi | 2026-11-05 | Accepted |
+| [0025](0025-gitversion-tested-in-its-own-image.md) | GitVersion's rules are tested by a bash script in the pinned GitVersion image, and shellcheck lints every shell script | 2026-11-05 | Accepted |

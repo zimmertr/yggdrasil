@@ -22,6 +22,7 @@ hevy-trainer-sync bumps one `newTag` line in Kubernetes-Manifests with its own P
 
 - 2026-11-06: `yq` 4.54.1 on a copy of Kubernetes-Manifests' `misc/hevy2garmin/kustomization.yml` changed the one `newTag` and dropped the file's two blank lines. Every comment stayed. On bluebird-helm's `charts/bluebird/Chart.yaml` it changed only `appVersion`, quotes kept.
 - 2026-11-06: `kustomize edit set image` (5.4.3) on the same kustomization re-indented both lists, sorted the images, moved both image comments above `images:`, and added `newName`, `apiVersion` and `kind`.
+- 2026-11-06: zizmor 1.32.0's pedantic `superfluous-actions` audit flags create-pull-request ("use `gh pr create` in a script step"). It is ignored on that line, TJ's call the same day: `gh pr create` covers only the PR, not the branch, commit, push or edit.
 - 2026-11-06: `yq -e '(<path>) == strenv(VERSION)'` exits 1 with "no matches found" on a path that matches nothing, and prints `true` on the bumped file.
 
 ## Alternatives rejected

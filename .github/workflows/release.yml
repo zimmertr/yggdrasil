@@ -341,10 +341,11 @@ jobs:
           cmd: yq -i "$SET = strenv(VERSION)" "$FILE" && yq -e "($SET) == strenv(VERSION)" "$FILE"
       # Pushes the fixed branch fresh off the default branch, then opens the PR
       # or edits the open one to this version. Does nothing when the file
-      # already holds it.
+      # already holds it. zizmor would have `gh pr create` instead, which does
+      # only the last of those; the rest would be shell (record 0033).
       - id: pr
         if: steps.newest.outputs.newest == needs.version.outputs.version
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1 zizmor: ignore[superfluous-actions]
         with:
           token: ${{ secrets.deploy-token }}
           branch: ${{ matrix.branch }}

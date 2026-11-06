@@ -1,7 +1,8 @@
-"""The policy check: each rule fires on a fixture that breaks it, stays quiet on one
-that follows it, and the repo itself passes."""
+"""The policy check (decision record 0019): each rule fires on a fixture that breaks it, stays
+quiet on one that follows it, and the repo itself passes."""
 
 import io
+import runpy
 import tempfile
 import textwrap
 import unittest
@@ -185,7 +186,8 @@ class TestPullRequestTarget(RepoCase):
         self.assertOneProblem("pull_request_target")
 
     def test_it_fails_as_a_mapping_key(self):
-        self.write(".github/workflows/w.yml", workflow("- run: true\n", on="\n  pull_request_target:\n    types: [opened]"))
+        on = "\n  pull_request_target:\n    types: [opened]"
+        self.write(".github/workflows/w.yml", workflow("- run: true\n", on=on))
         self.assertOneProblem("pull_request_target")
 
     def test_pull_request_passes(self):
@@ -248,7 +250,8 @@ class TestDocs(RepoCase):
         self.assertEqual(self.problems(), [])
 
     def test_repeated_headings_get_numbered_anchors(self):
-        self.assertEqual(check_policy.heading_anchors("# Notes\n## Notes\n### Notes\n"), {"notes", "notes-1", "notes-2"})
+        anchors = check_policy.heading_anchors("# Notes\n## Notes\n### Notes\n")
+        self.assertEqual(anchors, {"notes", "notes-1", "notes-2"})
 
     def test_an_anchor_in_the_same_file(self):
         self.write("A.md", "# Top\n\n[up](#top) [down](#nowhere)\n")
@@ -293,6 +296,14 @@ class TestMain(RepoCase):
         with mock.patch.object(check_policy, "check_repo", return_value=[]) as check:
             self.assertEqual(check_policy.main(["check_policy.py"]), 0)
         self.assertEqual(check.call_args.args[0], Path(".").resolve())
+
+    def test_it_runs_as_a_script(self):
+        script = REPO_ROOT / "scripts" / "check_policy.py"
+        out = io.StringIO()
+        with mock.patch("sys.argv", [str(script), str(self.root)]), redirect_stdout(out):
+            with self.assertRaises(SystemExit) as exit_:
+                runpy.run_path(str(script), run_name="__main__")
+        self.assertEqual(exit_.exception.code, 0)
 
 
 class TestThisRepo(unittest.TestCase):

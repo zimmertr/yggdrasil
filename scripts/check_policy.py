@@ -1,4 +1,4 @@
-"""The repo's workflow and docs policy, as one check.
+"""The repo's workflow and docs policy, as one check (decision record 0019).
 
 Workflows (`.github/workflows/*.yml`) and composite actions (`actions/*/action.yml`):
 
@@ -102,11 +102,11 @@ def _check_uses(node: yaml.Node, lines: list[str]):
 
 
 def _mapping_pairs(node: yaml.Node):
-    """Every (key node, value node) pair in the tree, depth first."""
+    """Every (key node, value node) pair in the tree, depth first. A key is always
+    a scalar here: safe_load has already refused a list or mapping as a key."""
     if isinstance(node, yaml.MappingNode):
         for key, value in node.value:
-            if isinstance(key, yaml.ScalarNode):
-                yield key, value
+            yield key, value
             yield from _mapping_pairs(value)
     elif isinstance(node, yaml.SequenceNode):
         for item in node.value:

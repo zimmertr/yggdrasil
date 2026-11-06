@@ -1,6 +1,6 @@
 # CI/CD
 
-How a change gets from a PR to main, and later to every consuming repo. As of 2026-11-05 no workflow exists yet: #2 adds the checks one PR at a time, and this page grows with each.
+How a change gets from a PR to main, and later to every consuming repo. #2 adds the checks one PR at a time, and this page grows with each.
 
 ## From PR to main
 
@@ -14,8 +14,23 @@ flowchart LR
 
 - Every change reaches main through a PR. The repo allows squash merges only, with the PR title as the commit title and the PR body as the message.
 - The PR title is `type(scope): summary`. It picks the next version, and a `!` before the colon marks a change that breaks a caller. Record: [0004](architectural-decision-records/0004-one-version-for-every-module.md)
-- The required checks and branch protection arrive with #2 items 0.4 to 0.9. A check is added to protection only after it has reported once, because a required check that never reports blocks every PR.
 - The release workflow arrives with the modules in #4.
+
+## PR checks
+
+Every job runs a `make` target, in the same pinned container a local run uses. Record: [0018](architectural-decision-records/0018-checks-run-through-make-in-pinned-containers.md)
+
+| Workflow | Job | Runs | Fails on |
+|---|---|---|---|
+| `test.yml` | `test` | `make test`, then the coverage table into the run's summary | A failing test, including the policy check (below) |
+| `lint.yml` | `Lint` | `make lint`: ruff under `ruff.toml` | Any ruff finding |
+| `lint.yml` | `actionlint` | `make actionlint`: actionlint, with shellcheck on every `run:` | Any finding in `.github/workflows/` |
+
+`test.yml` also has `workflow_call`, so the release workflow (#4) can test the merged commit before it builds anything.
+
+The policy check, `scripts/check_policy.py`, runs inside `test`. It fails a `uses:` that isn't a full SHA with `# vX.Y.Z`, `${{ }}` inside `run:`, a job without `timeout-minutes`, a checkout that keeps its credentials, any `pull_request_target`, a broken relative link or anchor in a doc, and an em dash in a doc. Record: [0019](architectural-decision-records/0019-a-policy-check-holds-workflows-and-docs.md)
+
+Branch protection arrives with #2 item 0.9. A check is added to it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR.
 
 ## Settings applied by API
 

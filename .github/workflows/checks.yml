@@ -4,8 +4,8 @@ name: checks
 # (decision records 0018 and 0019). workflow_call lets the release workflow
 # (#4) run them on the merged commit first.
 #
-# Branch protection will require the job names `actionlint`, `zizmor` and
-# `Docs`; renaming one strands PRs on a check that never reports.
+# Branch protection requires the job names `actionlint`, `zizmor` and `Docs`;
+# renaming one strands PRs on a check that never reports.
 on:
   pull_request:
   workflow_call:
@@ -27,6 +27,7 @@ jobs:
         with:
           persist-credentials: false
       - run: make actionlint
+      - run: make shellcheck
 
   zizmor:
     name: zizmor
@@ -50,3 +51,13 @@ jobs:
         with:
           persist-credentials: false
       - run: make docs
+
+  gitversion:
+    name: GitVersion Engine
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make gitversion

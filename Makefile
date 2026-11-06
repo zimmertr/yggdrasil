@@ -9,15 +9,22 @@ RUN := docker compose run --rm -T
 # CI passes --format=github, so findings show as annotations on the PR.
 ZIZMOR_ARGS ?=
 
-.PHONY: check actionlint zizmor docs links em-dash
+.PHONY: check actionlint shellcheck zizmor docs links em-dash gitversion
 
 # Everything the PR checks run.
-check: actionlint zizmor docs
+check: actionlint shellcheck zizmor docs gitversion
 
 # The actionlint job, over every workflow. The image bundles shellcheck, so
 # run: blocks are checked too.
 actionlint:
 	$(RUN) actionlint -color
+
+# Also in the actionlint job: the same image's shellcheck, over every shell
+# script outside the workflows. A script added elsewhere is added here.
+SHELL_SCRIPTS := tests/gitversion/test.sh
+
+shellcheck:
+	$(RUN) --entrypoint shellcheck actionlint $(SHELL_SCRIPTS)
 
 # The zizmor job: GitHub Actions security, over workflows, actions and
 # dependabot.yml. The pedantic persona also fails a hash pin without its
@@ -43,3 +50,9 @@ links:
 # can't pass silently.
 em-dash:
 	$(RUN) shell sh -c 'grep -rn --include="*.md" --exclude-dir=.git "$$(printf "\342\200\224")" . $(DOCS_NAMED); test $$? -eq 1'
+
+# The GitVersion Engine job: the version rules in GitVersion.yml and
+# defaults/GitVersion.yml, run by the pinned engine on made-up histories
+# (decision record 0004).
+gitversion:
+	$(RUN) --entrypoint bash gitversion tests/gitversion/test.sh

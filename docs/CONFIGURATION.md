@@ -41,6 +41,16 @@ Fails a PR whose title isn't `type(scope): summary` with a type from `defaults/G
 - The caller runs it from `pull_request` with `types: [opened, edited, reopened, synchronize]`, so a title edit reruns it, and grants `pull-requests: read`.
 - The caller sees the check `<caller job> / PR Title`.
 
+### `lint.yml`
+
+actionlint, with shellcheck on every `run:`; zizmor's pedantic audits over the caller's workflows, actions and `dependabot.yml`; and Semgrep's registry rule that every Dockerfile `FROM` carries a digest. All three run in the images `compose.yml` pins, read at the commit the caller pinned, so a new tool version reaches a caller with its next pin bump. No inputs. Record: [0037](architectural-decision-records/0037-lint-module.md)
+
+- The caller runs it on `pull_request` and grants `contents: read`.
+- zizmor gets the job's read-only token, which turns on its online audits, including a version comment that doesn't match its SHA.
+- Semgrep fetches its rule from semgrep.dev on each run, and skips test folders, as its default ignores do. A repo with no Dockerfile passes.
+- A finding is fixed, or silenced with its reason: an inline `# zizmor: ignore[<audit>]`, the caller's own `zizmor.yml`, or a `# nosemgrep` comment.
+- The caller sees `<caller job> / actionlint`, `<caller job> / zizmor` and `<caller job> / semgrep`.
+
 ### `auto-merge.yml`
 
 Arms auto-merge on Dependabot's patch and minor version updates and says so in a comment. Majors and digest-only updates wait. No inputs. Record: [0029](architectural-decision-records/0029-auto-merge-module-takes-the-callers-token.md)

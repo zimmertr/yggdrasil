@@ -18,19 +18,20 @@ flowchart LR
 
 ## PR checks
 
-Every job runs a `make` target, in the same pinned container a local run uses. Record: [0018](architectural-decision-records/0018-checks-run-through-make-in-pinned-containers.md)
+Every job runs in the same pinned container a local `make` run uses. Record: [0018](architectural-decision-records/0018-checks-run-through-make-in-pinned-containers.md)
 
 | Workflow | Job | Runs | Fails on |
 |---|---|---|---|
-| `checks.yml` | `actionlint` | `make actionlint`: actionlint, with shellcheck on every `run:` | Any finding in `.github/workflows/` |
-| `checks.yml` | `zizmor` | `make zizmor`: zizmor's pedantic audits, online with the job's read-only token, findings as PR annotations | Any finding: an unpinned action or a version comment that is missing or wrong, `${{ }}` inside `run:`, a checkout that keeps credentials, `pull_request_target`, broad permissions and the rest |
+| `checks.yml` | `Lint / actionlint` | The lint module on this repo, from this PR's copy: actionlint, with shellcheck on every `run:`. Record: [0037](architectural-decision-records/0037-lint-module.md) | Any finding in `.github/workflows/` |
+| `checks.yml` | `Lint / zizmor` | The lint module: zizmor's pedantic audits, online with the job's read-only token, findings as PR annotations | Any finding: an unpinned action or a version comment that is missing or wrong, `${{ }}` inside `run:`, a checkout that keeps credentials, `pull_request_target`, broad permissions and the rest |
+| `checks.yml` | `Lint / semgrep` | The lint module: Semgrep's registry rule `dockerfile-source-not-pinned` | A Dockerfile `FROM` without an `@sha256:` digest, outside test folders |
 | `pr-title.yml` | `PR Title` | `amannn/action-semantic-pull-request` on the title, on every edit and push | A title that isn't `type(scope): summary` with a type from `GitVersion.yml`'s patterns. Record: [0020](architectural-decision-records/0020-pr-titles-checked-by-a-community-action.md) |
 | `checks.yml` | `Docs` | `make docs`: lychee over every relative link and heading anchor, and a grep for em dashes | A broken link or anchor, or an em dash |
 | `ci-docker-build.yml` | `Docker Build Test / Docker Build` | The docker-build module on `tests/docker-build/`. Only on PRs that touch the module, its test or `defaults/trivy.yaml`, so it isn't required | Any failure of the module |
 | `ci-release.yml` | `Release / Version` | The release module in dry run: GitVersion on the squash commit this PR will make | GitVersion failing or giving something other than `X.Y.Z` |
 | `ci-release.yml` | `Release / Build & Push (zimmertr/yggdrasil-test)` | The same dry run building `tests/docker-build/` for `linux/amd64` and `linux/arm64`, pushing nothing | A build that fails |
 
-Branch protection requires `actionlint`, `zizmor`, `Docs` and `PR Title` (logged below). A check joins it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR. CodeQL's default setup scans the workflows too.
+Branch protection requires `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, `Docs` and `PR Title` (logged below). A check joins it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR. CodeQL's default setup scans the workflows too.
 
 ## Settings applied by API
 
@@ -61,6 +62,16 @@ TJ okayed both. Before: no branch protection and no code scanning.
 | `gh api -X PATCH repos/zimmertr/yggdrasil/code-scanning/default-setup -f state=configured -f query_suite=default -f 'languages[]=actions'` | CodeQL default setup for the workflows |
 
 `protection.json` held exactly those fields; the read-back of `branches/main/protection` matched it.
+
+### 2026-11-06, #6 step 4.4
+
+TJ okayed it. Before: required checks `actionlint`, `zizmor`, `Docs` and `PR Title`.
+
+| Call | Sets |
+|---|---|
+| `gh api -X PATCH repos/zimmertr/yggdrasil/branches/main/protection/required_status_checks --input checks.json` | Required checks `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, `Docs` and `PR Title` from GitHub Actions (app 15368), not strict |
+
+The call's response listed exactly those five.
 
 ## Dependabot
 

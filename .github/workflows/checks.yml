@@ -1,10 +1,11 @@
 name: checks
 
-# The PR checks, each through the make target and container a local run uses
-# (decision records 0018 and 0019).
+# The PR checks, in the containers a local run uses (decision records 0018 and
+# 0019). The lint module runs here on this repo, from this PR's own copy, so
+# every change to it is tested before it releases (record 0037).
 #
-# Branch protection requires the job names `actionlint`, `zizmor` and `Docs`;
-# renaming one strands PRs on a check that never reports.
+# Branch protection requires `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep` and `Docs`;
+# renaming a job strands PRs on a check that never reports.
 on:
   pull_request:
 
@@ -16,28 +17,11 @@ permissions:
   contents: read
 
 jobs:
-  actionlint:
-    name: actionlint
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - run: make actionlint
-
-  zizmor:
-    name: zizmor
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      # The job's read-only token turns on zizmor's online audits.
-      - run: make zizmor ZIZMOR_ARGS=--format=github
-        env:
-          GH_TOKEN: ${{ github.token }}
+  lint:
+    name: Lint
+    uses: $/.github/workflows/lint.yml
+    permissions:
+      contents: read
 
   docs:
     name: Docs

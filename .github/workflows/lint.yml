@@ -1,0 +1,91 @@
+name: lint
+
+# The lint module: actionlint, with shellcheck on every `run:`; zizmor's
+# pedantic audits over the caller's workflows, actions and dependabot.yml; and
+# Semgrep's rule that every Dockerfile `FROM` carries a digest. All three run
+# in the images yggdrasil's compose.yml pins, read at the commit the caller
+# pinned, so a caller, yggdrasil's CI and `make actionlint` / `make zizmor` /
+# `make semgrep` here run the same tools (records 0018, 0019, 0022). Decision
+# record 0037.
+#
+# The caller runs it on `pull_request` and grants `contents: read`, and sees
+# the checks as `<caller job> / actionlint`, `<caller job> / zizmor` and
+# `<caller job> / semgrep`. A finding is fixed, or silenced with its reason:
+# an inline `# zizmor: ignore[<audit>]`, the caller's own zizmor.yml, or a
+# `# nosemgrep` comment.
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # compose.yml alone, so the linters see none of yggdrasil's own files.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          sparse-checkout: compose.yml
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      # --project-directory: the service's `.:/repo` mounts the caller's
+      # checkout, not .yggdrasil.
+      - run: docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T actionlint -color
+
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          sparse-checkout: compose.yml
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      # The job's read-only token turns on zizmor's online audits: known
+      # vulnerable actions, impostor commits, and a version comment that
+      # doesn't match its SHA.
+      - run: docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T zizmor --persona=pedantic --format=github .
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  semgrep:
+    name: semgrep
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          sparse-checkout: compose.yml
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      # One registry rule, fetched from semgrep.dev at run time. Semgrep's
+      # default ignores skip test folders, so a test-only Dockerfile isn't
+      # checked. A repo with no Dockerfile passes with nothing scanned.
+      - run: docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T semgrep semgrep scan --metrics=off --disable-version-check --error --config r/dockerfile.audit.dockerfile-source-not-pinned.dockerfile-source-not-pinned .

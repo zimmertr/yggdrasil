@@ -25,4 +25,4 @@ No dated measurement.
 
 ## Consequences
 
-Changing a default is a module change and a release, and reaches every consumer that hasn't overridden it. A `./` path inside a reusable workflow resolves in the caller's checkout, so the module must fetch the defaults from yggdrasil at its ref (#3 tests this).
+Changing a default is a module change and a release, and reaches every consumer that hasn't overridden it. A `./` path inside a reusable workflow resolves in the caller's checkout, so the module must fetch the defaults from yggdrasil at its ref, which it reads from `job.workflow_sha` (0022).

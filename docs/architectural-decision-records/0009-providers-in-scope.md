@@ -13,14 +13,14 @@ TJ's settings live on four services. Each needs either a Terraform provider that
 
 ## Decision
 
-- **GitHub**: managed, through `integrations/github` (#8).
-- **Docker Hub**: managed, if #3 shows Docker's provider can set immutable tags (#9).
+- **GitHub**: managed, through `integrations/github`, with `Mastercard/restapi` for the settings it lacks (#8, 0024).
+- **Docker Hub**: managed, through Docker's provider, which sets immutable tags (#9).
 - **Cloudflare**: the existing stack moves whole from Kubernetes-Manifests `terraform/cloudflare`, with its state, and must plan clean before anything changes (#10).
 - **ArtifactHub**: documented, not managed. yggdrasil writes down the standard steps for listing a Helm chart: registering it, `artifacthub-repo.yml` for the verified publisher, and editing a record in place instead of re-registering it.
 
 ## Evidence
 
-No dated measurement. #3 checks Docker's provider.
+- 2026-11-05 (#3): `docker/docker` 0.7.0 created a Docker Hub repo with immutable tags `.*`, planned clean the second time, and Docker Hub then refused a second push of the same tag. [`docs/DATA.md`](../DATA.md#docker-hub)
 
 ## Alternatives rejected
 

@@ -13,12 +13,13 @@ TJ's automation ran on personal tokens: `AUTO_MERGE_PAT` per repo and `GH_PAT` o
 
 ## Decision
 
-The GitHub App `zimmertr-yggdrasil-bot` (App ID 5636772), owned by `zimmertr` and installed on every owner yggdrasil manages, is the one identity automation writes as. Each run mints a short-lived token with a SHA-pinned `actions/create-github-app-token`. yggdrasil's own Dependabot auto-merge uses it from the start, through the Dependabot secret `YGGDRASIL_BOT_PRIVATE_KEY` and the App's public client ID (0021). A PAT comes back only if #3 proves one is needed.
+The GitHub App `zimmertr-yggdrasil-bot` (App ID 5636772), owned by `zimmertr` and installed on every owner yggdrasil manages, is the one identity automation writes as. Each run mints a short-lived token with a SHA-pinned `actions/create-github-app-token`. yggdrasil's own Dependabot auto-merge uses it from the start, through the Dependabot secret `YGGDRASIL_BOT_PRIVATE_KEY` and the App's public client ID (0021). A PAT comes back only if a later test proves one is needed; #3 found none.
 
 ## Evidence
 
 - 2026-11-05: `gh api apps/zimmertr-yggdrasil-bot` shows the permissions in [`docs/CONFIGURATION.md`](../CONFIGURATION.md#the-app), and TJ accepted them on all six installations.
 - 2026-11-05: the Bluebird-Forecast org caps a fine-grained PAT at 366 days (zimmertr/bluebird#311).
+- 2026-11-05 (#3): with only an installation token, Terraform created a repo under `zimmertr` from a template and applied every repo setting, so nothing #3 tested needs a PAT. [`docs/DATA.md`](../DATA.md#github)
 
 ## Alternatives rejected
 

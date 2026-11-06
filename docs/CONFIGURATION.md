@@ -8,8 +8,12 @@ None yet. Each module documents its inputs here when #4 adds it: the name, wheth
 
 ## Shared defaults
 
-`defaults/GitVersion.yml` and `defaults/trivy.yaml` arrive with #4. A module reads them at its own pinned ref, and a caller can pass its own file instead. Record: [0006](architectural-decision-records/0006-shared-conventions-ship-as-defaults.md)
+A module reads these at the commit its caller pinned, by checking out `job.workflow_repository` at `job.workflow_sha`, and a caller can pass its own file instead. Records: [0006](architectural-decision-records/0006-shared-conventions-ship-as-defaults.md), [0022](architectural-decision-records/0022-modules-load-their-own-files-from-the-job-context.md)
 
+| File | Sets |
+|---|---|
+| `defaults/GitVersion.yml` | yggdrasil's own `GitVersion.yml` without its `ignore` rule, so every merge to a caller's main releases. A first release is v0.1.0, and a repo already tagged counts from its last tag. `feat` is a minor, `!` before the colon a major, every other type a patch, and only the title counts |
+| `defaults/trivy.yaml` | Skips pip's vendored SBOM, `**/pip/_vendor/bom.cdx.json`, which Trivy otherwise reads as installed packages at versions that aren't installed |
 ## The App
 
 `zimmertr-yggdrasil-bot`, checked with `gh api apps/zimmertr-yggdrasil-bot` on 2026-11-05. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)

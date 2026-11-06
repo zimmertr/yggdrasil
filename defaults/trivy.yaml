@@ -1,0 +1,13 @@
+# The scan settings every image module uses unless the caller passes its own
+# file (decision record 0006): the PR scan, the release scan by digest, and the
+# weekly rescan, so the scan that lets an image through and the scans that check
+# it later judge it the same way. The modules read this file at their pinned
+# commit (record 0022).
+scan:
+  skip-files:
+    # pip ships a CycloneDX SBOM of the source it vendors, and Trivy reads any
+    # SBOM it finds as image inventory. It is not inventory: Bluebird found
+    # Trivy reporting the old versions this file names while newer ones were
+    # installed (its trivy.yaml, 2026-10). Skipping the file rather than CVE ids
+    # leaves every installed package scanned.
+    - '**/pip/_vendor/bom.cdx.json'

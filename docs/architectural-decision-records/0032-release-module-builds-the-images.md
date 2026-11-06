@@ -1,6 +1,6 @@
 # 0032. The release module builds every image from one JSON list, scans each platform by digest, and releases only after every scan
 
-- Status: Accepted
+- Status: Accepted, except the re-run check and the digest lookup, which 0034 drops
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on #4 item 2.11: "LGTM, continue"
 - Issues and PRs: #4, #33

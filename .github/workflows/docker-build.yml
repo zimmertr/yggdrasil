@@ -3,7 +3,7 @@ name: docker-build
 # The PR image module: hadolint, then the linux/amd64 image the release would
 # ship, built but not pushed, scanned by Trivy, run through the caller's smoke
 # test, and refused on any fixable Critical or High. hevy-trainer-sync's and
-# Bluebird's Docker Build job. Decision record 0030.
+# Bluebird's Docker Build job. Decision records 0030 and 0034.
 #
 # The caller runs it on `pull_request` and grants `contents: read` and
 # `pull-requests: write`, for the sticky scan comment.
@@ -54,16 +54,11 @@ jobs:
           ref: ${{ job.workflow_sha }}
           path: .yggdrasil
           persist-credentials: false
+      # Docker tags must be lowercase; repo names needn't be.
       - id: names
         run: |
           REPO=${GITHUB_REPOSITORY#*/}
-          TRIVY=trivy.yaml
-          [ -f "$TRIVY" ] || TRIVY=.yggdrasil/defaults/trivy.yaml
-          {
-            echo "image=${REPO,,}:pr-scan"
-            echo "repo=${REPO}"
-            echo "trivy=${TRIVY}"
-          } >> "$GITHUB_OUTPUT"
+          echo "image=${REPO,,}:pr-scan" >> "$GITHUB_OUTPUT"
 
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
@@ -86,79 +81,46 @@ jobs:
       - if: inputs.upload-image
         env:
           IMAGE: ${{ steps.names.outputs.image }}
-          REPO: ${{ steps.names.outputs.repo }}
+          REPO: ${{ github.event.repository.name }}
         run: docker save "$IMAGE" -o "$RUNNER_TEMP/${REPO}-image.tar"
       - if: inputs.upload-image
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ steps.names.outputs.repo }}-image
-          path: ${{ runner.temp }}/${{ steps.names.outputs.repo }}-image.tar
+          name: ${{ github.event.repository.name }}-image
+          path: ${{ runner.temp }}/${{ github.event.repository.name }}-image.tar
           retention-days: 1
           # The layers are already compressed.
           compression-level: 1
 
       # Fixable only: distributions ship CVEs upstream hasn't patched, which
-      # nobody can act on. JSON once; the count, table and comment derive from it.
+      # nobody can act on. Every severity, for the comment.
       - name: Scan image (Trivy)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ steps.names.outputs.image }}
-          format: json
-          output: trivy.json
+          output: trivy.txt
           ignore-unfixed: true
-          trivy-config: ${{ steps.names.outputs.trivy }}
-
-      - name: Render scan report
-        id: report
-        env:
+          trivy-config: ${{ hashFiles('trivy.yaml') != '' && 'trivy.yaml' || '.yggdrasil/defaults/trivy.yaml' }}
+      - env:
           PR_SHA: ${{ github.event.pull_request.head.sha }}
-          REPO: ${{ steps.names.outputs.repo }}
         run: |
-          # `?` on both levels: a report with no results is the clean case.
-          TOTAL=$(jq '[.Results[]?.Vulnerabilities[]?] | length' trivy.json)
-          CRIT_HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' trivy.json)
-          echo "crit_high=${CRIT_HIGH}" >> "$GITHUB_OUTPUT"
           {
-            echo "<!-- ${REPO}-image-scan -->"
             echo "### Image vulnerability scan"
             echo ""
-            echo "Trivy scan of this PR's image at \`${PR_SHA}\` (linux/amd64, fixable vulnerabilities only)."
+            echo "Trivy on this PR's image at \`${PR_SHA}\` (linux/amd64, fixable only). Critical and High fail this check, and the release would refuse them too."
             echo ""
-            if [ "$TOTAL" -eq 0 ]; then
-              echo "No fixable vulnerabilities."
-            else
-              echo "**${TOTAL} fixable vulnerabilities, ${CRIT_HIGH} of them Critical or High.** Critical and High fail this check, and the release would refuse them too."
-              echo ""
-              echo "<details><summary>Full report</summary>"
-              echo ""
-              echo '```text'
-              trivy convert --format table trivy.json
-              echo '```'
-              echo ""
-              echo "</details>"
-            fi
-            echo ""
-            echo "_Rewritten on every push. Unfixed OS CVEs are left out._"
+            echo '```text'
+            cat trivy.txt
+            echo '```'
           } > scan-comment.md
           cat scan-comment.md >> "$GITHUB_STEP_SUMMARY"
-
-      # Found by its hidden marker, so it is edited in place on every push.
-      # Skipped for Dependabot: its runs get a read-only token, so the step
-      # summary above is its only surface.
-      - name: Comment the scan result (sticky)
-        if: github.event.pull_request.user.login != 'dependabot[bot]'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-          REPO: ${{ steps.names.outputs.repo }}
-        run: |
-          CID=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" --paginate \
-            --jq ".[] | select(.body | startswith(\"<!-- ${REPO}-image-scan -->\")) | .id" | head -n1)
-          if [ -n "$CID" ]; then
-            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${CID}" -F body=@scan-comment.md >/dev/null
-          else
-            gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" -F body=@scan-comment.md >/dev/null
-          fi
+      # Edited in place on every push. Skipped for Dependabot: its runs get a
+      # read-only token, so the step summary above is its only surface.
+      - if: github.event.pull_request.user.login != 'dependabot[bot]'
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: image-scan
+          path: scan-comment.md
 
       - name: Smoke test the built image
         if: inputs.smoke-test != ''
@@ -167,12 +129,14 @@ jobs:
           SMOKE_TEST: ${{ inputs.smoke-test }}
         run: bash -euo pipefail -c "$SMOKE_TEST"
 
-      # The gate, after the comment so a red run still explains itself.
-      - name: Fail on fixable Critical or High vulnerabilities
-        env:
-          CRIT_HIGH: ${{ steps.report.outputs.crit_high }}
-        run: |
-          if [ "$CRIT_HIGH" -gt 0 ]; then
-            echo "::error::${CRIT_HIGH} fixable Critical/High vulnerabilities in this PR's image. The release would refuse it. See the scan comment."
-            exit 1
-          fi
+      # The gate, after the comment so a red run still explains itself. The
+      # same scan again, from the first run's cache.
+      - name: Fail on fixable Critical or High vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.names.outputs.image }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+          skip-setup-trivy: true
+          trivy-config: ${{ hashFiles('trivy.yaml') != '' && 'trivy.yaml' || '.yggdrasil/defaults/trivy.yaml' }}

@@ -52,8 +52,9 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0026](0026-modules-carry-only-what-callers-use.md) | The modules carry only what hevy-trainer-sync and Bluebird use today, in shell, `jq` and `yq`, with no Python | 2026-11-05 | Accepted |
 | [0027](0027-release-module.md) | The release module runs GitVersion's image, previews each PR's version, and makes the tag and release in one `gh release create` | 2026-11-05 | Accepted |
 | [0028](0028-pr-title-module-is-yggdrasils-own-check.md) | The pr-title module is yggdrasil's own PR Title workflow, callable with `workflow_call` | 2026-11-05 | Accepted |
-| [0029](0029-auto-merge-module-takes-the-callers-token.md) | The auto-merge module takes each caller's own merge token, not the App's key | 2026-11-05 | Accepted |
-| [0030](0030-docker-build-module.md) | The docker-build module builds `linux/amd64` only, takes the smoke test as a script, and is tested on an empty image | 2026-11-05 | Accepted |
-| [0031](0031-image-scan-module.md) | The image-scan module takes a JSON list of images, scans each once, and converts the report to SARIF | 2026-11-05 | Accepted |
-| [0032](0032-release-module-builds-the-images.md) | The release module builds every image from one JSON list, scans each platform by digest, and releases only after every scan | 2026-11-05 | Accepted |
+| [0029](0029-auto-merge-module-takes-the-callers-token.md) | The auto-merge module takes each caller's own merge token, not the App's key | 2026-11-05 | Accepted, except parts 0034 replaces |
+| [0030](0030-docker-build-module.md) | The docker-build module builds `linux/amd64` only, takes the smoke test as a script, and is tested on an empty image | 2026-11-05 | Accepted, except parts 0034 replaces |
+| [0031](0031-image-scan-module.md) | The image-scan module takes a JSON list of images, scans each once, and converts the report to SARIF | 2026-11-05 | Accepted, except parts 0034 replaces |
+| [0032](0032-release-module-builds-the-images.md) | The release module builds every image from one JSON list, scans each platform by digest, and releases only after every scan | 2026-11-05 | Accepted, except parts 0034 replaces |
 | [0033](0033-release-module-bumps-deploys-with-yq.md) | The release module points each deploy repo at the release with `yq`, through one self-merging PR per file | 2026-11-06 | Accepted |
+| [0034](0034-community-actions-over-shell.md) | The modules use a maintained action or input wherever one does what a shell step did | 2026-11-06 | Accepted |

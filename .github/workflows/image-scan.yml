@@ -5,7 +5,7 @@ name: image-scan
 # rebuilds it. This scans each image at the caller's latest release, sends the
 # findings to the Security tab, and fails, which emails TJ, only when a fixable
 # Critical or High exists. hevy-trainer-sync's and Bluebird's Scheduled Image
-# Scan. Decision record 0031.
+# Scan. Decision records 0031 and 0034.
 #
 # The caller runs it on a `schedule` (and `workflow_dispatch`) and grants
 # `contents: read` and `security-events: write`.
@@ -56,33 +56,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           IMAGE: ${{ matrix.image }}
-        run: |
-          TAG=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
-          TRIVY=trivy.yaml
-          [ -f "$TRIVY" ] || TRIVY=.yggdrasil/defaults/trivy.yaml
-          {
-            echo "ref=${IMAGE}:${TAG#v}"
-            echo "trivy=${TRIVY}"
-          } >> "$GITHUB_OUTPUT"
-          echo "Scanning ${IMAGE}:${TAG#v}"
+        run: echo "ref=${IMAGE}:$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq '.tagName | ltrimstr("v")')" >> "$GITHUB_OUTPUT"
 
-      # Fixable only, as the PR and release scans. JSON once; the SARIF and the
-      # count derive from it.
+      # Fixable only, as the PR and release scans, every severity to the
+      # Security tab. The tag names an index holding every platform and the
+      # attestations; TRIVY_PLATFORM reads the cluster's.
       - name: Scan the image (Trivy)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         env:
-          # The tag names an index holding every platform and the attestations;
-          # this reads the cluster's.
           TRIVY_PLATFORM: linux/amd64
         with:
           image-ref: ${{ steps.release.outputs.ref }}
-          format: json
-          output: trivy.json
+          format: sarif
+          output: trivy.sarif
           ignore-unfixed: true
-          trivy-config: ${{ steps.release.outputs.trivy }}
-
-      # trivy is on PATH from the action above.
-      - run: trivy convert --format sarif --output trivy.sarif trivy.json
+          trivy-config: ${{ hashFiles('trivy.yaml') != '' && 'trivy.yaml' || '.yggdrasil/defaults/trivy.yaml' }}
 
       - name: Upload results to the Security tab
         uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
@@ -90,16 +78,20 @@ jobs:
           sarif_file: trivy.sarif
           category: ${{ matrix.category }}
 
-      - name: Fail on fixable Critical or High vulnerabilities
+      # The same scan again, from the first run's cache, as the gate.
+      - name: Fail on fixable Critical or High vulnerabilities (Trivy)
+        id: gate
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         env:
-          REF: ${{ steps.release.outputs.ref }}
-          REMEDY: ${{ matrix.remedy }}
-        run: |
-          # `?` on both levels: a report with no results is the clean case.
-          COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' trivy.json)
-          if [ "$COUNT" -gt 0 ]; then
-            trivy convert --format table trivy.json >> "$GITHUB_STEP_SUMMARY"
-            echo "::error::${COUNT} fixable Critical/High vulnerabilities in ${REF}. ${REMEDY:-Merge the open Dependabot base-image PR, or if there is none, any PR: the next release rebuilds on the current base.}"
-            exit 1
-          fi
-          echo "No fixable Critical/High vulnerabilities in ${REF}." >> "$GITHUB_STEP_SUMMARY"
+          TRIVY_PLATFORM: linux/amd64
+        with:
+          image-ref: ${{ steps.release.outputs.ref }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+          skip-setup-trivy: true
+          trivy-config: ${{ hashFiles('trivy.yaml') != '' && 'trivy.yaml' || '.yggdrasil/defaults/trivy.yaml' }}
+      - if: failure() && steps.gate.outcome == 'failure'
+        env:
+          REMEDY: ${{ matrix.remedy || 'Merge the open Dependabot base-image PR, or if there is none, any PR: the next release rebuilds on the current base.' }}
+        run: echo "::error::${REMEDY}"

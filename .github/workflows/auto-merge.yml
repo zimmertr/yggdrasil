@@ -1,0 +1,70 @@
+name: auto-merge
+
+# The Dependabot auto-merge module: patch and minor version updates merge
+# themselves once the caller's required checks pass. Majors, and digest-only
+# image updates, wait for review. hevy-trainer-sync's and Bluebird's workflow,
+# with the merge token passed in. Decision record 0029.
+#
+# The caller runs it on `pull_request`, grants `pull-requests: write` for the
+# comment, and passes its own merge token. That token, not GITHUB_TOKEN, arms
+# the merge, because a merge made with GITHUB_TOKEN starts no `on: push`
+# workflow, so the update would merge without releasing. yggdrasil's own
+# dependabot-auto-merge.yml mints an App token instead (record 0021).
+on:
+  workflow_call:
+    secrets:
+      merge-token:
+        description: A token that can merge PRs in the caller's repo, stored as a Dependabot secret, because a run Dependabot starts can't read Actions secrets.
+        required: true
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    name: Auto-merge patch and minor updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # The PR's author, not github.actor: the actor is whoever last triggered the
+    # run, and can be someone else re-running Dependabot's PR.
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    permissions:
+      pull-requests: write # fetch-metadata reads the PR; the comment is written with this token
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ github.token }}
+
+      # Squash, the merge TJ's repos allow. GitHub completes it once the
+      # required checks pass and every conversation is resolved.
+      - name: Enable auto-merge
+        id: merge
+        if: contains(fromJSON('["version-update:semver-patch", "version-update:semver-minor"]'), steps.metadata.outputs.update-type)
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.merge-token }}
+
+      # Marker-guarded: Dependabot's rebases rerun this job, and reruns must not
+      # stack duplicate comments. The marker carries the repo's name, as the
+      # copies this replaces did, so a repo switching over keeps its old one.
+      - name: Comment that auto-merge is armed
+        if: steps.merge.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          MARKER="<!-- ${GITHUB_REPOSITORY#*/}-auto-merge -->"
+          if gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" --paginate \
+              --jq '.[].body' | grep -qF "$MARKER"; then
+            exit 0
+          fi
+          BODY=$(printf '%s\n' \
+            "$MARKER" \
+            "### Auto-merge armed" \
+            "" \
+            "This is a patch or minor update, so it merges itself once the required checks pass and its conversations are resolved. Major updates wait for review." \
+            "" \
+            "To stop it, run \`gh pr merge --disable-auto\` on this PR, or close it.")
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" -f body="$BODY" >/dev/null

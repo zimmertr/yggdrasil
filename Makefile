@@ -9,10 +9,10 @@ RUN := docker compose run --rm -T
 # CI passes --format=github, so findings show as annotations on the PR.
 ZIZMOR_ARGS ?=
 
-.PHONY: check actionlint zizmor docs links em-dash
+.PHONY: check actionlint zizmor semgrep docs links em-dash
 
 # Everything the PR checks run.
-check: actionlint zizmor docs
+check: actionlint zizmor semgrep docs
 
 # The actionlint job, over every workflow. The image bundles shellcheck, so
 # run: blocks are checked too.
@@ -24,6 +24,10 @@ actionlint:
 # version comment, and any ${{ }} inside run:. Decision record 0019.
 zizmor:
 	$(RUN) zizmor --persona=pedantic $(ZIZMOR_ARGS) .
+
+# The semgrep job: every Dockerfile FROM carries a digest. Decision record 0037.
+semgrep:
+	$(RUN) semgrep semgrep scan --metrics=off --disable-version-check --error --config r/dockerfile.audit.dockerfile-source-not-pinned.dockerfile-source-not-pinned .
 
 # The Docs job.
 docs: links em-dash

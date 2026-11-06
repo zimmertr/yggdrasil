@@ -4,7 +4,7 @@ name: checks
 # 0019). The lint module runs here on this repo, from this PR's own copy, so
 # every change to it is tested before it releases (record 0037).
 #
-# Branch protection requires `Lint / actionlint`, `Lint / zizmor` and `Docs`;
+# Branch protection requires `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep` and `Docs`;
 # renaming a job strands PRs on a check that never reports.
 on:
   pull_request:

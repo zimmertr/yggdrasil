@@ -18,6 +18,12 @@ services:
     environment:
       - GH_TOKEN
 
+  semgrep:
+    image: semgrep/semgrep:1.140.0@sha256:4372a1de903521f9f10f877b6caf15d150d17e1ca592582682c8d02b77cbd4f6
+    volumes:
+      - .:/repo
+    working_dir: /repo
+
   lychee:
     image: lycheeverse/lychee:0.24.2@sha256:e2d19e57cf6ab037026f20b8e449a1f30d9d7f81eef4194763aab2eab20bd28d
     volumes:

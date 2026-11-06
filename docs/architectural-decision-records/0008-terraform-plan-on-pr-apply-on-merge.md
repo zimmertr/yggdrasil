@@ -29,3 +29,14 @@ Repo and org settings were changed by hand in the UI, with no record and no revi
 ## Consequences
 
 A setting changes only through a PR once a repo is imported. A change made in the UI shows up in the weekly drift plan. TJ must confirm Kubernetes-Manifests' Cloudflare plan is still clean after the rename (#10 item 8.1).
+
+`Yggdrasil-Org` is on HCP's Free plan, which allows 500 managed resources across every stack ([`docs/DATA.md`](../DATA.md#hcp-terraform)). The estimate on 2026-11-05 was 135 to 200, with each repo's labels held as one resource.
+
+**Leaving HCP stays cheap.** HCP holds only the state and the locks, so nothing here uses a feature only HCP has: no Sentinel or OPA policy sets, no workspace variables, no run tasks, no remote runs, no VCS-driven workspaces. The guardrails are yggdrasil's own CI checks (0011), and the variables and secrets live in GitHub. If the org outgrows the Free plan, or HCP stops fitting, each stack moves like this:
+
+1. Replace its `cloud` block with another backend.
+2. Copy the state across, with `terraform init -migrate-state`, or with `terraform state pull` and then `terraform state push`.
+3. Swap the HCP team token in CI for the new backend's credentials.
+4. Plan, and confirm it shows no changes.
+
+The likeliest target is an S3 bucket in TJ's AWS account. Terraform's S3 backend locks with `use_lockfile`, without a DynamoDB table, and Actions can sign in through GitHub's OIDC with no stored keys. A backend on TJ's home server (MinIO, Postgres or Kubernetes) also works, but GitHub's hosted runners would need a path into the home network, or self-hosted runners.

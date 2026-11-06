@@ -343,9 +343,9 @@ jobs:
       # or edits the open one to this version. Does nothing when the file
       # already holds it. zizmor would have `gh pr create` instead, which does
       # only the last of those; the rest would be shell (record 0033).
-      - id: pr
+      - id: pr  # zizmor: ignore[superfluous-actions]
         if: steps.newest.outputs.newest == needs.version.outputs.version
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1 # zizmor: ignore[superfluous-actions]
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.deploy-token }}
           branch: ${{ matrix.branch }}

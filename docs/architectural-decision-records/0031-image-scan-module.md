@@ -1,6 +1,6 @@
 # 0031. The image-scan module takes a JSON list of images, scans each once, and converts the report to SARIF
 
-- Status: Accepted
+- Status: Accepted, except the `jq` gate and `trivy convert`, which 0034 replaces with trivy-action's own inputs
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on #4 item 2.10: "LGTM, proceed."
 - Issues and PRs: #4, #32

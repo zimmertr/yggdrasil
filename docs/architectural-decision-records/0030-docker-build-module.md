@@ -1,6 +1,6 @@
 # 0030. The docker-build module builds `linux/amd64` only, takes the smoke test as a script, and is tested on an empty image
 
-- Status: Accepted
+- Status: Accepted, except the comment marker and the `jq` gate, which 0034 replaces with maintained actions
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on #4 item 2.9: "LGTM, continue."
 - Issues and PRs: #4, #31

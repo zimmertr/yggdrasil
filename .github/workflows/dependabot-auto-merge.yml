@@ -60,24 +60,18 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
-      # Say so on the PR, as the bot. Marker-guarded: Dependabot's rebases rerun
-      # this job, and reruns must not stack duplicate comments.
+      # Say so on the PR, as the bot, once: Dependabot's rebases rerun this job,
+      # and reruns must not stack duplicate comments.
       - name: Comment that auto-merge is armed
         if: steps.app-token.outcome == 'success'
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          PR: ${{ github.event.pull_request.number }}
-        run: |
-          MARKER='<!-- yggdrasil-auto-merge -->'
-          if gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" --paginate \
-              --jq '.[].body' | grep -qF "$MARKER"; then
-            exit 0
-          fi
-          BODY=$(printf '%s\n' \
-            "$MARKER" \
-            "### Auto-merge armed" \
-            "" \
-            "This is a patch or minor update, so it merges itself once the required checks pass and its conversations are resolved. Major updates wait for review." \
-            "" \
-            "To stop it, run \`gh pr merge --disable-auto\` on this PR, or close it.")
-          gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" -f body="$BODY" >/dev/null
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          header: auto-merge
+          only_create: true
+          message: |
+            ### Auto-merge armed
+
+            This is a patch or minor update, so it merges itself once the required checks pass and its conversations are resolved. Major updates wait for review.
+
+            To stop it, run `gh pr merge --disable-auto` on this PR, or close it.

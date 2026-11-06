@@ -8,7 +8,7 @@ A caller passes all of its configuration as inputs. Record: [0002](architectural
 
 ### `release.yml`
 
-Works out the next version, builds and pushes the caller's images under it and scans each by digest, then tags the commit and publishes the GitHub release once every scan passes, then opens a PR in each deploy repo that points it at the release. Records: [0027](architectural-decision-records/0027-release-module.md), [0032](architectural-decision-records/0032-release-module-builds-the-images.md), [0033](architectural-decision-records/0033-release-module-bumps-deploys-with-yq.md)
+Works out the next version, builds and pushes the caller's images under it and scans each, then tags the commit and publishes the GitHub release once every scan passes, then opens a PR in each deploy repo that points it at the release. Records: [0027](architectural-decision-records/0027-release-module.md), [0032](architectural-decision-records/0032-release-module-builds-the-images.md), [0033](architectural-decision-records/0033-release-module-bumps-deploys-with-yq.md), [0034](architectural-decision-records/0034-community-actions-over-shell.md)
 
 | Input | Default | Does |
 |---|---|---|
@@ -25,7 +25,8 @@ Works out the next version, builds and pushes the caller's images under it and s
 - The caller runs it on every push to main. It grants `contents: write` and sets a `concurrency` group so releases run one at a time. A dry run on PRs is optional: it previews the version, but it also builds every image on every platform.
 - A `GitVersion.yml` and a `trivy.yaml` at the caller's root are used. Without them, the module reads its `defaults/`.
 - Every image is built with `APP_VERSION`, `APP_COMMIT` and `APP_BUILT_AT` as build arguments and the OCI version, revision and source labels, tagged with the version only, with an SBOM and `provenance: mode=max`.
-- A re-run finds an image already pushed from this commit and skips its build. One pushed from another commit stops the run.
+- `docker/metadata-action` makes the tag and the OCI labels. Each scan reads the image by its version tag, which Docker Hub's immutable tags fix to what was pushed.
+- After a failure, re-run the failed jobs, not all of them: a build that already pushed fails on the immutable tag.
 - A fixable Critical or High on any image or platform stops the tag and release. The image stays pushed; the fix is the next release.
 - After the release, `peter-evans/create-pull-request` gives each deploy file one PR on its fixed `branch`, rebuilt off the repo's default branch each release, and squash auto-merge is armed (or a plain squash merge when the checks are already green). A PR still open from an earlier release is moved to the newest.
 - A `set` path that matches nothing fails the job.
@@ -65,7 +66,7 @@ On a PR: hadolint, then the `linux/amd64` image built and loaded but not pushed,
 
 - The caller runs it on `pull_request` and grants `contents: read` and `pull-requests: write`.
 - A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`.
-- The comment's marker is `<!-- <repo name>-image-scan -->`, the one hevy-trainer-sync and Bluebird use today. Dependabot's PRs get the step summary instead, since their token is read-only.
+- `marocchino/sticky-pull-request-comment` keeps one scan comment per PR (header `image-scan`). Dependabot's PRs get the step summary instead, since their token is read-only.
 - The caller sees `<caller job> / Docker Build`.
 
 ### `image-scan.yml`

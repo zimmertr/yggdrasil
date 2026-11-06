@@ -1,11 +1,11 @@
 name: release
 
 # The release module: the next version; the caller's images built, pushed and
-# scanned by digest; then the git tag and GitHub release, which wait on every
-# scan; then a PR in each deploy repo that points it at the release. A caller
-# runs it on every push to main, and may run it on PRs with `dry-run`, where it
-# says in the job summary what the merge will release and builds the images
-# without pushing them. Decision records 0027, 0032 and 0033.
+# scanned; then the git tag and GitHub release, which wait on every scan; then
+# a PR in each deploy repo that points it at the release. A caller runs it on
+# every push to main, and may run it on PRs with `dry-run`, where it says in
+# the job summary what the merge will release and builds the images without
+# pushing them. Decision records 0027, 0032, 0033 and 0034.
 #
 # The caller sets `concurrency` (one release at a time) and grants
 # `contents: write`, which only the Tag and Release job uses.
@@ -150,64 +150,42 @@ jobs:
         with:
           username: ${{ secrets.dockerhub-username }}
           password: ${{ secrets.dockerhub-token }}
-      # A re-run after a failure past the push finds the image there. It must
-      # have been built from this commit, or the tag would name source the image
-      # doesn't hold. Each commit has its own version, so a mismatch is never a
-      # re-run, and stops here.
-      - name: Check whether the image is already pushed
-        id: pushed
-        if: ${{ !inputs.dry-run }}
-        env:
-          IMAGE: ${{ matrix.image }}:${{ needs.version.outputs.version }}
-        run: |
-          if ! docker manifest inspect "$IMAGE" >/dev/null 2>&1; then
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # `.Image` is a map keyed by platform only when the index holds more
-          # than one (hevy-trainer-sync#33). jq takes either shape.
-          REV=$(docker buildx imagetools inspect "$IMAGE" --format '{{ json .Image }}' \
-            | jq -r 'if has("linux/amd64") then .["linux/amd64"] else . end
-                     | .config.Labels["org.opencontainers.image.revision"] // empty')
-          if [ "$REV" != "$GITHUB_SHA" ]; then
-            echo "::error::${IMAGE} was built from ${REV:-an unknown commit}, not ${GITHUB_SHA}."
-            exit 1
-          fi
-          echo "exists=true" >> "$GITHUB_OUTPUT"
-          echo "${IMAGE} is already pushed from this commit; skipping the build."
-      - id: stamp
-        run: echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
-      - if: steps.pushed.outputs.exists != 'true'
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      # The tag and the OCI labels (version, revision, source, created and the
+      # rest). The version only, no `latest`: deploys pin the version, and a
+      # moving tag is one nothing should pull.
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ matrix.image }}
+          tags: type=raw,value=${{ needs.version.outputs.version }}
+          flavor: latest=false
+      # A re-run of a pushed image fails here: Docker Hub's tags are immutable
+      # (record 0024). Re-run the failed jobs, not all of them.
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ${{ matrix.context || '.' }}
           file: ${{ matrix.file || '' }}
           platforms: ${{ matrix.platforms || 'linux/amd64' }}
           push: ${{ !inputs.dry-run }}
-          # The version only. No `latest`: deploys pin the version, and a
-          # moving tag is one nothing should pull.
-          tags: ${{ matrix.image }}:${{ needs.version.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           # The names hevy-trainer-sync and Bluebird read. An image that uses
           # none of them builds the same, with a warning.
           build-args: |
             APP_VERSION=${{ needs.version.outputs.version }}
             APP_COMMIT=${{ github.sha }}
-            APP_BUILT_AT=${{ steps.stamp.outputs.built_at }}
-          # The revision label is what the re-run check above reads.
-          labels: |
-            org.opencontainers.image.version=${{ needs.version.outputs.version }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            APP_BUILT_AT=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           provenance: mode=max
           sbom: true
           cache-from: ${{ matrix.cache && 'type=gha' || '' }}
           cache-to: ${{ matrix.cache && 'type=gha,mode=max' || '' }}
 
   # What the registry holds, scanned before anything points at it: the PR scan
-  # saw only an amd64 build of the PR branch. By digest, so the bytes scanned
-  # are the bytes pushed. No Docker Hub login, so Trivy's code sees no
-  # credential. A finding holds the tag and release back; the image stays
-  # pushed, and the fix is the next release.
+  # saw only an amd64 build of the PR branch. By the version tag, which Docker
+  # Hub's immutable tags fix to the bytes pushed (record 0024). No Docker Hub
+  # login, so Trivy's code sees no credential. A fixable Critical or High holds
+  # the tag and release back; the image stays pushed, and the fix is the next
+  # release.
   scan:
     name: Scan Pushed Image (${{ matrix.image }}, ${{ matrix.platform }})
     needs: [version, build]
@@ -234,43 +212,16 @@ jobs:
           ref: ${{ job.workflow_sha }}
           path: .yggdrasil
           persist-credentials: false
-      # Docker Hub's tags are immutable (record 0024), so the digest under the
-      # version is the one the build pushed.
-      - id: ref
-        env:
-          IMAGE: ${{ matrix.image }}
-          VERSION: ${{ needs.version.outputs.version }}
-        run: |
-          DIGEST=$(docker buildx imagetools inspect "${IMAGE}:${VERSION}" --format '{{ .Manifest.Digest }}')
-          TRIVY=trivy.yaml
-          [ -f "$TRIVY" ] || TRIVY=.yggdrasil/defaults/trivy.yaml
-          {
-            echo "ref=${IMAGE}@${DIGEST}"
-            echo "trivy=${TRIVY}"
-          } >> "$GITHUB_OUTPUT"
-      - name: Scan the image (Trivy)
+      - name: Fail on fixable Critical or High vulnerabilities (Trivy)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         env:
           TRIVY_PLATFORM: ${{ matrix.platform }}
         with:
-          image-ref: ${{ steps.ref.outputs.ref }}
-          format: json
-          output: trivy.json
+          image-ref: ${{ matrix.image }}:${{ needs.version.outputs.version }}
+          severity: CRITICAL,HIGH
           ignore-unfixed: true
-          trivy-config: ${{ steps.ref.outputs.trivy }}
-      - name: Fail on fixable Critical or High vulnerabilities
-        env:
-          IMAGE: ${{ matrix.image }}:${{ needs.version.outputs.version }}
-          PLATFORM: ${{ matrix.platform }}
-        run: |
-          # `?` on both levels: a report with no results is the clean case.
-          COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' trivy.json)
-          if [ "$COUNT" -gt 0 ]; then
-            trivy convert --format table trivy.json >> "$GITHUB_STEP_SUMMARY"
-            echo "::error::${COUNT} fixable Critical/High vulnerabilities in ${IMAGE} (${PLATFORM}). No tag or release; the fix is the next release."
-            exit 1
-          fi
-          echo "No fixable Critical/High vulnerabilities in ${IMAGE} (${PLATFORM})." >> "$GITHUB_STEP_SUMMARY"
+          exit-code: '1'
+          trivy-config: ${{ hashFiles('trivy.yaml') != '' && 'trivy.yaml' || '.yggdrasil/defaults/trivy.yaml' }}
 
   release:
     name: Tag and Release

@@ -3,7 +3,7 @@ name: auto-merge
 # The Dependabot auto-merge module: patch and minor version updates merge
 # themselves once the caller's required checks pass. Majors, and digest-only
 # image updates, wait for review. hevy-trainer-sync's and Bluebird's workflow,
-# with the merge token passed in. Decision record 0029.
+# with the merge token passed in. Decision records 0029 and 0034.
 #
 # The caller runs it on `pull_request`, grants `pull-requests: write` for the
 # comment, and passes its own merge token. That token, not GITHUB_TOKEN, arms
@@ -46,25 +46,17 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.merge-token }}
 
-      # Marker-guarded: Dependabot's rebases rerun this job, and reruns must not
-      # stack duplicate comments. The marker carries the repo's name, as the
-      # copies this replaces did, so a repo switching over keeps its old one.
+      # Once per PR: Dependabot's rebases rerun this job, and reruns must not
+      # stack duplicate comments.
       - name: Comment that auto-merge is armed
         if: steps.merge.outcome == 'success'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-        run: |
-          MARKER="<!-- ${GITHUB_REPOSITORY#*/}-auto-merge -->"
-          if gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" --paginate \
-              --jq '.[].body' | grep -qF "$MARKER"; then
-            exit 0
-          fi
-          BODY=$(printf '%s\n' \
-            "$MARKER" \
-            "### Auto-merge armed" \
-            "" \
-            "This is a patch or minor update, so it merges itself once the required checks pass and its conversations are resolved. Major updates wait for review." \
-            "" \
-            "To stop it, run \`gh pr merge --disable-auto\` on this PR, or close it.")
-          gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" -f body="$BODY" >/dev/null
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: auto-merge
+          only_create: true
+          message: |
+            ### Auto-merge armed
+
+            This is a patch or minor update, so it merges itself once the required checks pass and its conversations are resolved. Major updates wait for review.
+
+            To stop it, run `gh pr merge --disable-auto` on this PR, or close it.

@@ -1,6 +1,6 @@
 # 0005. Every consumer is production: each takes a release the day it ships, and patch and minor bumps merge themselves
 
-- Status: Accepted
+- Status: Superseded by 0023
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on rollout rings: "We're treating some repos as more important than others? That's not right. Everything is production here." On a cooldown: "Why not get updates immediatly/daily?" On a bump that can't merge itself: "If it's blocked it's blocked."
 - Issues and PRs: #1, #5, #6, #7

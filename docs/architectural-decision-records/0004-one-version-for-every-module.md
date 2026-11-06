@@ -32,4 +32,4 @@ Consumers need to know when a module changed and whether the change can break th
 
 ## Consequences
 
-The breaking-change check holds the version honest (0011). A settings-only PR never wakes the consumers, but a change to yggdrasil's own CI does: it lives in `.github/workflows/` beside the modules, so it releases a patch. Every consumer gets a bump PR for every release, which 0005 merges for them.
+The breaking-change check holds the version honest (0011). A settings-only PR never wakes the consumers, but a change to yggdrasil's own CI does: it lives in `.github/workflows/` beside the modules, so it releases a patch. Every consumer gets a bump PR for every release, which 0023 merges for them.

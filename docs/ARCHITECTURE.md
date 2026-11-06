@@ -44,7 +44,7 @@ flowchart LR
 
 - The caller passes everything repo-specific as inputs. yggdrasil keeps no per-repo pipeline config. Record: [0002](architectural-decision-records/0002-callers-bring-their-own-config.md)
 - Every module shares one SemVer. A merge that changes a module path releases; a settings-only merge releases nothing. Record: [0004](architectural-decision-records/0004-one-version-for-every-module.md)
-- Each consumer takes a release the day it ships. Patch and minor bumps merge themselves; a major waits for TJ. Record: [0005](architectural-decision-records/0005-every-repo-is-production.md)
+- Each consumer takes a release once it is three days old. Patch and minor bumps merge themselves; a major waits for TJ. Record: [0023](architectural-decision-records/0023-releases-bake-three-days.md)
 
 A job inside a reusable workflow reports its check as `<caller job name> / <module job name>`, so a consumer that switches to a module renames its required checks in the same step (#5 to #7). A `./` path inside a reusable workflow resolves in the caller's checkout, not in yggdrasil's, so a module that needs its own files checks out `job.workflow_repository` at `job.workflow_sha`, the commit the caller pinned. Record: [0022](architectural-decision-records/0022-modules-load-their-own-files-from-the-job-context.md)
 

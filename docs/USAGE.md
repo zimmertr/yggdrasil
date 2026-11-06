@@ -4,7 +4,7 @@ What TJ sees from yggdrasil, and what to do when it breaks. Each part that is no
 
 ## In a consuming repo
 
-- **A bump PR from Dependabot or Renovate** the day a yggdrasil release ships (#5 to #7). Patch and minor bumps merge themselves once the repo's checks pass; a major waits for TJ. Record: [0005](architectural-decision-records/0005-every-repo-is-production.md)
+- **A bump PR from Dependabot or Renovate** three days after a yggdrasil release ships (#5 to #7). Patch and minor bumps merge themselves once the repo's checks pass; a major waits for TJ. Record: [0023](architectural-decision-records/0023-releases-bake-three-days.md)
 - **The module's checks** on every PR, named `caller / callee`.
 
 ## In yggdrasil

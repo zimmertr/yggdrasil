@@ -22,7 +22,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 7. **Secret values stay out of Terraform** where possible.
 8. **KISS.** Dependency config (`dependabot.yml`, `renovate.json`) stays in each repo. Only the auto-merge logic is shared.
 9. **SemVer is enforced, not trusted.** On every PR, CI compares each module's `workflow_call` inputs and outputs with the last release. A removed input, or a new required one, fails the PR unless its title carries `!`.
-10. **Every consumer is production, and all are treated alike.** Each checks for yggdrasil releases daily with no cooldown, and patch and minor bumps merge themselves. A bad release is fixed forward with a new patch. Until `zimmertr-yggdrasil-bot` replaces `AUTO_MERGE_PAT`, a bump that edits `.github/workflows` may need TJ's merge, because that token has no Workflows permission.
+10. **Every consumer is production, and all are treated alike.** Each checks for yggdrasil releases daily and takes one once it is three days old, and patch and minor bumps merge themselves. A bad release is fixed forward with a new patch.
 11. **Guardrails as code.** A JSON Schema validates every `repos/*.yml`, `orgs/*.yml` and profile in CI, and refuses any file that turns off branch protection or a security feature.
 12. **Nothing is destroyed by accident.** A plan that destroys a resource fails unless its PR carries a `destroy-approved` label. Removing a repo from Terraform archives it, never deletes it.
 

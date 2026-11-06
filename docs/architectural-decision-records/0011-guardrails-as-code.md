@@ -9,7 +9,7 @@
 
 ## Context
 
-One release reaches every repo within a day (0005), and one apply can change every repo's settings. A mistake in either spreads to all twenty repos at once.
+One release reaches every repo on the same day, three days after it ships (0023), and one apply can change every repo's settings. A mistake in either spreads to all twenty repos at once.
 
 ## Decision
 

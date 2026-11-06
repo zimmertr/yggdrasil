@@ -63,6 +63,16 @@ TJ okayed both. Before: no branch protection and no code scanning.
 
 `protection.json` held exactly those fields; the read-back of `branches/main/protection` matched it.
 
+### 2026-11-06, #6 step 4.4
+
+TJ okayed it. Before: required checks `actionlint`, `zizmor`, `Docs` and `PR Title`.
+
+| Call | Sets |
+|---|---|
+| `gh api -X PATCH repos/zimmertr/yggdrasil/branches/main/protection/required_status_checks --input checks.json` | Required checks `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, `Docs` and `PR Title` from GitHub Actions (app 15368), not strict |
+
+The call's response listed exactly those five.
+
 ## Dependabot
 
 `.github/dependabot.yml` updates the pinned actions (`github-actions`) and the tool images in `compose.yml` (`docker-compose`) weekly, each version waiting seven days after its release. Security updates skip the wait. Titles are `build(deps): ...`, a patch.

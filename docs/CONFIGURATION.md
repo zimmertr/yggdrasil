@@ -106,7 +106,7 @@ These permissions are the final list. In #3 they covered creating a repo from a 
 
 The stacks use HCP Terraform org `Yggdrasil-Org` for state and locks, in local execution mode: plans and applies run in Actions, not on HCP. Record: [0008](architectural-decision-records/0008-terraform-plan-on-pr-apply-on-merge.md)
 
-`repos/<name>.yml`, `orgs/<name>.yml`, the profiles and their schemas arrive with #8, and their fields are documented here then. Record: [0012](architectural-decision-records/0012-one-file-per-repo-and-org.md)
+`repos/<name>.yml`, `orgs/<name>.yml` and the defaults they override arrive with #8, and their fields are documented here then. Records: [0012](architectural-decision-records/0012-one-file-per-repo-and-org.md), [0035](architectural-decision-records/0035-terraform-guards-itself.md)
 
 ### What Terraform manages
 

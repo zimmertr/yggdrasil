@@ -1,6 +1,6 @@
 # 0011. CI refuses breaking changes without `!`, settings that weaken security, and destroys without a label
 
-- Status: Accepted, except the breaking-change check, which 0025 drops
+- Status: Accepted, except the breaking-change check, which 0025 drops, and the schema and destroy gate, which 0035 replaces
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on the design review's proposals: "I agree with 1-6, lets incorporate them." On a separate sandbox repo: "If this is over engineering, we can skip it… Okay, skip it."
 - Issues and PRs: #4, #8

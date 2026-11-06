@@ -23,22 +23,22 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 8. **KISS.** Dependency config (`dependabot.yml`, `renovate.json`) stays in each repo. Only the auto-merge logic is shared.
 9. **A breaking change carries `!`.** A PR that removes a module input, or adds a required one, carries `!` in its title. No CI check compares inputs with the last release: a release that breaks a caller fails that caller's bump PR, so it never merges itself (record 0025, 2026-11-05).
 10. **Every consumer is production, and all are treated alike.** Each checks for yggdrasil releases daily and takes one once it is three days old, and patch and minor bumps merge themselves. A bad release is fixed forward with a new patch.
-11. **Guardrails as code.** A JSON Schema validates every `repos/*.yml`, `orgs/*.yml` and profile in CI, and refuses any file that turns off branch protection or a security feature.
-12. **Nothing is destroyed by accident.** A plan that destroys a resource fails unless its PR carries a `destroy-approved` label. Removing a repo from Terraform archives it, never deletes it.
+11. **Guardrails in Terraform itself.** The `github` stack's variables are typed, and its preconditions fail the plan for any file that turns off branch protection or a security feature, except where GitHub can't apply one (record 0035).
+12. **Nothing is destroyed by accident.** Every repo sets `archive_on_destroy`, so removing its file archives it, never deletes it, and a `removed` block stops managing one without touching it. Every other destroy shows in the PR's plan comment, which TJ reads before merging.
 
 ## 3. Core features
 
 | Feature | What it does | Source |
 |---|---|---|
-| Release workflow | GitVersion, image build and push, Trivy scan by digest, immutable GitHub release, deploy bump (Kustomize `newTag`, chart `appVersion`, or both) | hevy-trainer-sync and Bluebird `release.yml` |
+| Release workflow | GitVersion, image build and push, a Trivy scan of each pushed platform, immutable GitHub release, deploy bump (`yq` sets a kustomization's `newTag`, a chart's `appVersion`, or both) | hevy-trainer-sync and Bluebird `release.yml` |
 | PR workflows | PR title check; image build with hadolint, the Trivy comment and a smoke test | `pr-title.yml`, `pr.yml` |
 | Weekly image scan | Rescans the released image | `image-scan.yml` |
 | Dependabot auto-merge | Patch and minor updates merge themselves | `dependabot-auto-merge.yml` |
 | Shared conventions | `GitVersion.yml` (SemVer and the bump patterns), the conventional PR title check that reads it, the release process, and `trivy.yaml`, read at the module's pinned ref; a caller can pass its own | today copied in each repo |
 | `github` stack | One YAML file per repo (`repos/<name>.yml`) and per org (`orgs/<name>.yml`), read by Terraform: settings, rulesets, security features, merge settings, immutable releases, org settings | ai-config#3 |
-| Profiles | A repo file names a profile, `default` or `archived`, and inherits its settings, then overrides only what differs. More profiles are added only when a real difference appears | new |
+| Defaults | The `github` stack holds `initialize-project`'s standard settings as defaults, and a repo file sets only what differs, such as `archived: true` | new |
 | Template repo | Terraform creates each new repo from a template that already holds the caller workflows, `dependabot.yml`, `LICENSE` and `.gitignore`, so its first PR runs the shared CI | new |
-| Guardrails | The schema (11) and the destroy gate (12) | new |
+| Guardrails | The preconditions (11) and `archive_on_destroy` (12) | new |
 | `dockerhub` stack | Docker Hub repositories and their immutable tags | ai-config#3 notes |
 | ArtifactHub | Not managed by Terraform. yggdrasil documents the standard steps for listing a Helm chart (registering it, `artifacthub-repo.yml` for the verified publisher, editing a record in place and never re-registering it), and `initialize-project` points at them | new |
 | `cloudflare` stack | Moved whole from Kubernetes-Manifests `terraform/cloudflare`, with its state | Kubernetes-Manifests |
@@ -49,9 +49,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 .github/workflows/      yggdrasil's own CI, and the reusable workflows (GitHub requires them here)
 actions/<name>/         composite actions, if a module ever needs a shared step
 defaults/               GitVersion.yml, trivy.yaml
-profiles/<name>.yml     the settings each profile sets
 repos/<name>.yml        one file per managed repo
-schemas/                JSON Schemas for repos/, orgs/ and profiles/
 orgs/<name>.yml         one file per managed org
 terraform/github/       reads repos/ and orgs/
 terraform/dockerhub/
@@ -66,9 +64,9 @@ Managed repos at the start (20), every one of them both managed by Terraform and
 ## 5. Flows
 
 - **A repo uses a module.** It adds a short caller: `uses: zimmertr/yggdrasil/.github/workflows/release.yml@<sha> # v1.4.0`, plus its inputs. Its PR CI shows the result.
-- **A module changes.** A PR in yggdrasil runs each module through a test caller, with the release module in `dry-run` (build and scan, no push, tag, release or PR). The merge releases `vX.Y.Z`, and Dependabot opens a bump PR in each consumer once the release is three days old.
+- **A module changes.** A PR in yggdrasil runs the release and docker-build modules through test callers, the release module in `dry-run` (it builds, and pushes, scans, tags, releases and opens nothing). The merge releases `vX.Y.Z`, and Dependabot opens a bump PR in each consumer once the release is three days old.
 - **A setting changes.** Edit `repos/<name>.yml`. The PR shows the plan, and the merge applies it.
-- **A new repo.** Add `repos/<name>.yml` with its profile and merge. Terraform creates the repo from the template as the App, in an org or under `zimmertr` (record 0024). Then `/initialize-project` seeds its files.
+- **A new repo.** Add `repos/<name>.yml` and merge. Terraform creates the repo from the template as the App, in an org or under `zimmertr` (record 0024). Then `/initialize-project` seeds its files.
 - **A new org.** TJ creates it in GitHub's UI (GitHub has no API for that) and installs `zimmertr-yggdrasil-bot`. Then `orgs/<name>.yml`, an import, and Terraform manages it from there. Moving repos into an org is a later project, such as Bluebird's Rebrand.
 
 ## 6. Tech stack
@@ -76,7 +74,7 @@ Managed repos at the start (20), every one of them both managed by Terraform and
 - GitHub Actions for the modules and for yggdrasil's own CI.
 - Terraform with `integrations/github`, `cloudflare/cloudflare`, and Docker's provider.
 - HCP Terraform org `Yggdrasil-Org` (the `Kubernetes-Manifests` org, renamed on 2026-11-05; `yggdrasil` was taken) for state and locks, in local execution mode. Plans and applies run in Actions.
-- Shell, `jq` and `yq` inside the modules, with no Python (record 0026).
+- Maintained actions inside the modules, shell only where none fits, and no Python (records 0026, 0034).
 - `terraform test` with mock providers, tflint, actionlint, and the Trivy config scan.
 - GitVersion 6.8.2 and Trivy, the versions the consumers use today.
 - Docker for every local command, through a `Makefile`.
@@ -136,3 +134,4 @@ Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hu
 5. Added after sign-off, 2026-11-05: requirements 9 to 12, profiles, the template repo, the guardrails and the release module's `dry-run` input. A separate sandbox repo was considered and dropped as more than this needs. This project builds on GitHub's free features. That is where it starts, not a limit: self-hosted runners, other platforms and paid services stay open when they become relevant. Not in this project, and open for later: a fleet report, OpenSSF Scorecard, org-level required workflows, delivery metrics, self-hosted runners, a developer portal.
 6. Settled 2026-11-05: every repo is production, so there are no rollout rings; consumers check daily. Profiles start as `default` and `archived`. ArtifactHub is documented, not managed. One issue per phase. PR plans keep the App's admin-capable token for now; a `security` issue tracks a read-only plan App. All 18 repos adopt the baseline modules plus what fits.
 7. Settled 2026-11-05: the App is `zimmertr-yggdrasil-bot` (App ID 5636772), installed on `zimmertr` and the five orgs. yggdrasil's own auto-merge uses it from the start, so yggdrasil has no `AUTO_MERGE_PAT`. The five orgs and Lakebagger's two repos are managed in this epic.
+8. Settled 2026-11-06, after the #4 audit: Terraform's own typed variables, preconditions and `archive_on_destroy` replace the JSON Schema, the profile files and the `destroy-approved` label (record 0035). A decision record is written only for a decision that shapes the system (record 0036).

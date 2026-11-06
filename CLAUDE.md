@@ -4,7 +4,7 @@ TJ's GitHub and CI configuration in one public, GPL-3.0 repo. It has two halves:
 
 ## Documentation
 
-Prose lives in `docs/`. A change that makes any of it untrue updates it in the same PR, and every decision gets a record in the same PR, linked from the rule that states it. The README is TJ's: keep it accurate and in TJ's voice, and never restructure it. Record: [0017](docs/architectural-decision-records/0017-docs-and-records.md)
+Prose lives in `docs/`. A change that makes any of it untrue updates it in the same PR. A decision that shapes the system gets a record in the same PR, linked from the rule that states it; a module's inputs, defaults and the actions it uses live in `docs/CONFIGURATION.md` and the workflow's comments instead. The README is TJ's: keep it accurate and in TJ's voice, and never restructure it. Records: [0017](docs/architectural-decision-records/0017-docs-and-records.md), [0036](docs/architectural-decision-records/0036-records-only-for-system-decisions.md)
 
 | Doc | Holds |
 |---|---|
@@ -15,7 +15,7 @@ Prose lives in `docs/`. A change that makes any of it untrue updates it in the s
 | [`docs/DATA.md`](docs/DATA.md) | Each provider's limits and terms, and every quirk found, dated |
 | [`docs/USAGE.md`](docs/USAGE.md) | What TJ sees, and what to do when it breaks |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | The CI-first loop, the `make` targets, how to write tests |
-| [`docs/architectural-decision-records/`](docs/architectural-decision-records/README.md) | One record per decision. The README is the index and says how to write one |
+| [`docs/architectural-decision-records/`](docs/architectural-decision-records/README.md) | One record per decision that shapes the system. The README is the index and says when and how to write one |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to send a change |
 | [`SECURITY.md`](SECURITY.md) | Supported versions, private reporting, scope |
 
@@ -30,8 +30,8 @@ Prose lives in `docs/`. A change that makes any of it untrue updates it in the s
 - **Terraform plans on every PR and applies on merge**, with state in HCP Terraform org `Yggdrasil-Org`, for GitHub, Docker Hub and Cloudflare. ArtifactHub is documented, not managed. Records: [0008](docs/architectural-decision-records/0008-terraform-plan-on-pr-apply-on-merge.md), [0009](docs/architectural-decision-records/0009-providers-in-scope.md)
 - **The repo is public.** No tokens, ids or personal data in code, fixtures or logs. Terraform manages settings, never a repo's files, so Email-Infrastructure's and Resume's names and settings may appear here, never their contents. Record: [0010](docs/architectural-decision-records/0010-safe-in-public.md)
 - **No `pull_request_target`**, and Terraform plans run only on PRs from this repo's own branches, with the App's full token for now (#13). Records: [0010](docs/architectural-decision-records/0010-safe-in-public.md), [0016](docs/architectural-decision-records/0016-pr-plans-keep-the-admin-token-for-now.md)
-- **Guardrails are CI checks**: the release `dry-run`, import before apply, the schema that refuses weaker settings, and the `destroy-approved` gate. Record: [0011](docs/architectural-decision-records/0011-guardrails-as-code.md) There is no breaking-change check: a caller's own CI fails a bump that breaks it. Record: [0025](docs/architectural-decision-records/0025-no-breaking-change-check.md)
-- **One YAML file per repo and per org**, each naming a profile (`default` or `archived`); new repos start from the template. Record: [0012](docs/architectural-decision-records/0012-one-file-per-repo-and-org.md)
+- **Guardrails**: the release `dry-run` and import before apply. Record: [0011](docs/architectural-decision-records/0011-guardrails-as-code.md) Terraform guards itself, with no custom check: typed variables, preconditions that refuse weaker settings, and `archive_on_destroy` on every repo. Record: [0035](docs/architectural-decision-records/0035-terraform-guards-itself.md) There is no breaking-change check: a caller's own CI fails a bump that breaks it. Record: [0025](docs/architectural-decision-records/0025-no-breaking-change-check.md)
+- **One YAML file per repo and per org**, holding only what differs from the stack's defaults; new repos start from the template. Record: [0012](docs/architectural-decision-records/0012-one-file-per-repo-and-org.md)
 - **Workflows before Terraform**, one issue per phase under #1. Record: [0013](docs/architectural-decision-records/0013-workflows-before-terraform.md)
 - **Settings change only through PRs**, once Terraform manages them (#8). Until then, a settings change is an API call TJ okays first, logged in [`docs/CICD.md`](docs/CICD.md#settings-applied-by-api). Record: [0014](docs/architectural-decision-records/0014-foundation-by-hand-then-imported.md)
 - **Skills live in zimmertr/ai-config only**, linked into `~/.claude/skills`. Never copy one into this repo. Record: [0015](docs/architectural-decision-records/0015-skills-live-in-ai-config.md)
@@ -41,9 +41,9 @@ Prose lives in `docs/`. A change that makes any of it untrue updates it in the s
 File issues with the `create-issue` skill from zimmertr/ai-config: the two-sentence summary, the six sections, the hemingway and humanizer passes, one priority, one type, the area labels and the session label. The skill reads the four things below from this section.
 
 - **The reader**: TJ on the board, who knows GitHub and CI but not every module's inputs or every Terraform resource.
-- **The gates**: CI passes; the docs page that owns the topic and the decision record change in the same PR; the README changes only to stay accurate.
-- **The constraints**: a change that breaks a caller carries `!`; nothing is applied to a repo before its import plans clean; no plan that weakens branch protection or a security setting is applied without TJ's okay; a destroy needs the `destroy-approved` label; never print a secret's value, and never put a private repo's contents in a public output.
-- **The areas**: `ci` (yggdrasil's own CI), `modules` (the reusable workflows and composite actions), `terraform` (the stacks for GitHub, Docker Hub and Cloudflare, and `repos/`, `orgs/`, `profiles/`, `schemas/`), `consumers` (switching a repo onto the modules), `security` (credentials, permissions and security settings).
+- **The gates**: CI passes; the docs page that owns the topic changes in the same PR, and a record too when the PR makes a decision that shapes the system; the README changes only to stay accurate.
+- **The constraints**: a change that breaks a caller carries `!`; nothing is applied to a repo before its import plans clean; no plan that weakens branch protection or a security setting is applied without TJ's okay; never print a secret's value, and never put a private repo's contents in a public output.
+- **The areas**: `ci` (yggdrasil's own CI), `modules` (the reusable workflows and composite actions), `terraform` (the stacks for GitHub, Docker Hub and Cloudflare, and `repos/`, `orgs/`), `consumers` (switching a repo onto the modules), `security` (credentials, permissions and security settings).
 
 ## Working in this repo
 

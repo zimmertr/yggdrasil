@@ -21,8 +21,6 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 | `terraform/github/` | The stack that reads `repos/` and `orgs/` | #8 |
 | `terraform/dockerhub/` | Docker Hub repositories and their immutable tags | #9 |
 | `terraform/cloudflare/` | The stack moved from Kubernetes-Manifests, with its state | #10 |
-| `scripts/` | Scripts yggdrasil's own CI runs, such as the policy check | #2 |
-| `tests/` | The test suite for `scripts/` | #2 |
 | `Makefile`, `compose.yml` | Every check as a `make` target, and the pinned images each one runs in | #2 |
 | `docs/` | These pages and the decision records | #2 |
 

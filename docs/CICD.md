@@ -22,13 +22,11 @@ Every job runs a `make` target, in the same pinned container a local run uses. R
 
 | Workflow | Job | Runs | Fails on |
 |---|---|---|---|
-| `test.yml` | `test` | `make test`, then the coverage table into the run's summary | A failing test, including the policy check (below) |
-| `lint.yml` | `Lint` | `make lint`: ruff under `ruff.toml` | Any ruff finding |
-| `lint.yml` | `actionlint` | `make actionlint`: actionlint, with shellcheck on every `run:` | Any finding in `.github/workflows/` |
+| `checks.yml` | `actionlint` | `make actionlint`: actionlint, with shellcheck on every `run:` | Any finding in `.github/workflows/` |
+| `checks.yml` | `zizmor` | `make zizmor`: zizmor's pedantic audits, online with the job's read-only token, findings as PR annotations | Any finding: an unpinned action or a version comment that is missing or wrong, `${{ }}` inside `run:`, a checkout that keeps credentials, `pull_request_target`, broad permissions and the rest |
+| `checks.yml` | `Docs` | `make docs`: lychee over every relative link and heading anchor, and a grep for em dashes | A broken link or anchor, or an em dash |
 
-`test.yml` also has `workflow_call`, so the release workflow (#4) can test the merged commit before it builds anything.
-
-The policy check, `scripts/check_policy.py`, runs inside `test`. It fails a `uses:` that isn't a full SHA with `# vX.Y.Z`, `${{ }}` inside `run:`, a job without `timeout-minutes`, a checkout that keeps its credentials, any `pull_request_target`, a broken relative link or anchor in a doc, and an em dash in a doc. Record: [0019](architectural-decision-records/0019-a-policy-check-holds-workflows-and-docs.md)
+`checks.yml` also has `workflow_call`, so the release workflow (#4) can run the checks on the merged commit before it builds anything. Record: [0019](architectural-decision-records/0019-community-tools-hold-workflows-and-docs.md)
 
 Branch protection arrives with #2 item 0.9. A check is added to it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR.
 

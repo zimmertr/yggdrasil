@@ -34,6 +34,8 @@ links:
 	$(RUN) lychee --offline --include-fragments --no-progress './**/*.md'
 
 # No em dash in any doc (decision record 0017). The pattern is the character's
-# UTF-8 bytes, so this file holds no em dash itself.
+# UTF-8 bytes, so this file holds no em dash itself. Only grep's "no match"
+# (exit 1) passes: a match (0) or a grep error (2) fails, so a broken grep
+# can't pass silently.
 em-dash:
-	$(RUN) shell sh -c '! grep -rn --include="*.md" --exclude-dir=.git "$$(printf "\342\200\224")" .'
+	$(RUN) shell sh -c 'grep -rn --include="*.md" --exclude-dir=.git "$$(printf "\342\200\224")" .; test $$? -eq 1'

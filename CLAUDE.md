@@ -50,7 +50,7 @@ File issues with the `create-issue` skill from zimmertr/ai-config: the two-sente
 - Work in a fresh clone in the session's scratchpad, never in TJ's checkout. Branch from the latest `origin/main`.
 - Everything reaches main through a squash-merged PR. Never push to main.
 - The PR title is `type(scope): summary`, and it picks the version.
-- Actions are pinned to full commit SHAs with the version in a comment. The repo setting `sha_pinning_required` refuses a tag, and the policy check refuses a SHA without its comment.
-- **The policy check holds workflows and docs**: SHA pins with `# vX.Y.Z`, no `${{ }}` inside `run:`, `timeout-minutes` on every job, `persist-credentials: false` on every checkout, no `pull_request_target`, working relative links, no em dashes. It runs inside `test`. Record: [0019](docs/architectural-decision-records/0019-a-policy-check-holds-workflows-and-docs.md)
-- **CI runs the tests.** Every check is a `make` target in a pinned container from `compose.yml`, run the same way in CI; commit early and read the jobs. Coverage aims at every line and branch with no floor. Record: [0018](docs/architectural-decision-records/0018-checks-run-through-make-in-pinned-containers.md)
-- Checks today: `test`, `Lint`, `actionlint` ([`docs/CICD.md`](docs/CICD.md#pr-checks)).
+- Actions are pinned to full commit SHAs with the version in a comment. The repo setting `sha_pinning_required` refuses a tag, and zizmor refuses a SHA whose comment is missing or wrong.
+- **Use a maintained tool before writing a check.** zizmor (pedantic) holds the workflows, lychee the doc links, and a grep the em dashes. Write custom code only for a gap no tool covers. Record: [0019](docs/architectural-decision-records/0019-community-tools-hold-workflows-and-docs.md)
+- **CI runs the checks.** Every check is a `make` target in a pinned container from `compose.yml`, run the same way in CI; commit early and read the jobs. Record: [0018](docs/architectural-decision-records/0018-checks-run-through-make-in-pinned-containers.md)
+- Checks today: `actionlint`, `zizmor`, `Docs` ([`docs/CICD.md`](docs/CICD.md#pr-checks)).

@@ -26,6 +26,17 @@ Fails a PR whose title isn't `type(scope): summary` with a type from `defaults/G
 - The caller runs it from `pull_request` with `types: [opened, edited, reopened, synchronize]`, so a title edit reruns it, and grants `pull-requests: read`.
 - The caller sees the check `<caller job> / PR Title`.
 
+### `auto-merge.yml`
+
+Arms auto-merge on Dependabot's patch and minor version updates and says so in a comment. Majors and digest-only updates wait. No inputs. Record: [0029](architectural-decision-records/0029-auto-merge-module-takes-the-callers-token.md)
+
+| Secret | Does |
+|---|---|
+| `merge-token` | Required. A token that can merge PRs in the caller's repo, such as its `AUTO_MERGE_PAT`. Store it as a Dependabot secret: a run Dependabot starts can't read Actions secrets |
+
+- The caller runs it on `pull_request` and grants `pull-requests: write`.
+- The caller sees `<caller job> / Auto-merge patch and minor updates`, skipped on any PR Dependabot didn't open.
+
 ## Shared defaults
 
 A module reads these at the commit its caller pinned, by checking out `job.workflow_repository` at `job.workflow_sha`, and a caller can pass its own file instead. Records: [0006](architectural-decision-records/0006-shared-conventions-ship-as-defaults.md), [0022](architectural-decision-records/0022-modules-load-their-own-files-from-the-job-context.md)

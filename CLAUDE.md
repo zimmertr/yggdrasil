@@ -49,8 +49,8 @@ File issues with the `create-issue` skill from zimmertr/ai-config: the two-sente
 
 - Work in a fresh clone in the session's scratchpad, never in TJ's checkout. Branch from the latest `origin/main`.
 - Everything reaches main through a squash-merged PR. Never push to main.
-- The PR title is `type(scope): summary`, and it picks the version.
+- The PR title is `type(scope): summary` with a type from `GitVersion.yml` (`feat` is a minor, `!` a major, the rest patches), and it picks the version. The `PR Title` job (action-semantic-pull-request) refuses anything else, and its `types` list changes with `GitVersion.yml` in the same PR. Record: [0020](docs/architectural-decision-records/0020-pr-titles-checked-by-a-community-action.md)
 - Actions are pinned to full commit SHAs with the version in a comment. The repo setting `sha_pinning_required` refuses a tag, and zizmor refuses a SHA whose comment is missing or wrong.
 - **Use a maintained tool before writing a check.** zizmor (pedantic) holds the workflows, lychee the doc links, and a grep the em dashes. Write custom code only for a gap no tool covers. Record: [0019](docs/architectural-decision-records/0019-community-tools-hold-workflows-and-docs.md)
 - **CI runs the checks.** Every check is a `make` target in a pinned container from `compose.yml`, run the same way in CI; commit early and read the jobs. Record: [0018](docs/architectural-decision-records/0018-checks-run-through-make-in-pinned-containers.md)
-- Checks today: `actionlint`, `zizmor`, `Docs` ([`docs/CICD.md`](docs/CICD.md#pr-checks)).
+- Checks today: `actionlint`, `zizmor`, `Docs`, `PR Title` ([`docs/CICD.md`](docs/CICD.md#pr-checks)).

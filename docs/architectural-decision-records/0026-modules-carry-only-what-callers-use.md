@@ -1,6 +1,6 @@
 # 0026. The modules carry only what hevy-trainer-sync and Bluebird use today, in shell, `jq` and `yq`, with no Python
 
-- Status: Accepted
+- Status: Superseded in part by 0037
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on #4's plan: "Merge and Proceed with trimming things we don't need. YAGNI and KISS."
 - Issues and PRs: #4

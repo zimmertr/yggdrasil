@@ -41,6 +41,15 @@ Fails a PR whose title isn't `type(scope): summary` with a type from `defaults/G
 - The caller runs it from `pull_request` with `types: [opened, edited, reopened, synchronize]`, so a title edit reruns it, and grants `pull-requests: read`.
 - The caller sees the check `<caller job> / PR Title`.
 
+### `lint.yml`
+
+actionlint, with shellcheck on every `run:`, and zizmor's pedantic audits over the caller's workflows, actions and `dependabot.yml`. Both run in the images `compose.yml` pins, read at the commit the caller pinned, so a new tool version reaches a caller with its next pin bump. No inputs. Record: [0037](architectural-decision-records/0037-lint-module.md)
+
+- The caller runs it on `pull_request` and grants `contents: read`.
+- zizmor gets the job's read-only token, which turns on its online audits, including a version comment that doesn't match its SHA.
+- A finding is fixed, or silenced with its reason: an inline `# zizmor: ignore[<audit>]`, or the caller's own `zizmor.yml`.
+- The caller sees `<caller job> / actionlint` and `<caller job> / zizmor`.
+
 ### `auto-merge.yml`
 
 Arms auto-merge on Dependabot's patch and minor version updates and says so in a comment. Majors and digest-only updates wait. No inputs. Record: [0029](architectural-decision-records/0029-auto-merge-module-takes-the-callers-token.md)

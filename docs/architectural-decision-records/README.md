@@ -50,7 +50,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0023](0023-releases-bake-three-days.md) | Every consumer is production: each takes a release once it is three days old, and patch and minor bumps merge themselves | 2026-11-05 | Accepted. Supersedes 0005 |
 | [0024](0024-terraform-providers-and-new-repos.md) | Terraform creates each new repo from the template, protects it with a ruleset, and fills the GitHub provider's gaps with Mastercard/restapi | 2026-11-05 | Accepted |
 | [0025](0025-no-breaking-change-check.md) | No breaking-change check: each caller's own CI catches a breaking release | 2026-11-05 | Accepted |
-| [0026](0026-modules-carry-only-what-callers-use.md) | The modules carry only what hevy-trainer-sync and Bluebird use today, in shell, `jq` and `yq`, with no Python | 2026-11-05 | Accepted |
+| [0026](0026-modules-carry-only-what-callers-use.md) | The modules carry only what hevy-trainer-sync and Bluebird use today, in shell, `jq` and `yq`, with no Python | 2026-11-05 | Superseded in part by 0037 |
 | [0027](0027-release-module.md) | The release module runs GitVersion's image, previews each PR's version, and makes the tag and release in one `gh release create` | 2026-11-05 | Accepted |
 | [0028](0028-pr-title-module-is-yggdrasils-own-check.md) | The pr-title module is yggdrasil's own PR Title workflow, callable with `workflow_call` | 2026-11-05 | Accepted |
 | [0029](0029-auto-merge-module-takes-the-callers-token.md) | The auto-merge module takes each caller's own merge token, not the App's key | 2026-11-05 | Accepted, except parts 0034 replaces |
@@ -61,3 +61,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0034](0034-community-actions-over-shell.md) | The modules use a maintained action or input wherever one does what a shell step did | 2026-11-06 | Accepted |
 | [0035](0035-terraform-guards-itself.md) | The github stack guards itself with typed variables, preconditions and `archive_on_destroy`, with no schema, profile files or destroy label | 2026-11-06 | Accepted |
 | [0036](0036-records-only-for-system-decisions.md) | A decision record is written only for a decision that shapes the system | 2026-11-06 | Accepted |
+| [0037](0037-lint-module.md) | A lint module runs actionlint and zizmor in every repo, in the images `compose.yml` pins | 2026-11-06 | Accepted. Supersedes 0026 in part |

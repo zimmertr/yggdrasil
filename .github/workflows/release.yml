@@ -1,0 +1,103 @@
+name: release
+
+# The release module: the next version, then its git tag and GitHub release.
+# A caller runs it on every push to main, and on PRs with `dry-run`, where it
+# says in the job summary what the merge will release. Decision record 0027.
+#
+# The caller sets `concurrency` (one release at a time) and grants
+# `contents: write`, which only the Tag and Release job uses.
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub environment the Tag and Release job runs in, for its protection rules. Empty for none.
+        type: string
+        default: ''
+      dry-run:
+        description: Work out the version and report it, but tag and release nothing.
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: Version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tagged: ${{ steps.version.outputs.tagged }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0  # GitVersion needs every commit and tag
+          persist-credentials: false
+      # A caller with its own GitVersion.yml uses it. Otherwise the module's
+      # default, read at the commit the caller pinned (records 0006, 0022).
+      - if: hashFiles('GitVersion.yml') == ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          persist-credentials: false
+      # A PR's merge commit carries GitHub's message, not the PR title, so
+      # GitVersion would misread it. Build the squash commit the merge will
+      # make instead: the PR's changes on top of the base branch, titled with
+      # the PR title. Staged changes only, so .yggdrasil stays out of it.
+      - if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.base_ref }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          MERGE=$(git rev-parse HEAD)
+          git checkout -q -B "$BASE" "origin/$BASE"
+          git merge -q --squash "$MERGE"
+          git -c user.name=release -c user.email=release@localhost commit -q --allow-empty -m "$TITLE"
+      # GitVersion's image rather than gittools/actions, so it sees only the
+      # repo and none of the runner's GITHUB_* variables, which would make it
+      # read a PR as a branch build. Dependabot doesn't see this pin: bump it
+      # by hand.
+      - id: version
+        run: |
+          CONFIG=GitVersion.yml
+          [ -f "$CONFIG" ] || CONFIG=.yggdrasil/defaults/GitVersion.yml
+          VERSION=$(docker run --rm -v "$PWD:/repo" \
+            gittools/gitversion:6.8.2@sha256:f10e8320b2cf86f879a9304e074ac11f16b897380e0e4a86dd39682b265da568 \
+            /repo /config "/repo/$CONFIG" /nocache /output json /format '{SemVer}' | tail -n 1)
+          echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::GitVersion gave '${VERSION}'"; exit 1; }
+          TAGGED=false
+          git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null && TAGGED=true
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tagged=${TAGGED}" >> "$GITHUB_OUTPUT"
+          # A merge that touches nothing GitVersion counts gives back the last
+          # tagged version, which is how a settings-only merge releases nothing.
+          if [ "$TAGGED" = true ]; then
+            echo "Releases nothing: v${VERSION} is already tagged." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Releases v${VERSION}." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+  release:
+    name: Tag and Release
+    needs: version
+    # Main only: a release from any other ref would tag that ref.
+    if: ${{ !inputs.dry-run && github.ref == 'refs/heads/main' && needs.version.outputs.tagged == 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: write  # the tag and the release
+    steps:
+      # One call makes the tag at this commit and the release, with notes from
+      # the merged PR titles. No checkout, so no credential sits on disk.
+      - env:
+          TAG: v${{ needs.version.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+          echo "Released ${TAG}." >> "$GITHUB_STEP_SUMMARY"

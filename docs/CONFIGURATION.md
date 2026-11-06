@@ -37,6 +37,23 @@ Arms auto-merge on Dependabot's patch and minor version updates and says so in a
 - The caller runs it on `pull_request` and grants `pull-requests: write`.
 - The caller sees `<caller job> / Auto-merge patch and minor updates`, skipped on any PR Dependabot didn't open.
 
+### `docker-build.yml`
+
+On a PR: hadolint, then the `linux/amd64` image built and loaded but not pushed, scanned by Trivy (fixable only), a sticky scan comment, the caller's smoke test, and a failure on any fixable Critical or High. Record: [0030](architectural-decision-records/0030-docker-build-module.md)
+
+| Input | Default | Does |
+|---|---|---|
+| `context` | `.` | The build context, which holds the `Dockerfile` |
+| `build-args` | `''` | Build arguments, one `KEY=value` per line |
+| `smoke-test` | `''` | Bash run against the built image, whose tag is in `$IMAGE` (`<repo name>:pr-scan`). Any failing command fails the job |
+| `cache` | `false` | Uses the GitHub Actions layer cache |
+| `upload-image` | `false` | Saves the image as the artifact `<repo name>-image`, holding `<repo name>-image.tar`, for later jobs to `docker load` |
+
+- The caller runs it on `pull_request` and grants `contents: read` and `pull-requests: write`.
+- A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`.
+- The comment's marker is `<!-- <repo name>-image-scan -->`, the one hevy-trainer-sync and Bluebird use today. Dependabot's PRs get the step summary instead, since their token is read-only.
+- The caller sees `<caller job> / Docker Build`.
+
 ## Shared defaults
 
 A module reads these at the commit its caller pinned, by checking out `job.workflow_repository` at `job.workflow_sha`, and a caller can pass its own file instead. Records: [0006](architectural-decision-records/0006-shared-conventions-ship-as-defaults.md), [0022](architectural-decision-records/0022-modules-load-their-own-files-from-the-job-context.md)

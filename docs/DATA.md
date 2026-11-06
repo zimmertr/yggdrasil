@@ -52,6 +52,8 @@ Both HashiCorp pages answer scripted requests with HTTP 429, so TJ checked them 
 
 Quirks:
 
-- 2026-11-05: the pricing page lists HCP Terraform's Essentials, Standard and Premium plans, each priced per managed resource per month, and no free plan. Its FAQ asks "Is there still a free version of HCP Terraform?". Which plan `Yggdrasil-Org` is on, and whether a stack in local execution mode still counts its resources, is not yet confirmed. #8 confirms both before importing twenty repos.
+- 2026-11-05: `Yggdrasil-Org` is on the Free plan, with a 500 managed-resource limit and no charge (its **Plan & billing** page, read by TJ). The limit covers the whole org, every stack together. HashiCorp's [plans overview](https://developer.hashicorp.com/terraform/cloud-docs/overview): "Free organizations are limited to 500 managed resources."
+- 2026-11-05: a managed resource is a `mode = "managed"` resource in a state file HCP Terraform holds, counted from its first plan or apply. Data sources and null resources don't count. Local execution mode still counts, because the state still lives in HCP. HashiCorp's blog post "Continuing HCP Terraform's enhanced free tier experience" defines it, and [Estimate HCP Terraform cost](https://developer.hashicorp.com/terraform/cloud-docs/overview/estimate-cost) shows where to see the org's count. The legacy user-based Free plan ended on 2026-03-31.
+- 2026-11-05: the pricing page lists only the paid plans (Essentials, Standard, Premium, each priced per managed resource per month), so it doesn't show the Free plan at all.
 
 - 2026-11-05: the org name `yggdrasil` was already taken. TJ renamed the existing `Kubernetes-Manifests` org to `Yggdrasil-Org` instead, which kept the Cloudflare workspace and its state in place (Kubernetes-Manifests#1888).

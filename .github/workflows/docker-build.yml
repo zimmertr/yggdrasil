@@ -57,9 +57,13 @@ jobs:
       - id: names
         run: |
           REPO=${GITHUB_REPOSITORY#*/}
-          echo "image=${REPO,,}:pr-scan" >> "$GITHUB_OUTPUT"
-          echo "repo=${REPO}" >> "$GITHUB_OUTPUT"
-          if [ -f trivy.yaml ]; then echo "trivy=trivy.yaml"; else echo "trivy=.yggdrasil/defaults/trivy.yaml"; fi >> "$GITHUB_OUTPUT"
+          TRIVY=trivy.yaml
+          [ -f "$TRIVY" ] || TRIVY=.yggdrasil/defaults/trivy.yaml
+          {
+            echo "image=${REPO,,}:pr-scan"
+            echo "repo=${REPO}"
+            echo "trivy=${TRIVY}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0

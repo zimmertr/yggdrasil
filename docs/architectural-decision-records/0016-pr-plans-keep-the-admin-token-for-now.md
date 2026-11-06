@@ -17,7 +17,7 @@ Plans on PRs mint their token from `zimmertr-yggdrasil-bot`, with its full permi
 
 ## Evidence
 
-No dated measurement. Which read scopes the GitHub provider needs is not yet known; #3 finds out.
+2026-11-05 (#3): every plan ran with the App's full token, so which read scopes a plan needs is still not known. #13 finds out when it builds the read-only App.
 
 ## Alternatives rejected
 

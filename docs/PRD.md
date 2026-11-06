@@ -69,7 +69,7 @@ Managed repos at the start (20), every one of them both managed by Terraform and
 - **A repo uses a module.** It adds a short caller: `uses: zimmertr/yggdrasil/.github/workflows/release.yml@<sha> # v1.4.0`, plus its inputs. Its PR CI shows the result.
 - **A module changes.** A PR in yggdrasil runs each module through a test caller, with the release module in `dry-run` (build and scan, no push, tag, release or PR), and the breaking-change check. The merge releases, and every consumer takes it the next day. The merge releases `vX.Y.Z`, and Dependabot opens a bump PR in each consumer.
 - **A setting changes.** Edit `repos/<name>.yml`. The PR shows the plan, and the merge applies it.
-- **A new repo.** Add `repos/<name>.yml` with its profile and merge. The repo starts from the template. In an org, Terraform creates the repo. Under `zimmertr`, it may have to be created with `gh repo create` first and then imported (P1 decides). Then `/initialize-project` seeds its files.
+- **A new repo.** Add `repos/<name>.yml` with its profile and merge. Terraform creates the repo from the template as the App, in an org or under `zimmertr` (record 0024). Then `/initialize-project` seeds its files.
 - **A new org.** TJ creates it in GitHub's UI (GitHub has no API for that) and installs `zimmertr-yggdrasil-bot`. Then `orgs/<name>.yml`, an import, and Terraform manages it from there. Moving repos into an org is a later project, such as Bluebird's Rebrand.
 
 ## 6. Tech stack

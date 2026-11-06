@@ -29,4 +29,4 @@ Terraform needs a list of what it manages, and most repos share the same setting
 
 ## Consequences
 
-The schema (0011) validates each file. A new repo is one new file and a merge; under `zimmertr` it may need `gh repo create` and an import first, which #3 decides.
+The schema (0011) validates each file. A new repo is one new file and a merge, under `zimmertr` too: Terraform creates it from the template as the App (0024).

@@ -26,16 +26,32 @@ Found in #3 with two throwaway repos, a module and a caller pinning it by SHA wi
 - 2026-11-05: with no `cooldown` set, Dependabot still held a two-minute-old release back: "Days since release : 1 (cooldown days 3)". With `cooldown: default-days: 0`, the next run opened the PR at once. So a consumer without its own `cooldown` gets a yggdrasil release three days after it ships, which is what TJ chose: each consumer sets those three days explicitly (0023). yggdrasil's own updates wait seven (0021).
 - 2026-11-05: Renovate 44.221.0 with `config:recommended` reads the same pin and comment. It names the dependency by repo, `<owner>/<repo>`, and called v0.2.0 to v0.2.1 `patch` and v0.2.1 to v0.3.0 `minor`, not breaking, so Kubernetes-Manifests' patch-and-minor auto-merge would take a 0.x minor. It was a dry run in a container; the probe never had the Renovate app.
 - 2026-11-05: `GITHUB_TOKEN`, which never holds the Workflows permission, merged a Dependabot PR that edits `.github/workflows` (`gh pr merge --squash`, merged by `app/github-actions`). That merge started no `on: push` workflow, so a consumer merged that way never releases. The App token is still needed, to start the consumer's push workflows, not for the Workflows permission. Arming auto-merge with `--auto` was not tested.
+
+Terraform, run in a workflow with an installation token for `zimmertr`, with `integrations/github` 6.13.0, `Mastercard/restapi` 3.0.0 and Terraform 1.16.7:
+
+- 2026-11-05: an installation token can't create a repo under `zimmertr` with `POST /user/repos`. GitHub answered 403 "Rate Limit Exceeded" on the job's first call, twice, on two runs. A plain `github_repository` create calls that endpoint under a personal account. Generating from a template (`POST /repos/{owner}/{template}/generate`) worked with the same token, and so did a `github_repository` with a `template` block, which calls it. Record: [0024](architectural-decision-records/0024-terraform-providers-and-new-repos.md)
+- 2026-11-05: every setting in `initialize-project`'s `repo.md` and `security.md` applied to an imported repo, and a second plan found nothing to change. Read back afterwards: squash only with `PR_TITLE` and `PR_BODY`, auto-merge, branch deletion, update branch, wiki and projects off, secret scanning and push protection, Dependabot alerts and security updates, `sha_pinning_required`, private vulnerability reporting, immutable releases, CodeQL default setup for `actions`, and an active ruleset on the default branch. [CONFIGURATION.md](CONFIGURATION.md#what-terraform-manages) maps each setting to its resource.
+- 2026-11-05: `integrations/github` 6.13.0 has no resource for private vulnerability reporting (integrations/terraform-provider-github#2399), immutable releases (#2746) or CodeQL default setup (#1648, closed as stale). `restapi_object` manages each one. It needs `ignore_server_additions = true`, or every field GitHub returns lands in `data` and every plan shows a change. `PUT .../immutable-releases` refuses a body ("enabled" is not a permitted key), so its `data` is `{}`, and Terraform won't notice if someone turns it off by hand.
+- 2026-11-05: CodeQL's default setup reports `languages: []` until its first analysis finishes, about a minute after it is configured, so a plan inside that minute shows one change.
+- 2026-11-05: `github_branch_protection` names required checks by name only. `github_repository_ruleset`'s `required_check` also takes the `integration_id` of the app that must report it (15368 for GitHub Actions), which yggdrasil's own protection pins today.
+- 2026-11-05: once a ruleset requires PRs on main, the App can't commit to main either: `github_repository_file` failed with "409 Repository rule violations found" until the file was created before the ruleset. The App isn't a bypass actor.
+- 2026-11-05: the App's current permissions covered every call above. Org-level settings were not exercised.
+- integrations/terraform-provider-github#3223, open: `sha_pinning_required = false` is silently ignored. yggdrasil only sets it to `true`.
 - 2026-11-05: a fine-grained PAT binds to one owner, and the Bluebird-Forecast org caps its lifetime at 366 days (zimmertr/bluebird#311).
 - GitHub has no API to create an org. TJ creates each one in the UI, and Terraform takes over from its import.
 
 ## Docker Hub
 
-Uses: the repositories that consumers push images to, and their immutable tags (#9, if #3 shows the provider can set them).
+Uses: the repositories that consumers push images to, and their immutable tags (#9).
 
 - Limits: [Docker Hub usage and limits](https://docs.docker.com/docker-hub/usage/).
 - Terms: [Docker Terms of Service](https://www.docker.com/legal/docker-terms-service/).
 - Provider: [`docker/docker`](https://registry.terraform.io/providers/docker/docker/latest/docs).
+
+Quirks, found in #3 with the throwaway repo `zimmertr/yggdrasil-probe`:
+
+- 2026-11-05: `docker/docker` 0.7.0's `docker_hub_repository` created a public repo with `immutable_tags_settings = { enabled = true, rules = [".*"] }`, and a second plan found nothing to change. Pushing `v1` again with different content was refused: "tag v1 is already assigned to an image in this repository and cannot be updated due to immutability settings".
+- 2026-11-05: the provider logs in with a username and a personal access token. An older token that could log in, but whose scope was never recorded, failed with "access denied: insufficient scope". The run passed with a token TJ made for it, asked for with the Read, Write, Delete scope.
 
 ## ArtifactHub
 

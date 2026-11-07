@@ -15,6 +15,7 @@ flowchart LR
 - Every change reaches main through a PR. The repo allows squash merges only, with the PR title as the commit title and the PR body as the message.
 - The PR title is `type(scope): summary`, with a type from `GitVersion.yml`: `feat` releases a minor, a `!` before the colon a major (a change that breaks a caller), and every other type a patch. The `PR Title` job refuses any other title. Records: [0004](architectural-decision-records/0004-one-version-for-every-module.md), [0020](architectural-decision-records/0020-pr-titles-checked-by-a-community-action.md)
 - `ci-release.yml` releases yggdrasil through its own release module. On a PR it runs in dry run, and the `Release / Version` job says what the merge will release, or that it releases nothing. On main it tags the merge commit `vX.Y.Z` and publishes an immutable GitHub release with notes from the merged PR titles. A merge that touches no module path gives back a version already tagged, and releases nothing. Record: [0027](architectural-decision-records/0027-release-module.md)
+- `terraform-github.yml` applies the github stack when a merge touches `terraform/`, `repos/` or `orgs/`. Its `Apply github` job plans again on main with write tokens, and applies only when that plan matches the merged PR's plan comment; otherwise it fails and changes nothing. Applies run one at a time and are never cancelled. Record: [0045](architectural-decision-records/0045-merges-apply-through-dflook.md)
 
 ## PR checks
 
@@ -33,7 +34,7 @@ Every job runs in the same pinned container a local `make` run uses. Record: [00
 | `pr-title.yml` | `PR Title` | `amannn/action-semantic-pull-request` on the title, on every edit and push | A title that isn't `type(scope): summary` with a type from `GitVersion.yml`'s patterns. Record: [0020](architectural-decision-records/0020-pr-titles-checked-by-a-community-action.md) |
 | `checks.yml` | `Docs` | `make docs`: lychee over every relative link and heading anchor, and a grep for em dashes | A broken link or anchor, or an em dash |
 | `ci-docker-build.yml` | `Docker Build Test / Docker Build` | The docker-build module on `tests/docker-build/`. Only on PRs that touch the module, its test or `defaults/trivy.yaml`, so it isn't required | Any failure of the module |
-| `terraform-plan.yml` | `Plan github` | `dflook/terraform-plan` on the github stack, with read-only tokens from `zimmertr-yggdrasil-bot`, one per owner. Posts the plan as one PR comment that each run updates. Only on PRs from this repo's own branches, Dependabot's included, that touch `terraform/`, `repos/` or `orgs/`, so it isn't required. Record: [0044](architectural-decision-records/0044-pr-plans-run-through-dflook-with-read-only-tokens.md) | A plan that errors, such as a precondition refusing an unknown key. A plan with changes passes: TJ reads it before merging |
+| `terraform-github.yml` | `Plan github` | `dflook/terraform-plan` on the github stack, with read-only tokens from `zimmertr-yggdrasil-bot`, one per owner. Posts the plan as one PR comment that each run updates. Only on PRs from this repo's own branches, Dependabot's included, that touch `terraform/`, `repos/` or `orgs/`, so it isn't required. Record: [0044](architectural-decision-records/0044-pr-plans-run-through-dflook-with-read-only-tokens.md) | A plan that errors, such as a precondition refusing an unknown key. A plan with changes passes: TJ reads it before merging |
 | `ci-release.yml` | `Release / Version` | The release module in dry run: GitVersion on the squash commit this PR will make | GitVersion failing or giving something other than `X.Y.Z` |
 | `ci-release.yml` | `Release / Build & Push (zimmertr/yggdrasil-test)` | The same dry run building `tests/docker-build/` for `linux/amd64` and `linux/arm64`, pushing nothing | A build that fails |
 
@@ -99,10 +100,10 @@ The call's response listed exactly those ten.
 
 | Secret | Kind | Holds | Used by |
 |---|---|---|---|
-| `YGGDRASIL_BOT_PRIVATE_KEY` | Dependabot | The App's private key, set by TJ | `dependabot-auto-merge.yml`, and `terraform-plan.yml` on Dependabot's PRs |
-| `TF_API_TOKEN` | Dependabot | The same HCP Terraform team token, set by TJ on 2026-11-07 | `terraform-plan.yml` on Dependabot's PRs, so a provider bump shows its plan |
-| `YGGDRASIL_BOT_PRIVATE_KEY` | Actions | The same key, set by TJ on 2026-11-06 | `terraform-plan.yml`, and the apply from #8 step 6.8 |
-| `TF_API_TOKEN` | Actions | The HCP Terraform team token for `Yggdrasil-Org`, set by TJ on 2026-11-06 | `terraform-plan.yml`, and the apply from #8 step 6.8 |
+| `YGGDRASIL_BOT_PRIVATE_KEY` | Dependabot | The App's private key, set by TJ | `dependabot-auto-merge.yml`, and `terraform-github.yml` on Dependabot's PRs |
+| `TF_API_TOKEN` | Dependabot | The same HCP Terraform team token, set by TJ on 2026-11-07 | `terraform-github.yml` on Dependabot's PRs, so a provider bump shows its plan |
+| `YGGDRASIL_BOT_PRIVATE_KEY` | Actions | The same key, set by TJ on 2026-11-06 | `terraform-github.yml`, for the plan and the apply |
+| `TF_API_TOKEN` | Actions | The HCP Terraform team token for `Yggdrasil-Org`, set by TJ on 2026-11-06 | `terraform-github.yml`, for the plan and the apply |
 
 The key and the HCP token are each stored twice because a run Dependabot starts can't read Actions secrets, and other runs can't read Dependabot's. There are no GitHub environments: plan and apply hold the same key, so an environment that locks apply to main would guard nothing the plan doesn't already hold (TJ, 2026-11-06, #8). The plan asks for read-only tokens, but it holds the key that could mint full ones. #13's second, read-only App is when that changes. Record: [0044](architectural-decision-records/0044-pr-plans-run-through-dflook-with-read-only-tokens.md) The workflow names the App by its public client ID, so `YGGDRASIL_BOT_APP_ID`, which held the App ID, was deleted on 2026-11-05 with TJ's okay. yggdrasil has no `AUTO_MERGE_PAT`: its auto-merge mints an App token instead. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)
 

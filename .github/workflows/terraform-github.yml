@@ -1,46 +1,56 @@
-name: terraform-plan
+name: terraform-github
 
-# `terraform plan` of the github stack on every PR that can change it, posted
-# as one PR comment that each run updates. Nothing is applied here (#8 step
-# 6.5, decision record 0044). Not a required check: a path-filtered check
-# never reports on other PRs.
+# The github stack's plan and apply. On a PR that can change the stack,
+# `terraform plan`, posted as one PR comment that each run updates (#8 step
+# 6.5, decision record 0044). On the merge to main, the apply of that plan,
+# and only if a fresh plan still matches the comment (#8 step 6.8, record
+# 0045). One workflow, so the token steps are written once. Not a required
+# check: a path-filtered check never reports on other PRs.
 on:
   pull_request:
-    paths:
-      - .github/workflows/terraform-plan.yml
+    paths: &paths
+      - .github/workflows/terraform-github.yml
       - terraform/**
       - repos/**
       - orgs/**
+  push:
+    branches: [main]
+    paths: *paths
 
+# A new push to a PR replaces its running plan. Applies queue and are never
+# cancelled, though a newer merge can replace one still waiting: that merge's
+# plan then includes the replaced one's changes, so it no longer matches its
+# comment and applies nothing (record 0045).
 concurrency:
-  group: terraform-plan-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: terraform-github-${{ github.event.pull_request.number || 'apply' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions: {}
 
 jobs:
-  plan:
-    name: Plan github
+  github:
+    name: ${{ github.event_name == 'push' && 'Apply' || 'Plan' }} github
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    # Only this repo's own branches: a fork's PR gets no secrets (record 0010).
-    # Dependabot's PRs plan too: a run Dependabot starts reads the Dependabot
-    # secrets of the same names instead (docs/CICD.md).
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    timeout-minutes: 30
+    # On a PR, only this repo's own branches: a fork's PR gets no secrets
+    # (record 0010). Dependabot's PRs plan too: a run Dependabot starts reads
+    # the Dependabot secrets of the same names instead (docs/CICD.md).
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
-      pull-requests: write # the plan comment
+      pull-requests: write # the plan comment, and the apply's result on it
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       # An installation token reaches one owner only, so one per owner, each
-      # minted for this run and gone within the hour. Read-only: a plan
-      # changes nothing, so its tokens can't either (record 0044). Each token
-      # reaches every repo of its owner, because the plan reads them all, so
-      # zizmor's github-app audit is silenced on each `owner:`. The App's
-      # client ID is public; only the private key is a secret.
+      # minted for this run and gone within the hour. Read-only on a PR, since
+      # a plan changes nothing; write only for the apply on main (records
+      # 0044, 0045). Each token reaches every repo of its owner, because the
+      # stack manages them all, so zizmor's github-app audit is silenced on
+      # each `owner:`. The App's client ID is public; only the private key is
+      # a secret.
       - name: Token for zimmertr
         id: zimmertr
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
@@ -48,7 +58,7 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: zimmertr # zizmor: ignore[github-app]
-          permission-administration: read
+          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       - name: Token for Bluebird-Forecast
@@ -58,7 +68,7 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: Bluebird-Forecast # zizmor: ignore[github-app]
-          permission-administration: read
+          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       - name: Token for Fellfield-Game
@@ -68,7 +78,7 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: Fellfield-Game # zizmor: ignore[github-app]
-          permission-administration: read
+          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       - name: Token for GPX-Search
@@ -78,7 +88,7 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: GPX-Search # zizmor: ignore[github-app]
-          permission-administration: read
+          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       - name: Token for TJs-Kubernetes-Service
@@ -88,7 +98,7 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: TJs-Kubernetes-Service # zizmor: ignore[github-app]
-          permission-administration: read
+          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       - name: Token for Lakebagger
@@ -98,20 +108,21 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: Lakebagger # zizmor: ignore[github-app]
-          permission-administration: read
+          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
-      # dflook's action runs the plan and keeps one comment on the PR up to
-      # date. Its terraform-apply applies on merge only the plan that comment
-      # shows (#8 step 6.8). It runs in its own image, and takes Terraform's
-      # version from the HCP workspace, not compose.yml (record 0044).
+      # dflook's actions run in their own image, and take Terraform's version
+      # from the HCP workspace, not compose.yml (record 0044). The apply must
+      # get the same inputs as the plan, so both read them from one anchor.
       - name: Plan
+        if: github.event_name == 'pull_request'
         uses: dflook/terraform-plan@738d3a75f0d801d280dca5eb7357b89c8383267f # v3.1.2
-        env:
-          # Not GITHUB_TOKEN, which the github provider would also read.
+        env: &dflook-env
+          # Not GITHUB_TOKEN, which the github provider would also read. The
+          # apply finds the plan comment by this token's author.
           TERRAFORM_ACTIONS_GITHUB_TOKEN: ${{ github.token }}
           TERRAFORM_CLOUD_TOKENS: app.terraform.io=${{ secrets.TF_API_TOKEN }}
-        with:
+        with: &dflook-inputs
           path: terraform/github
           # The action sets TF_WORKSPACE to this, which must match the cloud
           # block's workspace name.
@@ -125,3 +136,11 @@ jobs:
               "TJs-Kubernetes-Service" = "${{ steps.tjs-kubernetes-service.outputs.token }}"
               "Lakebagger"             = "${{ steps.lakebagger.outputs.token }}"
             }
+
+      # Plans again on main, and applies only when that plan matches the one
+      # in the merged PR's comment. Otherwise it fails and changes nothing.
+      - name: Apply
+        if: github.event_name == 'push'
+        uses: dflook/terraform-apply@9fdc48d2744ee0528495a136ad2cd31ad8208a67 # v3.1.2
+        env: *dflook-env
+        with: *dflook-inputs

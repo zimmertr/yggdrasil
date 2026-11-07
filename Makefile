@@ -50,7 +50,7 @@ tflint:
 
 # This repo has no trivy.yaml of its own, so the module's default applies.
 trivy:
-	$(RUN) trivy config --misconfig-scanners=terraform --exit-code=1 --config=defaults/trivy.yaml .
+	$(RUN) --entrypoint sh trivy scripts/terraform-each.sh trivy defaults/trivy.yaml
 
 # The Docs job.
 docs: links em-dash

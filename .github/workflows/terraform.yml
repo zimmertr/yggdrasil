@@ -134,11 +134,14 @@ jobs:
           sparse-checkout: |
             compose.yml
             defaults/trivy.yaml
+            scripts/terraform-each.sh
           sparse-checkout-cone-mode: false
           persist-credentials: false
-      # Terraform only: Dockerfiles have hadolint and Trivy's image scan in the
-      # docker-build module, and the caller's trivy.yaml can't widen this.
+      # Every Terraform folder on its own, so modules a stack calls with data
+      # Trivy can't read are scanned too (scripts/terraform-each.sh). Terraform
+      # only: Dockerfiles have hadolint and Trivy's image scan in the
+      # docker-build module.
       - run: |
           config=.yggdrasil/defaults/trivy.yaml
           if [ -f trivy.yaml ]; then config=trivy.yaml; fi
-          docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T trivy config --misconfig-scanners=terraform --exit-code=1 --config="$config" .
+          docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T --entrypoint sh trivy .yggdrasil/scripts/terraform-each.sh trivy "$config"

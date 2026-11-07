@@ -41,6 +41,9 @@ Terraform, run in a workflow with an installation token for `zimmertr`, with `in
 - integrations/terraform-provider-github#3223, open: `sha_pinning_required = false` is silently ignored. yggdrasil only sets it to `true`.
 - 2026-11-05: a fine-grained PAT binds to one owner, and the Bluebird-Forecast org caps its lifetime at 366 days (zimmertr/bluebird#311).
 - GitHub has no API to create an org. TJ creates each one in the UI, and Terraform takes over from its import.
+- 2026-11-07: GitHub returns a repo's merge settings (`allow_merge_commit`, `allow_rebase_merge`, `squash_merge_commit_title` and the rest) only to a token that can change the repo. A plan with Administration read saw them as `false` or unset (record 0047).
+- 2026-11-07: an imported `github_repository` prints every attribute in the plan, `etag` included, and `etag` differs for every token, so an import's PR plan never matches the apply's (record 0048). Once a repo is in state, the plan hides it.
+- 2026-11-07: `github_repository_file` with `branch` set checks that the branch exists first, and an empty repo has no branch until its first commit, so all 24 file writes into the new `.github` repos failed with `404 Not Found`. Without `branch`, the provider writes to the default branch (`integrations/github` 6.13.0, `resource_github_repository_file.go`).
 
 ## Docker Hub
 

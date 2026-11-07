@@ -15,17 +15,18 @@
 
 - The six `.github` repos each get a file under `repos/<owner>/` and an import block in `terraform/github/imports.tf`, like any other repo.
 - The repo module spots a repo named `.github` by its name, with no key in the repo file. For those repos only:
-  - one `github_repository_file` per file in `community-health-files/`: the templates at `.github/ISSUE_TEMPLATE/`, `SECURITY.md` at the root, committed to `main` by the bot;
+  - one `github_repository_file` per file in `community-health-files/`: the templates at `.github/ISSUE_TEMPLATE/`, `SECURITY.md` at the root, committed to the default branch by the bot;
   - the default-branch ruleset has one bypass actor, the bot (App ID 5636772), so its commits get through while everyone else still needs a PR;
   - no required checks, since the repo has no CI;
   - no CodeQL, since there's no code to scan.
 - No other repo gets a file resource. A test checks both sides.
-- The tokens add Contents: read on a PR and write on main.
+- The tokens add Contents write, on a PR too since [0047](0047-pr-plans-use-the-applys-write-tokens.md).
 
 ## Evidence
 
 - 2026-11-07, on #51: the plan, with read-only tokens, read all six repos and showed 6 to import, 66 to add (11 per repo, 4 of them files), 6 to change and 0 to destroy. The changes set each repo's merge and wiki settings to the standard and turn secret scanning on.
 - 2026-11-07, on #51: a mock provider can't import, so the stack's test stands in for the imported repo with `override_resource`.
+- 2026-11-07, the first apply (hand-started, per 0048): the six imports, their settings and both rulesets applied, and all 24 file writes failed with `404 Not Found`, because `branch = "main"` made the provider check for a branch an empty repo doesn't have. The module now leaves `branch` out (`docs/DATA.md`).
 
 ## Alternatives rejected
 

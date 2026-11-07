@@ -8,6 +8,8 @@ terraform {
   # applies run in Actions (decision record 0008). The checks run
   # `terraform init -backend=false`, which skips this block.
   cloud {
+    # Terraform's own default, named because dflook's init fails without it.
+    hostname     = "app.terraform.io"
     organization = "Yggdrasil-Org"
 
     workspaces {

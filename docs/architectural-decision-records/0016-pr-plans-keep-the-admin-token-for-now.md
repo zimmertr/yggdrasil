@@ -1,6 +1,6 @@
 # 0016. PR plans run with the App's full token for now
 
-- Status: Accepted
+- Status: Superseded by [0044](0044-pr-plans-run-through-dflook-with-read-only-tokens.md)
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05: "Accepted for now, but add an issue… tagged security."
 - Issues and PRs: #8, #13

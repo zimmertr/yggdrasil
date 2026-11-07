@@ -1,0 +1,127 @@
+name: terraform-plan
+
+# `terraform plan` of the github stack on every PR that can change it, posted
+# as one PR comment that each run updates. Nothing is applied here (#8 step
+# 6.5, decision record 0044). Not a required check: a path-filtered check
+# never reports on other PRs.
+on:
+  pull_request:
+    paths:
+      - .github/workflows/terraform-plan.yml
+      - terraform/**
+      - repos/**
+      - orgs/**
+
+concurrency:
+  group: terraform-plan-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  plan:
+    name: Plan github
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Only this repo's own branches: a fork's PR gets no secrets (record 0010).
+    # Dependabot's PRs plan too: a run Dependabot starts reads the Dependabot
+    # secrets of the same names instead (docs/CICD.md).
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      pull-requests: write # the plan comment
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # An installation token reaches one owner only, so one per owner, each
+      # minted for this run and gone within the hour. Read-only: a plan
+      # changes nothing, so its tokens can't either (record 0044). Each token
+      # reaches every repo of its owner, because the plan reads them all, so
+      # zizmor's github-app audit is silenced on each `owner:`. The App's
+      # client ID is public; only the private key is a secret.
+      - name: Token for zimmertr
+        id: zimmertr
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: Iv23liwzT6dq3xtbxm5P
+          private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
+          owner: zimmertr # zizmor: ignore[github-app]
+          permission-administration: read
+          permission-metadata: read
+
+      - name: Token for Bluebird-Forecast
+        id: bluebird-forecast
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: Iv23liwzT6dq3xtbxm5P
+          private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
+          owner: Bluebird-Forecast # zizmor: ignore[github-app]
+          permission-administration: read
+          permission-metadata: read
+
+      - name: Token for Fellfield-Game
+        id: fellfield-game
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: Iv23liwzT6dq3xtbxm5P
+          private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
+          owner: Fellfield-Game # zizmor: ignore[github-app]
+          permission-administration: read
+          permission-metadata: read
+
+      - name: Token for GPX-Search
+        id: gpx-search
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: Iv23liwzT6dq3xtbxm5P
+          private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
+          owner: GPX-Search # zizmor: ignore[github-app]
+          permission-administration: read
+          permission-metadata: read
+
+      - name: Token for TJs-Kubernetes-Service
+        id: tjs-kubernetes-service
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: Iv23liwzT6dq3xtbxm5P
+          private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
+          owner: TJs-Kubernetes-Service # zizmor: ignore[github-app]
+          permission-administration: read
+          permission-metadata: read
+
+      - name: Token for Lakebagger
+        id: lakebagger
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: Iv23liwzT6dq3xtbxm5P
+          private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
+          owner: Lakebagger # zizmor: ignore[github-app]
+          permission-administration: read
+          permission-metadata: read
+
+      # dflook's action runs the plan and keeps one comment on the PR up to
+      # date. Its terraform-apply applies on merge only the plan that comment
+      # shows (#8 step 6.8). It runs in its own image, and takes Terraform's
+      # version from the HCP workspace, not compose.yml (record 0044).
+      - name: Plan
+        uses: dflook/terraform-plan@738d3a75f0d801d280dca5eb7357b89c8383267f # v3.1.2
+        env:
+          # Not GITHUB_TOKEN, which the github provider would also read.
+          TERRAFORM_ACTIONS_GITHUB_TOKEN: ${{ github.token }}
+          TERRAFORM_CLOUD_TOKENS: app.terraform.io=${{ secrets.TF_API_TOKEN }}
+        with:
+          path: terraform/github
+          # The action sets TF_WORKSPACE to this, which must match the cloud
+          # block's workspace name.
+          workspace: github
+          variables: |
+            github_tokens = {
+              "zimmertr"               = "${{ steps.zimmertr.outputs.token }}"
+              "Bluebird-Forecast"      = "${{ steps.bluebird-forecast.outputs.token }}"
+              "Fellfield-Game"         = "${{ steps.fellfield-game.outputs.token }}"
+              "GPX-Search"             = "${{ steps.gpx-search.outputs.token }}"
+              "TJs-Kubernetes-Service" = "${{ steps.tjs-kubernetes-service.outputs.token }}"
+              "Lakebagger"             = "${{ steps.lakebagger.outputs.token }}"
+            }

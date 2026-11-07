@@ -139,6 +139,13 @@ These permissions are the final list. In #3 they covered creating a repo from a 
 
 The stacks use HCP Terraform org `Yggdrasil-Org` for state and locks, in local execution mode: plans and applies run in Actions, not on HCP. Record: [0008](architectural-decision-records/0008-terraform-plan-on-pr-apply-on-merge.md)
 
+Each stack has its own workspace, created once by hand before its first plan: `dflook/terraform-plan` only selects a workspace, never creates one. The workspace's Terraform version is set to match `compose.yml`'s, because the plan and apply take theirs from it. Record: [0044](architectural-decision-records/0044-pr-plans-run-through-dflook-with-read-only-tokens.md)
+
+| Workspace | Stack | Terraform version |
+|---|---|---|
+| `github` | `terraform/github` | 1.17.1, created 2026-11-07 with TJ's okay (#8 step 6.5) |
+| `cloudflare` | Kubernetes-Manifests `terraform/cloudflare`, moving here in #10 | 1.16.5 |
+
 `orgs/<name>.yml` arrives with #8 step 6.13, and its fields are documented here then. Records: [0012](architectural-decision-records/0012-one-file-per-repo-and-org.md), [0035](architectural-decision-records/0035-terraform-guards-itself.md)
 
 ### A repo's file

@@ -1,6 +1,6 @@
 # 0044. PR plans run through dflook/terraform-plan, with read-only tokens
 
-- Status: Accepted. Supersedes 0016, and 0018 in part. Superseded in part by [0045](0045-merges-apply-through-dflook.md): the workflow is now `terraform-github.yml`
+- Status: Accepted. Supersedes 0016, and 0018 in part. Superseded in part by [0045](0045-merges-apply-through-dflook.md), the workflow is now `terraform-github.yml`, and by [0047](0047-pr-plans-use-the-applys-write-tokens.md), plans use write tokens
 - Date: 2026-11-07
 - Decider: TJ, 2026-11-07, in #8: on step 6.5, read-only tokens for plans and no required check ("Okay, continue"); on how the plan runs, "dflook actions", the recommended option.
 - Issues and PRs: #8, #13

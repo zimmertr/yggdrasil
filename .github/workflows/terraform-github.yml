@@ -45,9 +45,10 @@ jobs:
           persist-credentials: false
 
       # An installation token reaches one owner only, so one per owner, each
-      # minted for this run and gone within the hour. Read-only on a PR, since
-      # a plan changes nothing; write only for the apply on main (records
-      # 0044, 0045). Each token reaches every repo of its owner, because the
+      # minted for this run and gone within the hour. Write on a PR too: GitHub
+      # hides a repo's merge settings from a token that can't change them, so
+      # a read-only plan never matches the apply's (decision record 0047).
+      # Each token reaches every repo of its owner, because the
       # stack manages them all, so zizmor's github-app audit is silenced on
       # each `owner:`. The App's client ID is public; only the private key is
       # a secret.
@@ -58,8 +59,8 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: zimmertr # zizmor: ignore[github-app]
-          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
-          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-administration: write
+          permission-contents: write
           permission-metadata: read
 
       - name: Token for Bluebird-Forecast
@@ -69,8 +70,8 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: Bluebird-Forecast # zizmor: ignore[github-app]
-          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
-          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-administration: write
+          permission-contents: write
           permission-metadata: read
 
       - name: Token for Fellfield-Game
@@ -80,8 +81,8 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: Fellfield-Game # zizmor: ignore[github-app]
-          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
-          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-administration: write
+          permission-contents: write
           permission-metadata: read
 
       - name: Token for GPX-Search
@@ -91,8 +92,8 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: GPX-Search # zizmor: ignore[github-app]
-          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
-          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-administration: write
+          permission-contents: write
           permission-metadata: read
 
       - name: Token for TJs-Kubernetes-Service
@@ -102,8 +103,8 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: TJs-Kubernetes-Service # zizmor: ignore[github-app]
-          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
-          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-administration: write
+          permission-contents: write
           permission-metadata: read
 
       - name: Token for Lakebagger
@@ -113,8 +114,8 @@ jobs:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: Lakebagger # zizmor: ignore[github-app]
-          permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
-          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-administration: write
+          permission-contents: write
           permission-metadata: read
 
       # dflook's actions run in their own image, and take Terraform's version

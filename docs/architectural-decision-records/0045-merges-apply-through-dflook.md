@@ -1,6 +1,6 @@
 # 0045. A merge applies the github stack through dflook/terraform-apply, only when the plan still matches the PR's comment
 
-- Status: Accepted. Supersedes 0044 in part: its workflow is now `terraform-github.yml`. Superseded in part by [0047](0047-pr-plans-use-the-applys-write-tokens.md): the plan's tokens are write too
+- Status: Accepted. Supersedes 0044 in part: its workflow is now `terraform-github.yml`. Superseded in part by [0047](0047-pr-plans-use-the-applys-write-tokens.md): the plan's tokens are write too, and by [0048](0048-imports-apply-by-hand.md): an import applies by hand
 - Date: 2026-11-07
 - Decider: TJ, 2026-11-07, in #8, on step 6.8's plan: one workflow for plan and apply, write tokens on main only, applies that queue, and a new PR when an apply refuses ("Yes").
 - Issues and PRs: #8, #50

@@ -4,8 +4,11 @@ name: terraform-github
 # `terraform plan`, posted as one PR comment that each run updates (#8 step
 # 6.5, decision record 0044). On the merge to main, the apply of that plan,
 # and only if a fresh plan still matches the comment (#8 step 6.8, record
-# 0045). One workflow, so the token steps are written once. Not a required
-# check: a path-filtered check never reports on other PRs.
+# 0045). An import's plan lists the repo's etag, which GitHub changes for
+# every token, so its apply always refuses; TJ then starts this workflow by
+# hand from main, and it applies without the comment check (record 0048). One
+# workflow, so the token steps are written once. Not a required check: a
+# path-filtered check never reports on other PRs.
 on:
   pull_request:
     paths: &paths
@@ -16,6 +19,7 @@ on:
   push:
     branches: [main]
     paths: *paths
+  workflow_dispatch:
 
 # A new push to a PR replaces its running plan. Applies queue and are never
 # cancelled, though a newer merge can replace one still waiting: that merge's
@@ -29,13 +33,16 @@ permissions: {}
 
 jobs:
   github:
-    name: ${{ github.event_name == 'push' && 'Apply' || 'Plan' }} github
+    name: ${{ github.event_name == 'pull_request' && 'Plan' || 'Apply' }} github
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # On a PR, only this repo's own branches: a fork's PR gets no secrets
     # (record 0010). Dependabot's PRs plan too: a run Dependabot starts reads
-    # the Dependabot secrets of the same names instead (docs/CICD.md).
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    # the Dependabot secrets of the same names instead (docs/CICD.md). An
+    # apply, pushed or started by hand, only ever from main.
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')
     permissions:
       contents: read
       pull-requests: write # the plan comment, and the apply's result on it
@@ -120,7 +127,7 @@ jobs:
 
       # dflook's actions run in their own image, and take Terraform's version
       # from the HCP workspace, not compose.yml (record 0044). The apply must
-      # get the same inputs as the plan, so both read them from one anchor.
+      # get the same variables as the plan, so both read them from one anchor.
       - name: Plan
         if: github.event_name == 'pull_request'
         uses: dflook/terraform-plan@738d3a75f0d801d280dca5eb7357b89c8383267f # v3.1.2
@@ -129,12 +136,12 @@ jobs:
           # apply finds the plan comment by this token's author.
           TERRAFORM_ACTIONS_GITHUB_TOKEN: ${{ github.token }}
           TERRAFORM_CLOUD_TOKENS: app.terraform.io=${{ secrets.TF_API_TOKEN }}
-        with: &dflook-inputs
+        with:
           path: terraform/github
           # The action sets TF_WORKSPACE to this, which must match the cloud
           # block's workspace name.
           workspace: github
-          variables: |
+          variables: &tf-variables |
             github_tokens = {
               "zimmertr"               = "${{ steps.zimmertr.outputs.token }}"
               "Bluebird-Forecast"      = "${{ steps.bluebird-forecast.outputs.token }}"
@@ -144,10 +151,15 @@ jobs:
               "Lakebagger"             = "${{ steps.lakebagger.outputs.token }}"
             }
 
-      # Plans again on main, and applies only when that plan matches the one
-      # in the merged PR's comment. Otherwise it fails and changes nothing.
+      # On a merge, plans again on main and applies only when that plan
+      # matches the one in the merged PR's comment; otherwise it fails and
+      # changes nothing. Started by hand, it applies main's plan as it is.
       - name: Apply
-        if: github.event_name == 'push'
+        if: github.event_name != 'pull_request'
         uses: dflook/terraform-apply@9fdc48d2744ee0528495a136ad2cd31ad8208a67 # v3.1.2
         env: *dflook-env
-        with: *dflook-inputs
+        with:
+          path: terraform/github
+          workspace: github
+          variables: *tf-variables
+          auto_approve: ${{ github.event_name == 'workflow_dispatch' }}

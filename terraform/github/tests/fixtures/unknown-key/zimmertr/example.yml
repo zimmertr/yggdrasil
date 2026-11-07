@@ -1,0 +1,4 @@
+# "achived" is a typo for "archived". Without the check it would be dropped.
+achived: true
+required_checks:
+  - PR Title / PR Title

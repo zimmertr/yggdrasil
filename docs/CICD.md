@@ -78,6 +78,16 @@ TJ okayed it. Before: required checks `actionlint`, `zizmor`, `Docs` and `PR Tit
 
 The call's response listed exactly those five.
 
+### 2026-11-07, #8 step 6.2
+
+TJ okayed it. Before: required checks `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, `Docs` and `PR Title`.
+
+| Call | Sets |
+|---|---|
+| `gh api -X PATCH repos/zimmertr/yggdrasil/branches/main/protection/required_status_checks --input checks.json` | Required checks `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, `Terraform / fmt`, `Terraform / validate`, `Terraform / test`, `Terraform / tflint`, `Terraform / trivy`, `Docs` and `PR Title` from GitHub Actions (app 15368), not strict |
+
+The call's response listed exactly those ten.
+
 ## Dependabot
 
 `.github/dependabot.yml` updates the pinned actions (`github-actions`), the providers in each stack's `.terraform.lock.hcl` (`terraform`, every directory under `terraform/`) and the tool images in `compose.yml` (`docker-compose`) weekly, each version waiting seven days after its release. Security updates skip the wait. Titles are `build(deps): ...`, a patch.

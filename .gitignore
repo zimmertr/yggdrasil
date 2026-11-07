@@ -1,5 +1,7 @@
-# Terraform. Keep .terraform.lock.hcl: it pins the providers.
+# Terraform. Keep each stack's .terraform.lock.hcl: it pins the providers.
+# A reusable module's is ignored by Terraform, so it isn't kept.
 .terraform/
+terraform/modules/**/.terraform.lock.hcl
 # tflint's plugins, when a .tflint.hcl names any (compose.yml).
 .tflint.d/
 *.tfstate

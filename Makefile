@@ -35,7 +35,7 @@ semgrep:
 terraform: fmt validate test tflint trivy
 
 # The same list checks.yml passes the module as `directories`.
-TF_DIRS := terraform/github
+TF_DIRS := terraform/github terraform/modules/repo
 
 fmt:
 	$(RUN) terraform fmt -recursive -check -diff

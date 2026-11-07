@@ -160,7 +160,7 @@ Each stack has its own workspace, created once by hand before its first plan: `d
 | `visibility` | `public` | `public` or `private`. A private repo on GitHub Free gets no rulesets, secret scanning, CodeQL or private vulnerability reporting |
 | `archived` | `false` | Archives the repo. An archived repo is read-only, so only the repo itself stays managed |
 | `is_template` | `false` | Marks the repo as a template |
-| `required_checks` | `[]` | The checks main requires, by name, each pinned to GitHub Actions. A public repo needs at least one |
+| `required_checks` | `[]` | The checks main requires, by name, each pinned to GitHub Actions. A public repo needs at least one, except a `.github` repo |
 
 - A key that isn't in this table fails the plan, and so does a folder for an owner the stack doesn't manage. Terraform would otherwise drop an unknown key without a word.
 - No security setting is a key. The repo module turns every one in the table below on for every repo GitHub allows it on. Changing that means changing `terraform/modules/repo/`.
@@ -187,5 +187,8 @@ Each setting `initialize-project` gives a new repo (its `repo.md` and `security.
 | Secrets (security.md 19 and 20) | `github_actions_secret`, `github_dependabot_secret`. A value set this way is stored in state, so #12 decides which, if any, Terraform holds | no |
 | Private vulnerability reporting (security.md 21) | `restapi_object`: `PUT /repos/{owner}/{repo}/private-vulnerability-reporting` | yes |
 | Every action pinned to a full SHA | `github_actions_repository_permissions`: `sha_pinning_required` | yes |
+| The shared issue templates and `SECURITY.md`, in each owner's `.github` repo only | `github_repository_file`, one per file in `community-health-files/`, committed to `main` by the bot | no |
+
+A repo named `.github` differs in three ways, with no key in its file (record 0046): its default-branch ruleset lets the bot (App ID 5636772) bypass it, so the bot can commit the shared files, while everyone else still needs a PR; it requires no checks, since it has no CI; and it gets no CodeQL, since it holds no code.
 
 The three `restapi_object` rows fill gaps in `integrations/github`, and each one counts toward the 500-resource budget ([DATA.md](DATA.md#hcp-terraform)). Each sets `ignore_server_additions = true`.

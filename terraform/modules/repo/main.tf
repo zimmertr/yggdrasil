@@ -19,7 +19,8 @@ locals {
 
   # An owner's .github repo holds the shared community health files, which
   # GitHub shows on every repo of that owner without its own (record 0041). It
-  # has no code and no CI, and the bot commits the files to it (record 0046).
+  # has no code and no CI, and the bot commits the files to it (decision
+  # record 0046).
   community = local.public && var.name == ".github"
 
   # zimmertr-yggdrasil-bot's App ID, public like its client ID.

@@ -70,3 +70,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0043](0043-repo-files-hold-no-security-settings.md) | A repo's file holds no security setting: the repo module turns each one on, and the stack refuses any key or owner it doesn't know | 2026-11-06 | Accepted. Supersedes 0035 and 0012 in part |
 | [0044](0044-pr-plans-run-through-dflook-with-read-only-tokens.md) | PR plans run through `dflook/terraform-plan`, with read-only tokens | 2026-11-07 | Accepted. Supersedes 0016, and 0018 in part. Superseded in part by 0045 |
 | [0045](0045-merges-apply-through-dflook.md) | A merge applies the github stack through `dflook/terraform-apply`, only when the plan still matches the PR's comment | 2026-11-07 | Accepted. Supersedes 0044 in part |
+| [0046](0046-github-repos-take-the-shared-files-from-the-bot.md) | Each owner's `.github` repo gets the shared files from the repo module, committed by the bot past the PR rule | 2026-11-07 | Accepted |

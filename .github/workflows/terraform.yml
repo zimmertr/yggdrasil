@@ -1,0 +1,144 @@
+name: terraform
+
+# The terraform module: the checks every repo with Terraform runs, written once
+# (decision record 0042). `terraform fmt`; `terraform validate` and
+# `terraform test` in every directory that has Terraform or a test, found by
+# scripts/terraform-each.sh; tflint's recursive lint; and Trivy's scan of the
+# Terraform for misconfigurations. All five run in the images yggdrasil's
+# compose.yml pins, read at the commit the caller pinned, so a caller,
+# yggdrasil's CI and `make terraform` here run the same tools (records 0018,
+# 0022). None of them reads state or a credential: init runs with
+# -backend=false, and tests run on mock providers.
+#
+# The caller runs it on `pull_request` and grants `contents: read`, and sees
+# the checks as `<caller job> / fmt`, `/ validate`, `/ test`, `/ tflint` and
+# `/ trivy`. A caller's own `.tflint.hcl` and `trivy.yaml`, at its root, replace
+# tflint's defaults and yggdrasil's defaults/trivy.yaml (record 0006).
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  fmt:
+    name: fmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          sparse-checkout: compose.yml
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      # --project-directory: the service's `.:/repo` mounts the caller's
+      # checkout, not .yggdrasil.
+      - run: docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T terraform fmt -recursive -check -diff
+
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          sparse-checkout: |
+            compose.yml
+            scripts/terraform-each.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - run: docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T --entrypoint sh terraform .yggdrasil/scripts/terraform-each.sh validate
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          sparse-checkout: |
+            compose.yml
+            scripts/terraform-each.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - run: docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T --entrypoint sh terraform .yggdrasil/scripts/terraform-each.sh test
+
+  tflint:
+    name: tflint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          sparse-checkout: compose.yml
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      # In recursive mode tflint resolves a relative --config inside each
+      # module's directory, so the caller's file is passed by its absolute path.
+      # Without one, tflint uses its bundled recommended rules. --init fetches
+      # any plugins the file names; the job's read-only token lifts GitHub's
+      # rate limit on those downloads.
+      - run: |
+          if [ -f .tflint.hcl ]; then set -- --config=/repo/.tflint.hcl; fi
+          docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T tflint --init "$@"
+          docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T tflint --recursive --format=compact "$@"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  trivy:
+    name: trivy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          sparse-checkout: |
+            compose.yml
+            defaults/trivy.yaml
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      # Terraform only: Dockerfiles have hadolint and Trivy's image scan in the
+      # docker-build module, and the caller's trivy.yaml can't widen this.
+      - run: |
+          config=.yggdrasil/defaults/trivy.yaml
+          if [ -f trivy.yaml ]; then config=trivy.yaml; fi
+          docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T trivy config --misconfig-scanners=terraform --exit-code=1 --config="$config" .

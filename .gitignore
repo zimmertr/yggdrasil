@@ -1,5 +1,8 @@
 # Terraform. Keep .terraform.lock.hcl: it pins the providers.
 .terraform/
+# The checks' provider and plugin caches (compose.yml).
+.terraform.d/
+.tflint.d/
 *.tfstate
 *.tfstate.*
 crash.log

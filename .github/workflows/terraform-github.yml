@@ -59,6 +59,7 @@ jobs:
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: zimmertr # zizmor: ignore[github-app]
           permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       - name: Token for Bluebird-Forecast
@@ -69,6 +70,7 @@ jobs:
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: Bluebird-Forecast # zizmor: ignore[github-app]
           permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       - name: Token for Fellfield-Game
@@ -79,6 +81,7 @@ jobs:
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: Fellfield-Game # zizmor: ignore[github-app]
           permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       - name: Token for GPX-Search
@@ -89,6 +92,7 @@ jobs:
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: GPX-Search # zizmor: ignore[github-app]
           permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       - name: Token for TJs-Kubernetes-Service
@@ -99,6 +103,7 @@ jobs:
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: TJs-Kubernetes-Service # zizmor: ignore[github-app]
           permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       - name: Token for Lakebagger
@@ -109,6 +114,7 @@ jobs:
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
           owner: Lakebagger # zizmor: ignore[github-app]
           permission-administration: ${{ github.event_name == 'push' && 'write' || 'read' }}
+          permission-contents: ${{ github.event_name == 'push' && 'write' || 'read' }}
           permission-metadata: read
 
       # dflook's actions run in their own image, and take Terraform's version

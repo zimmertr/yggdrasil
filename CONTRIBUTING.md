@@ -12,4 +12,4 @@ If you send a change:
 - The repo is public. No tokens, ids or personal data in code, fixtures or logs, and never the contents of a private repo.
 - No workflow uses `pull_request_target`.
 
-Security problems go through private reporting, not issues ([SECURITY.md](SECURITY.md)).
+Security problems go through private reporting, not issues ([the security policy](https://github.com/zimmertr/yggdrasil/security/policy)).

@@ -1,6 +1,6 @@
 # 0041. The issue templates and security policy live once, in yggdrasil, and Terraform writes them into each owner's `.github` repo
 
-- Status: Accepted. Supersedes 0038 and 0010 in part
+- Status: Accepted. Supersedes 0038 and 0010 in part. Superseded in part by 0049
 - Date: 2026-11-06
 - Decider: TJ, 2026-11-06, in #7: "Why are we redundantly defining all of the issue templates? Can't we just define them in yggdrasil and import them into these repos somehow to stay DRY?", then choosing Terraform over hand-made copies, with "a disclaimer at the top indicating they should not be manually edited, but instead managed via the source in yggdrasil via terraform"
 - Issues and PRs: #7, #8

@@ -1,6 +1,6 @@
 # 0010. Terraform manages settings, never a repo's files, and plans run only on yggdrasil's own branches
 
-- Status: Accepted
+- Status: Superseded in part by 0041
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on the private repos: "If there is no risk of exposing the contents of the repos, lets include them. Otherwise, leave them out."
 - Issues and PRs: #8, #13

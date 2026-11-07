@@ -1,6 +1,6 @@
 # 0038. A repo moving onto the modules takes a trimmed set of `initialize-project`'s repo files once, and adds the rest as later work reaches it
 
-- Status: Accepted
+- Status: Superseded in part by 0041
 - Date: 2026-11-06
 - Decider: TJ, 2026-11-06, in #7, choosing the trimmed set: "future work on those repos needs to start producing ADRs and other skipped files moving forward. This is a one-time exception to avoid burning tokens generating these"
 - Issues and PRs: #7

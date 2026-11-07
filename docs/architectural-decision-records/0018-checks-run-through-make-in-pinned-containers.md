@@ -1,6 +1,6 @@
 # 0018. Every check runs through a make target in a container pinned by digest, the same way locally and in CI
 
-- Status: Accepted
+- Status: Accepted, except the Terraform plan and apply, which run in dflook's image ([0044](0044-pr-plans-run-through-dflook-with-read-only-tokens.md))
 - Date: 2026-11-05
 - Decider: TJ's standard (global rules 8 and 9, and `initialize-project`'s `references/project.md`), applied by #2 item 0.4.
 - Issues and PRs: #2

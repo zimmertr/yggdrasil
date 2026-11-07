@@ -40,9 +40,9 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0013](0013-workflows-before-terraform.md) | The modules ship and are proven on hevy-trainer-sync before any Terraform, with one issue per phase | 2026-11-05 | Accepted |
 | [0014](0014-foundation-by-hand-then-imported.md) | yggdrasil's own settings are set by API now and imported into Terraform in #8 | 2026-11-05 | Accepted |
 | [0015](0015-skills-live-in-ai-config.md) | Shared skills live only in zimmertr/ai-config, and a repo-specific skill lives only in its repo | 2026-11-05 | Accepted |
-| [0016](0016-pr-plans-keep-the-admin-token-for-now.md) | PR plans run with the App's full token for now | 2026-11-05 | Accepted |
+| [0016](0016-pr-plans-keep-the-admin-token-for-now.md) | PR plans run with the App's full token for now | 2026-11-05 | Superseded by 0044 |
 | [0017](0017-docs-and-records.md) | Every change updates its docs page in the same PR, and every decision gets a record here | 2026-11-05 | Accepted, except a record for every decision (0036) |
-| [0018](0018-checks-run-through-make-in-pinned-containers.md) | Every check runs through a make target in a container pinned by digest, the same way locally and in CI | 2026-11-05 | Accepted |
+| [0018](0018-checks-run-through-make-in-pinned-containers.md) | Every check runs through a make target in a container pinned by digest, the same way locally and in CI | 2026-11-05 | Accepted, except the Terraform plan and apply (0044) |
 | [0019](0019-community-tools-hold-workflows-and-docs.md) | zizmor, lychee and a grep hold every workflow and doc to the repo's rules, instead of a custom check | 2026-11-05 | Accepted |
 | [0020](0020-pr-titles-checked-by-a-community-action.md) | PR titles are checked by action-semantic-pull-request, against the same types GitVersion reads | 2026-11-05 | Accepted |
 | [0021](0021-dependabot-with-app-auto-merge.md) | Dependabot updates actions and tool images weekly, and its patch and minor updates merge themselves as the App | 2026-11-05 | Accepted |
@@ -68,3 +68,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0041](0041-one-source-for-community-health-files.md) | The issue templates and security policy live once, in yggdrasil, and Terraform writes them into each owner's `.github` repo | 2026-11-06 | Accepted. Supersedes 0038 and 0010 in part |
 | [0042](0042-terraform-module.md) | A terraform module runs fmt, validate, test, tflint and Trivy in every repo with Terraform, in the images `compose.yml` pins | 2026-11-06 | Accepted |
 | [0043](0043-repo-files-hold-no-security-settings.md) | A repo's file holds no security setting: the repo module turns each one on, and the stack refuses any key or owner it doesn't know | 2026-11-06 | Accepted. Supersedes 0035 and 0012 in part |
+| [0044](0044-pr-plans-run-through-dflook-with-read-only-tokens.md) | PR plans run through `dflook/terraform-plan`, with read-only tokens | 2026-11-07 | Accepted. Supersedes 0016, and 0018 in part |

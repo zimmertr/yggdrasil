@@ -38,7 +38,9 @@ jobs:
 
       # An installation token reaches one owner only, so one per owner, each
       # minted for this run and gone within the hour. Read-only: a plan
-      # changes nothing, so its tokens can't either (record 0044). The App's
+      # changes nothing, so its tokens can't either (record 0044). Each token
+      # reaches every repo of its owner, because the plan reads them all, so
+      # zizmor's github-app audit is silenced on each `owner:`. The App's
       # client ID is public; only the private key is a secret.
       - name: Token for zimmertr
         id: zimmertr
@@ -46,7 +48,7 @@ jobs:
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
-          owner: zimmertr
+          owner: zimmertr # zizmor: ignore[github-app]
           permission-administration: read
           permission-metadata: read
 
@@ -56,7 +58,7 @@ jobs:
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
-          owner: Bluebird-Forecast
+          owner: Bluebird-Forecast # zizmor: ignore[github-app]
           permission-administration: read
           permission-metadata: read
 
@@ -66,7 +68,7 @@ jobs:
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
-          owner: Fellfield-Game
+          owner: Fellfield-Game # zizmor: ignore[github-app]
           permission-administration: read
           permission-metadata: read
 
@@ -76,7 +78,7 @@ jobs:
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
-          owner: GPX-Search
+          owner: GPX-Search # zizmor: ignore[github-app]
           permission-administration: read
           permission-metadata: read
 
@@ -86,7 +88,7 @@ jobs:
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
-          owner: TJs-Kubernetes-Service
+          owner: TJs-Kubernetes-Service # zizmor: ignore[github-app]
           permission-administration: read
           permission-metadata: read
 
@@ -96,7 +98,7 @@ jobs:
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
-          owner: Lakebagger
+          owner: Lakebagger # zizmor: ignore[github-app]
           permission-administration: read
           permission-metadata: read
 

@@ -11,8 +11,9 @@ name: terraform
 #
 # The caller runs it on `pull_request` and grants `contents: read`, and sees
 # the checks as `<caller job> / fmt`, `/ validate`, `/ test`, `/ tflint` and
-# `/ trivy`. A caller's own `.tflint.hcl` and `trivy.yaml`, at its root, replace
-# tflint's defaults and yggdrasil's defaults/trivy.yaml (record 0006).
+# `/ trivy`. tflint uses its bundled recommended rules and Trivy uses
+# defaults/trivy.yaml. A caller's own file can replace either once a caller
+# needs one (record 0006).
 on:
   workflow_call:
     inputs:
@@ -121,17 +122,9 @@ jobs:
           sparse-checkout: compose.yml
           sparse-checkout-cone-mode: false
           persist-credentials: false
-      # In recursive mode tflint resolves a relative --config inside each
-      # module's directory, so the caller's file is passed by its absolute path.
-      # Without one, tflint uses its bundled recommended rules. --init fetches
-      # any plugins the file names; the job's read-only token lifts GitHub's
-      # rate limit on those downloads.
-      - run: |
-          if [ -f .tflint.hcl ]; then set -- --config=/repo/.tflint.hcl; fi
-          docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T tflint --init "$@"
-          docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T tflint --recursive --format=compact "$@"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      # tflint's bundled recommended rules. No caller has a .tflint.hcl of its
+      # own yet, so the module reads none (record 0042).
+      - run: docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T tflint --recursive --format=compact
 
   trivy:
     name: trivy
@@ -154,13 +147,12 @@ jobs:
           sparse-checkout-cone-mode: false
           persist-credentials: false
       # Terraform only: Dockerfiles have hadolint and Trivy's image scan in the
-      # docker-build module.
+      # docker-build module. Always yggdrasil's defaults/trivy.yaml: no caller
+      # has its own yet (record 0042).
       - run: |
-          config=.yggdrasil/defaults/trivy.yaml
-          if [ -f trivy.yaml ]; then config=trivy.yaml; fi
           for dir in $DIRECTORIES; do
             echo "trivy config $dir"
-            docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T trivy config --quiet --misconfig-scanners=terraform --exit-code=1 --config="$config" "$dir"
+            docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T trivy config --quiet --misconfig-scanners=terraform --exit-code=1 --config=.yggdrasil/defaults/trivy.yaml "$dir"
           done
         env:
           DIRECTORIES: ${{ inputs.directories }}

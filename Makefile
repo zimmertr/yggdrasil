@@ -48,11 +48,11 @@ validate test:
 		$(RUN) --entrypoint sh terraform -c 'terraform -chdir="$$1" init -backend=false -input=false > /dev/null && terraform -chdir="$$1" $@' sh "$$dir"; \
 	done
 
-# This repo has no .tflint.hcl, so tflint uses its bundled recommended rules.
+# tflint's bundled recommended rules, as the module runs it.
 tflint:
 	$(RUN) tflint --recursive --format=compact
 
-# This repo has no trivy.yaml of its own, so the module's default applies.
+# defaults/trivy.yaml, as the module runs it.
 trivy:
 	@set -e; for dir in $(TF_DIRS); do \
 		echo "trivy config $$dir"; \

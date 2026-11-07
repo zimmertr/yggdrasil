@@ -17,7 +17,7 @@
 - All five run in the images `compose.yml` pins (`hashicorp/terraform`, `ghcr.io/terraform-linters/tflint`, `ghcr.io/aquasecurity/trivy`), read at the commit the caller pinned (record 0022), as the lint module does (0037). yggdrasil's CI and `make terraform` run the same images.
 - `fmt` and tflint cover the whole repo in one command each. `validate`, `test` and Trivy run in each folder of the one input, `directories`, which the caller lists: Terraform has no check across folders, and Trivy, scanning from the repo root, never reaches a module that a stack calls with data from files, such as the github stack's `repos/`. So a module is listed beside its stack. The list is short and adding a folder is one word, so no script finds them.
 - Nothing reads state or a credential. `init` runs with `-backend=false`, and tests use mock providers.
-- A caller's own `.tflint.hcl` and `trivy.yaml` replace tflint's bundled recommended rules and `defaults/trivy.yaml` (0006). Trivy scans Terraform only, since Dockerfiles have the docker-build module.
+- tflint uses its bundled recommended rules and Trivy `defaults/trivy.yaml`. No caller has a `.tflint.hcl` or `trivy.yaml` of its own yet, so the module reads neither (0026). The first caller that needs one adds the input then (0006). Trivy scans Terraform only, since Dockerfiles have the docker-build module.
 - yggdrasil's `checks.yml` calls the module from the PR's copy, so every change to it is tested before it releases.
 - Dependabot watches each stack's `.terraform.lock.hcl`, and its provider updates never merge themselves: once a merge applies the stack, a provider bump changes what the next apply does.
 

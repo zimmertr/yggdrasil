@@ -62,8 +62,7 @@ actionlint, with shellcheck on every `run:`; zizmor's pedantic audits over the c
 
 - The caller runs it on `pull_request` and grants `contents: read`.
 - `init` runs with `-backend=false` and tests use mock providers, so no job reads state or needs a credential.
-- A `.tflint.hcl` at the caller's root is used for every folder, and `tflint --init` fetches the plugins it names. Without one, tflint uses its bundled recommended rules.
-- A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`. Trivy scans Terraform only, and fails on any finding the file doesn't silence.
+- tflint uses its bundled recommended rules, and Trivy `defaults/trivy.yaml`. Neither reads a file of the caller's own yet: no caller has one. Trivy scans Terraform only, and fails on any finding the file doesn't silence.
 - The caller sees `<caller job> / fmt`, `/ validate`, `/ test`, `/ tflint` and `/ trivy`.
 
 ### `auto-merge.yml`

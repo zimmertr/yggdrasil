@@ -47,11 +47,6 @@ services:
     volumes:
       - .:/repo
     working_dir: /repo
-    environment:
-      # Passed through when set, to lift GitHub's rate limit on plugin downloads.
-      - GITHUB_TOKEN
-      # Inside the mount, so `tflint --init`'s plugins reach the lint run.
-      - TFLINT_PLUGIN_DIR=/repo/.tflint.d/plugins
 
   trivy:
     image: ghcr.io/aquasecurity/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c

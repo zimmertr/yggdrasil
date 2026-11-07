@@ -1,6 +1,6 @@
 # 0035. The github stack guards itself with typed variables, preconditions and `archive_on_destroy`, with no schema, profile files or destroy label
 
-- Status: Accepted. Supersedes 0011's schema and destroy gate, and 0012's profiles
+- Status: Accepted. Supersedes 0011's schema and destroy gate, and 0012's profiles. Superseded in part by 0043
 - Date: 2026-11-06
 - Decider: TJ, 2026-11-06, on the end-to-end audit after #4: "Rewrite #8 to native TF"
 - Issues and PRs: #8

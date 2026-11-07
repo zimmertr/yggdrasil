@@ -36,7 +36,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0009](0009-providers-in-scope.md) | Terraform manages GitHub, Docker Hub and Cloudflare, and ArtifactHub is documented, not managed | 2026-11-05 | Superseded in part by 0040 |
 | [0010](0010-safe-in-public.md) | Terraform manages settings, never a repo's files, and plans run only on yggdrasil's own branches | 2026-11-05 | Superseded in part by 0041 |
 | [0011](0011-guardrails-as-code.md) | CI refuses breaking changes without `!`, settings that weaken security, and destroys without a label | 2026-11-05 | Accepted, except the breaking-change check (0025), the schema and the destroy gate (0035) |
-| [0012](0012-one-file-per-repo-and-org.md) | Each managed repo and org is one YAML file that names a profile, and new repos start from a template | 2026-11-05 | Accepted, except the profiles (0035) |
+| [0012](0012-one-file-per-repo-and-org.md) | Each managed repo and org is one YAML file that names a profile, and new repos start from a template | 2026-11-05 | Accepted, except the profiles (0035) and the file layout (0043) |
 | [0013](0013-workflows-before-terraform.md) | The modules ship and are proven on hevy-trainer-sync before any Terraform, with one issue per phase | 2026-11-05 | Accepted |
 | [0014](0014-foundation-by-hand-then-imported.md) | yggdrasil's own settings are set by API now and imported into Terraform in #8 | 2026-11-05 | Accepted |
 | [0015](0015-skills-live-in-ai-config.md) | Shared skills live only in zimmertr/ai-config, and a repo-specific skill lives only in its repo | 2026-11-05 | Accepted |
@@ -59,7 +59,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0032](0032-release-module-builds-the-images.md) | The release module builds every image from one JSON list, scans each platform by digest, and releases only after every scan | 2026-11-05 | Accepted, except parts 0034 replaces |
 | [0033](0033-release-module-bumps-deploys-with-yq.md) | The release module points each deploy repo at the release with `yq`, through one self-merging PR per file | 2026-11-06 | Accepted |
 | [0034](0034-community-actions-over-shell.md) | The modules use a maintained action or input wherever one does what a shell step did | 2026-11-06 | Accepted |
-| [0035](0035-terraform-guards-itself.md) | The github stack guards itself with typed variables, preconditions and `archive_on_destroy`, with no schema, profile files or destroy label | 2026-11-06 | Accepted |
+| [0035](0035-terraform-guards-itself.md) | The github stack guards itself with typed variables, preconditions and `archive_on_destroy`, with no schema, profile files or destroy label | 2026-11-06 | Accepted, except the per-feature preconditions (0043) |
 | [0036](0036-records-only-for-system-decisions.md) | A decision record is written only for a decision that shapes the system | 2026-11-06 | Accepted |
 | [0037](0037-lint-module.md) | A lint module runs actionlint, zizmor and Semgrep in every repo, in the images `compose.yml` pins | 2026-11-06 | Accepted. Supersedes 0026 in part |
 | [0038](0038-consumers-take-a-trimmed-set-of-repo-files.md) | A repo moving onto the modules takes a trimmed set of `initialize-project`'s repo files once, and adds the rest as later work reaches it | 2026-11-06 | Superseded in part by 0041 |
@@ -67,3 +67,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0040](0040-no-artifacthub.md) | TJ's Helm charts are not listed on ArtifactHub, and yggdrasil documents no ArtifactHub steps | 2026-11-06 | Accepted. Supersedes 0009 in part |
 | [0041](0041-one-source-for-community-health-files.md) | The issue templates and security policy live once, in yggdrasil, and Terraform writes them into each owner's `.github` repo | 2026-11-06 | Accepted. Supersedes 0038 and 0010 in part |
 | [0042](0042-terraform-module.md) | A terraform module runs fmt, validate, test, tflint and Trivy in every repo with Terraform, in the images `compose.yml` pins | 2026-11-06 | Accepted |
+| [0043](0043-repo-files-hold-no-security-settings.md) | A repo's file holds no security setting: the repo module turns each one on, and the stack refuses any key or owner it doesn't know | 2026-11-06 | Accepted. Supersedes 0035 and 0012 in part |

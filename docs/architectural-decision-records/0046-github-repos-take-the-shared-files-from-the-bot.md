@@ -1,6 +1,6 @@
 # 0046. Each owner's `.github` repo gets the shared files from the repo module, committed by the bot past the PR rule
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0049
 - Date: 2026-11-07
 - Decider: TJ, 2026-11-07, in #8 step 6.17: on how the bot gets past the `.github` repos' PR rule, "exception for the bot"; on CodeQL there, "Sure", to leaving it off.
 - Issues and PRs: #8, #51

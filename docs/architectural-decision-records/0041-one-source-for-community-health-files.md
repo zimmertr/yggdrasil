@@ -1,8 +1,8 @@
-# 0041. The issue and PR templates, security policy and contributing guide live once, in yggdrasil, and Terraform writes them into each owner's `.github` repo
+# 0041. The issue templates and security policy live once, in yggdrasil, and Terraform writes them into each owner's `.github` repo
 
 - Status: Accepted. Supersedes 0038 and 0010 in part
 - Date: 2026-11-06
-- Decider: TJ, 2026-11-06, in #7: "Why are we redundantly defining all of the issue templates? Can't we just define them in yggdrasil and import them into these repos somehow to stay DRY?", then choosing Terraform over hand-made copies, with "a disclaimer at the top indicating they should not be manually edited, but instead managed via the source in yggdrasil via terraform". The same day, adding the rest: "Yes, lets add contributing.md and PR template."
+- Decider: TJ, 2026-11-06, in #7: "Why are we redundantly defining all of the issue templates? Can't we just define them in yggdrasil and import them into these repos somehow to stay DRY?", then choosing Terraform over hand-made copies, with "a disclaimer at the top indicating they should not be manually edited, but instead managed via the source in yggdrasil via terraform"
 - Issues and PRs: #7, #8
 - Cited in code as: none
 - Guide: [`CLAUDE.md`](../../CLAUDE.md), Rules, "One source for the community health files"
@@ -13,11 +13,11 @@ Record 0038 gave every repo in #7 its own `SECURITY.md` and `.github/ISSUE_TEMPL
 
 ## Decision
 
-- `community-health-files/` in yggdrasil holds the one copy of the issue templates (`ISSUE_TEMPLATE/`, with `config.yml`), the PR template (`pull_request_template.md`), `SECURITY.md` and `CONTRIBUTING.md`.
-- Terraform (#8) writes them into the `.github` repo of the zimmertr account and of each organization it manages (Bluebird-Forecast, Fellfield-Game, GPX-Search, TJs-Kubernetes-Service and Lakebagger): the issue templates at `.github/ISSUE_TEMPLATE/`, the PR template at `.github/pull_request_template.md`, and `SECURITY.md` and `CONTRIBUTING.md` at the root. Those repos hold nothing else.
+- `community-health-files/` in yggdrasil holds the one copy of the issue templates (`ISSUE_TEMPLATE/`, with `config.yml`) and `SECURITY.md`.
+- Terraform (#8) writes them into the `.github` repo of the zimmertr account and of each organization it manages (Bluebird-Forecast, Fellfield-Game, GPX-Search, TJs-Kubernetes-Service and Lakebagger): the templates at `.github/ISSUE_TEMPLATE/`, `SECURITY.md` at the root. Those repos hold nothing else.
 - Every file starts with a comment that says it is managed by Terraform and names its source. In an issue template the comment follows the front matter, which GitHub needs first.
 - Repos keep no copies. #7's PRs drop theirs; the repos that already had them (Kubernetes-Manifests, TJs-Kubernetes-Service, bluebird-helm, hevy-trainer-sync, Bluebird and yggdrasil) delete them, one PR each, right after #8's apply writes the defaults.
-- `LICENSE`, `CLAUDE.md` and `docs/` stay in each repo: GitHub has no default license, Claude Code reads `CLAUDE.md` from the repo, and `docs/` holds what is particular to a repo. A repo keeps its own `CONTRIBUTING.md` only when it has steps the shared one lacks, such as its Docker build; GitHub then shows the repo's and hides the shared one.
+- `LICENSE`, `CLAUDE.md`, `CONTRIBUTING.md` and `docs/` stay in each repo: GitHub has no default license, Claude Code reads `CLAUDE.md` from the repo, and the other two hold what is particular to a repo.
 - For files, this supersedes 0010, which kept Terraform to settings so that no private repo's contents appear here. The `.github` repos are public and hold only these shared files, so that reason still holds. It also supersedes 0038's per-repo `SECURITY.md` and issue templates.
 
 ## Evidence

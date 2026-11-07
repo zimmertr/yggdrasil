@@ -266,8 +266,10 @@ resource "restapi_object" "codeql_default_setup" {
 resource "github_repository_file" "community" {
   for_each = local.community_files
 
+  # No branch: the provider then writes to the default branch. With one set,
+  # it first checks the branch exists, and a new, empty repo has none until
+  # its first commit (docs/DATA.md).
   repository          = github_repository.this.name
-  branch              = "main"
   file                = each.key
   content             = file(each.value)
   commit_message      = "chore: update ${each.key} from zimmertr/yggdrasil"

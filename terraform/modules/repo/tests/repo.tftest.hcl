@@ -112,11 +112,8 @@ run "github_repo_gets_the_shared_files" {
   }
 
   assert {
-    condition = (
-      github_repository_file.community["SECURITY.md"].content == file("../../../community-health-files/SECURITY.md") &&
-      github_repository_file.community["SECURITY.md"].branch == "main"
-    )
-    error_message = "The copy on main matches yggdrasil's."
+    condition     = github_repository_file.community["SECURITY.md"].content == file("../../../community-health-files/SECURITY.md")
+    error_message = "The copy matches yggdrasil's."
   }
 
   assert {

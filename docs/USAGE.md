@@ -11,7 +11,7 @@ What TJ sees from yggdrasil, and what to do when it breaks. Each part that is no
 ## In yggdrasil
 
 - **A Dependabot PR** for an action or a tool image, weekly. Patch and minor updates merge themselves once the checks pass, armed by `zimmertr-yggdrasil-bot`, which comments on the PR to say so.
-- **A plan comment** on every PR that touches `repos/`, `orgs/` or `terraform/` (#8), and a weekly drift plan.
+- **A plan comment** on every PR that touches `repos/`, `orgs/` or `terraform/` (#8), and a weekly drift plan. When the PR merges, `Apply github` applies that plan and adds the result to the same comment.
 
 ## When it breaks
 
@@ -19,4 +19,5 @@ What TJ sees from yggdrasil, and what to do when it breaks. Each part that is no
 - **A bump PR that edits `.github/workflows` won't merge itself** in a repo still on `AUTO_MERGE_PAT`. That token has no Workflows permission, so TJ merges it until #12 moves the repo to the App.
 - **A plan shows changes nobody made.** Something changed a setting outside Terraform. Read the drift plan, and either put the setting back by applying, or record the new value in the repo's YAML.
 - **A plan wants to destroy something.** Read it in the PR's plan comment before merging. Removing a repo's file archives the repo; it never deletes it. To stop managing a repo without archiving it, use a `removed` block with `destroy = false`. Record: [0035](architectural-decision-records/0035-terraform-guards-itself.md)
+- **An apply refuses**, and the `Apply github` job fails without applying. Main's plan no longer matches the one in the merged PR's comment, usually because another Terraform PR merged first, so nothing was applied. Open a new PR that touches the stack (a one-line change is enough), read its plan, which shows everything still waiting, and merge it. Record: [0045](architectural-decision-records/0045-merges-apply-through-dflook.md)
 - **A plan fails on a precondition.** A repo file uses a key the stack doesn't know, sits in a folder for an owner it doesn't manage, or is a public repo with no `required_checks`. The message names which. Fix the file. Security settings aren't in repo files at all: changing one means changing `terraform/modules/repo/`, in a PR that says why (record 0043).

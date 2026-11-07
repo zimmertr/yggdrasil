@@ -1,10 +1,9 @@
 name: terraform
 
 # The terraform module: the checks every repo with Terraform runs, written once
-# (decision record 0042). `terraform fmt`; `terraform validate` and
-# `terraform test` in every directory that has Terraform or a test, found by
-# scripts/terraform-each.sh; tflint's recursive lint; and Trivy's scan of the
-# Terraform for misconfigurations. All five run in the images yggdrasil's
+# (decision record 0042). `terraform fmt` and tflint over the whole repo, and
+# `terraform validate`, `terraform test` and Trivy's misconfiguration scan in
+# each folder the caller lists. All five run in the images yggdrasil's
 # compose.yml pins, read at the commit the caller pinned, so a caller,
 # yggdrasil's CI and `make terraform` here run the same tools (records 0018,
 # 0022). None of them reads state or a credential: init runs with
@@ -16,6 +15,14 @@ name: terraform
 # tflint's defaults and yggdrasil's defaults/trivy.yaml (record 0006).
 on:
   workflow_call:
+    inputs:
+      # Listed, not found: Terraform has no check across folders, and Trivy
+      # scanning from the root never reaches a module a stack calls with data
+      # from files, such as yggdrasil's repos/.
+      directories:
+        description: The Terraform folders to validate, test and scan, separated by spaces. Each stack, and each module a stack calls.
+        type: string
+        required: true
 
 permissions: {}
 
@@ -57,12 +64,18 @@ jobs:
           repository: ${{ job.workflow_repository }}
           ref: ${{ job.workflow_sha }}
           path: .yggdrasil
-          sparse-checkout: |
-            compose.yml
-            scripts/terraform-each.sh
+          sparse-checkout: compose.yml
           sparse-checkout-cone-mode: false
           persist-credentials: false
-      - run: docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T --entrypoint sh terraform .yggdrasil/scripts/terraform-each.sh validate
+      # init and validate share one container, where compose.yml keeps
+      # Terraform's working files.
+      - run: |
+          for dir in $DIRECTORIES; do
+            echo "terraform validate $dir"
+            docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T --entrypoint sh terraform -c 'terraform -chdir="$1" init -backend=false -input=false > /dev/null && terraform -chdir="$1" validate' sh "$dir"
+          done
+        env:
+          DIRECTORIES: ${{ inputs.directories }}
 
   test:
     name: test
@@ -79,12 +92,16 @@ jobs:
           repository: ${{ job.workflow_repository }}
           ref: ${{ job.workflow_sha }}
           path: .yggdrasil
-          sparse-checkout: |
-            compose.yml
-            scripts/terraform-each.sh
+          sparse-checkout: compose.yml
           sparse-checkout-cone-mode: false
           persist-credentials: false
-      - run: docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T --entrypoint sh terraform .yggdrasil/scripts/terraform-each.sh test
+      - run: |
+          for dir in $DIRECTORIES; do
+            echo "terraform test $dir"
+            docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T --entrypoint sh terraform -c 'terraform -chdir="$1" init -backend=false -input=false > /dev/null && terraform -chdir="$1" test' sh "$dir"
+          done
+        env:
+          DIRECTORIES: ${{ inputs.directories }}
 
   tflint:
     name: tflint
@@ -134,14 +151,16 @@ jobs:
           sparse-checkout: |
             compose.yml
             defaults/trivy.yaml
-            scripts/terraform-each.sh
           sparse-checkout-cone-mode: false
           persist-credentials: false
-      # Every Terraform folder on its own, so modules a stack calls with data
-      # Trivy can't read are scanned too (scripts/terraform-each.sh). Terraform
-      # only: Dockerfiles have hadolint and Trivy's image scan in the
+      # Terraform only: Dockerfiles have hadolint and Trivy's image scan in the
       # docker-build module.
       - run: |
           config=.yggdrasil/defaults/trivy.yaml
           if [ -f trivy.yaml ]; then config=trivy.yaml; fi
-          docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T --entrypoint sh trivy .yggdrasil/scripts/terraform-each.sh trivy "$config"
+          for dir in $DIRECTORIES; do
+            echo "trivy config $dir"
+            docker compose -f .yggdrasil/compose.yml --project-directory . run --rm -T trivy config --quiet --misconfig-scanners=terraform --exit-code=1 --config="$config" "$dir"
+          done
+        env:
+          DIRECTORIES: ${{ inputs.directories }}

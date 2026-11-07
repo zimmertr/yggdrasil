@@ -38,6 +38,9 @@ services:
     working_dir: /repo
     environment:
       - TF_IN_AUTOMATION=1
+      # Working files in the container, not the checkout, so a run leaves no
+      # providers behind for the docs checks to read.
+      - TF_DATA_DIR=/tmp/terraform
 
   tflint:
     image: ghcr.io/terraform-linters/tflint:v0.65.0@sha256:2788f4d4fc663c0e953b011b01bf443fe5bfce7587ee916e588e6057b85d6359

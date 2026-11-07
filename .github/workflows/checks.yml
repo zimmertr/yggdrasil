@@ -28,6 +28,9 @@ jobs:
   terraform:
     name: Terraform
     uses: $/.github/workflows/terraform.yml
+    with:
+      # The same list the Makefile's TF_DIRS holds.
+      directories: terraform/github
     permissions:
       contents: read
 

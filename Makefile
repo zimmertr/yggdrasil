@@ -34,15 +34,19 @@ semgrep:
 # record 0042.
 terraform: fmt validate test tflint trivy
 
+# The same list checks.yml passes the module as `directories`.
+TF_DIRS := terraform/github
+
 fmt:
 	$(RUN) terraform fmt -recursive -check -diff
 
-# scripts/terraform-each.sh finds every directory to check.
-validate:
-	$(RUN) --entrypoint sh terraform scripts/terraform-each.sh validate
-
-test:
-	$(RUN) --entrypoint sh terraform scripts/terraform-each.sh test
+# init and each check share one container, where compose.yml keeps
+# Terraform's working files.
+validate test:
+	@set -e; for dir in $(TF_DIRS); do \
+		echo "terraform $@ $$dir"; \
+		$(RUN) --entrypoint sh terraform -c 'terraform -chdir="$$1" init -backend=false -input=false > /dev/null && terraform -chdir="$$1" $@' sh "$$dir"; \
+	done
 
 # This repo has no .tflint.hcl, so tflint uses its bundled recommended rules.
 tflint:
@@ -50,7 +54,10 @@ tflint:
 
 # This repo has no trivy.yaml of its own, so the module's default applies.
 trivy:
-	$(RUN) --entrypoint sh trivy scripts/terraform-each.sh trivy defaults/trivy.yaml
+	@set -e; for dir in $(TF_DIRS); do \
+		echo "trivy config $$dir"; \
+		$(RUN) trivy config --quiet --misconfig-scanners=terraform --exit-code=1 --config=defaults/trivy.yaml "$$dir"; \
+	done
 
 # The Docs job.
 docs: links em-dash

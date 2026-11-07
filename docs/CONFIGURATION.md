@@ -54,13 +54,16 @@ actionlint, with shellcheck on every `run:`; zizmor's pedantic audits over the c
 
 ### `terraform.yml`
 
-`terraform fmt`; `terraform validate` and `terraform test` in every directory that has Terraform or a test; tflint's recursive lint; and Trivy's scan of the Terraform for misconfigurations. All five run in the images `compose.yml` pins, read at the commit the caller pinned. No inputs. Record: [0042](architectural-decision-records/0042-terraform-module.md)
+`terraform fmt` and tflint over the whole repo, and `terraform validate`, `terraform test` and Trivy's misconfiguration scan in each folder the caller lists. All five run in the images `compose.yml` pins, read at the commit the caller pinned. Record: [0042](architectural-decision-records/0042-terraform-module.md)
+
+| Input | Does |
+|---|---|
+| `directories` | Required. The Terraform folders to validate, test and scan, separated by spaces: each stack, and each module a stack calls. Trivy run from the repo root never reaches a module a stack calls with data from files, so a module is listed too |
 
 - The caller runs it on `pull_request` and grants `contents: read`.
-- `scripts/terraform-each.sh` finds the directories: every one with a `.tf` file for `validate` and `trivy`, and every one that owns a `.tftest.hcl` (beside it or in its `tests/`) for `test`. A repo with no Terraform passes.
 - `init` runs with `-backend=false` and tests use mock providers, so no job reads state or needs a credential.
-- A `.tflint.hcl` at the caller's root is used for every directory, and `tflint --init` fetches the plugins it names. Without one, tflint uses its bundled recommended rules.
-- A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`. Trivy scans Terraform only, one directory at a time so a module a stack calls is scanned too, and fails on any finding the file doesn't silence.
+- A `.tflint.hcl` at the caller's root is used for every folder, and `tflint --init` fetches the plugins it names. Without one, tflint uses its bundled recommended rules.
+- A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`. Trivy scans Terraform only, and fails on any finding the file doesn't silence.
 - The caller sees `<caller job> / fmt`, `/ validate`, `/ test`, `/ tflint` and `/ trivy`.
 
 ### `auto-merge.yml`

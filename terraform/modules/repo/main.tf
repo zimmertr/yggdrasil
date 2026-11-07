@@ -17,6 +17,23 @@ locals {
   # (record 0024).
   github_actions = 15368
 
+  # An owner's .github repo holds the shared community health files, which
+  # GitHub shows on every repo of that owner without its own (record 0041). It
+  # has no code and no CI, and the bot commits the files to it (decision
+  # record 0046).
+  community = local.public && var.name == ".github"
+
+  # zimmertr-yggdrasil-bot's App ID, public like its client ID.
+  bot = 5636772
+
+  # community-health-files/ISSUE_TEMPLATE/ goes to .github/ISSUE_TEMPLATE/,
+  # and SECURITY.md to the root.
+  source_dir = "${path.module}/../../../community-health-files"
+  community_files = local.community ? {
+    for f in fileset(local.source_dir, "**") :
+    (startswith(f, "ISSUE_TEMPLATE/") ? ".github/${f}" : f) => "${local.source_dir}/${f}"
+  } : {}
+
   path = "/repos/${var.owner}/${var.name}"
 }
 
@@ -64,9 +81,10 @@ resource "github_repository" "this" {
   }
 
   lifecycle {
-    # Removing every required check would leave main open to any PR.
+    # Removing every required check would leave main open to any PR. A .github
+    # repo has no CI, so it has none to require.
     precondition {
-      condition     = !local.public || length(var.settings.required_checks) > 0
+      condition     = !local.public || local.community || length(var.settings.required_checks) > 0
       error_message = "${var.owner}/${var.name} is public, so it needs at least one required_checks entry."
     }
   }
@@ -74,7 +92,8 @@ resource "github_repository" "this" {
 
 # A PR for every change, 0 approvals, stale reviews dismissed, conversations
 # resolved, the required checks, no force-push or deletion (security.md 1 to
-# 4). No bypass actors, so admins are held too.
+# 4). No bypass actors, so admins are held too, except on a .github repo,
+# where the bot commits the shared files straight to main (TJ, 2026-11-07).
 resource "github_repository_ruleset" "default_branch" {
   count = local.public ? 1 : 0
 
@@ -82,6 +101,15 @@ resource "github_repository_ruleset" "default_branch" {
   repository  = github_repository.this.name
   target      = "branch"
   enforcement = "active"
+
+  dynamic "bypass_actors" {
+    for_each = local.community ? [local.bot] : []
+    content {
+      actor_id    = bypass_actors.value
+      actor_type  = "Integration"
+      bypass_mode = "always"
+    }
+  }
 
   conditions {
     ref_name {
@@ -101,14 +129,17 @@ resource "github_repository_ruleset" "default_branch" {
       allowed_merge_methods             = ["squash"]
     }
 
-    required_status_checks {
-      strict_required_status_checks_policy = false
+    dynamic "required_status_checks" {
+      for_each = length(var.settings.required_checks) > 0 ? [1] : []
+      content {
+        strict_required_status_checks_policy = false
 
-      dynamic "required_check" {
-        for_each = var.settings.required_checks
-        content {
-          context        = required_check.value
-          integration_id = local.github_actions
+        dynamic "required_check" {
+          for_each = var.settings.required_checks
+          content {
+            context        = required_check.value
+            integration_id = local.github_actions
+          }
         }
       }
     }
@@ -210,8 +241,9 @@ resource "restapi_object" "immutable_releases" {
 
 # security.md 13. Only the state is set: GitHub picks the languages, and
 # reports none until the first analysis ends, about a minute in (docs/DATA.md).
+# A .github repo holds no code to scan (TJ, 2026-11-07).
 resource "restapi_object" "codeql_default_setup" {
-  count = local.public ? 1 : 0
+  count = local.public && !local.community ? 1 : 0
 
   path                    = "${local.path}/code-scanning/default-setup"
   object_id               = "code-scanning-default-setup"
@@ -226,4 +258,18 @@ resource "restapi_object" "codeql_default_setup" {
   ignore_server_additions = true
 
   depends_on = [github_repository.this]
+}
+
+# The shared community health files, copied from yggdrasil into a .github repo
+# and committed by the bot (record 0046). This is the only file Terraform
+# writes into any repo (record 0041).
+resource "github_repository_file" "community" {
+  for_each = local.community_files
+
+  repository          = github_repository.this.name
+  branch              = "main"
+  file                = each.key
+  content             = file(each.value)
+  commit_message      = "chore: update ${each.key} from zimmertr/yggdrasil"
+  overwrite_on_create = true
 }

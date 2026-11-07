@@ -78,6 +78,65 @@ run "public_repo_gets_everything" {
     )
     error_message = "main takes PRs only, with no bypass."
   }
+
+  assert {
+    condition     = length(github_repository_file.community) == 0
+    error_message = "Terraform writes files only into a .github repo."
+  }
+}
+
+run "github_repo_gets_the_shared_files" {
+  command = plan
+
+  variables {
+    name = ".github"
+    settings = {
+      description     = ""
+      homepage_url    = null
+      topics          = []
+      visibility      = "public"
+      archived        = false
+      is_template     = false
+      required_checks = []
+    }
+  }
+
+  assert {
+    condition = toset(keys(github_repository_file.community)) == toset([
+      ".github/ISSUE_TEMPLATE/bug.md",
+      ".github/ISSUE_TEMPLATE/config.yml",
+      ".github/ISSUE_TEMPLATE/proposal.md",
+      "SECURITY.md",
+    ])
+    error_message = "Each file in community-health-files/ is written, the templates under .github/."
+  }
+
+  assert {
+    condition = (
+      github_repository_file.community["SECURITY.md"].content == file("../../../community-health-files/SECURITY.md") &&
+      github_repository_file.community["SECURITY.md"].branch == "main"
+    )
+    error_message = "The copy on main matches yggdrasil's."
+  }
+
+  assert {
+    condition = (
+      length(github_repository_ruleset.default_branch[0].bypass_actors) == 1 &&
+      github_repository_ruleset.default_branch[0].bypass_actors[0].actor_id == 5636772 &&
+      github_repository_ruleset.default_branch[0].bypass_actors[0].actor_type == "Integration" &&
+      length(github_repository_ruleset.default_branch[0].rules[0].pull_request) == 1
+    )
+    error_message = "Only the bot skips the PR rule, and everyone else still needs a PR."
+  }
+
+  assert {
+    condition = (
+      length(github_repository_ruleset.default_branch[0].rules[0].required_status_checks) == 0 &&
+      length(restapi_object.codeql_default_setup) == 0 &&
+      length(restapi_object.private_vulnerability_reporting) == 1
+    )
+    error_message = "A .github repo has no checks to require and no code for CodeQL, and keeps the rest."
+  }
 }
 
 run "private_repo_skips_what_github_free_cannot_do" {

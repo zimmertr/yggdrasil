@@ -38,6 +38,12 @@ mock_provider "restapi" {
   alias = "lakebagger"
 }
 
+# The good fixture's zimmertr/.github is imported (imports.tf), and a mock
+# provider can't import, so the test supplies that one resource itself.
+override_resource {
+  target = module.zimmertr[".github"].github_repository.this
+}
+
 variables {
   github_tokens = {
     "zimmertr"               = "test"

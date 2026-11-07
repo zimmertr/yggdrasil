@@ -1,0 +1,5 @@
+# Managed by Terraform. The source is community-health-files/ in
+# zimmertr/yggdrasil, and each owner's .github repo gets a copy that GitHub
+# serves to every repo without its own. Edit the source, never a copy.
+# Record 0041.
+blank_issues_enabled: false

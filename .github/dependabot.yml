@@ -23,6 +23,22 @@ updates:
       prefix: build
       include: scope
 
+  # The providers each stack's .terraform.lock.hcl pins. These never merge
+  # themselves (dependabot-auto-merge.yml skips them): once a merge applies the
+  # stack (#8), a provider bump changes what the next apply does, so TJ reads
+  # its plan first.
+  - package-ecosystem: terraform
+    directories:
+      - /terraform/*
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      include: scope
+
   # The tool images in compose.yml, pinned by tag and digest (decision record
   # 0018). A rebuild under the same tag arrives as a digest-only PR.
   - package-ecosystem: docker-compose

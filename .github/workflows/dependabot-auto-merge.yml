@@ -1,7 +1,9 @@
 name: Dependabot auto-merge
 
 # Patch and minor Dependabot version updates merge themselves once main's
-# required checks pass. Majors, and digest-only image updates, wait for TJ.
+# required checks pass. Majors, digest-only image updates, and every Terraform
+# provider update wait for TJ: a provider bump changes what the next apply does
+# (#8).
 # Bluebird's and hevy-trainer-sync's workflow, with one change: the merge is
 # armed with a token minted from the App zimmertr-yggdrasil-bot, not a PAT.
 # Decision records 0007 and 0021.
@@ -40,7 +42,7 @@ jobs:
       # a Dependabot secret, because a run Dependabot starts can't read Actions
       # secrets. The token is scoped to this repo and to what a merge needs.
       - name: Mint a token from zimmertr-yggdrasil-bot
-        if: contains(fromJSON('["version-update:semver-patch", "version-update:semver-minor"]'), steps.metadata.outputs.update-type)
+        if: contains(fromJSON('["version-update:semver-patch", "version-update:semver-minor"]'), steps.metadata.outputs.update-type) && steps.metadata.outputs.package-ecosystem != 'terraform'
         id: app-token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:

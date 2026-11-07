@@ -16,9 +16,10 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 | `defaults/` | The shared conventions: `GitVersion.yml`, `trivy.yaml` | #4 |
 | `community-health-files/` | The one copy of the issue templates and `SECURITY.md`, which Terraform writes into each owner's `.github` repo (record 0041) | #8 |
 | `tests/<module>/` | What a module's test caller builds, such as `tests/docker-build/`'s empty image | #4 |
-| `repos/<name>.yml` | One file per managed repo: only what differs from the defaults | #8 |
+| `repos/<owner>/<name>.yml` | One file per managed repo, in its owner's folder: only what differs from the defaults, and never a security setting (record 0043) | #8 |
 | `orgs/<name>.yml` | One file per managed org | #8 |
-| `terraform/github/` | The stack that reads `repos/` and `orgs/`, with the defaults and the preconditions that refuse weaker settings | #8 |
+| `terraform/github/` | The stack that reads `repos/` and `orgs/`, with the defaults, one provider pair per owner, and the preconditions that refuse an unknown key or owner | #8 |
+| `terraform/modules/repo/` | One repo and every setting `initialize-project` gives it, with each security feature always on where GitHub allows it | #8 |
 | `terraform/dockerhub/` | Docker Hub repositories and their immutable tags | #9 |
 | `terraform/cloudflare/` | The stack moved from Kubernetes-Manifests, with its state | #10 |
 | `GitVersion.yml` | yggdrasil's own version and the PR title patterns that pick each bump | #2 |
@@ -53,13 +54,13 @@ A job inside a reusable workflow reports its check as `<caller job name> / <modu
 ```mermaid
 flowchart LR
   edit["edit repos/name.yml"] --> pr["PR"]
-  pr --> plan["terraform plan<br/>posted on the PR<br/>preconditions refuse weaker settings"]
+  pr --> plan["terraform plan<br/>posted on the PR<br/>preconditions refuse unknown keys and owners"]
   plan --> merge["merge to main"]
   merge --> apply["terraform apply"]
   weekly["weekly drift plan"] -.-> main["main"]
 ```
 
-Terraform guards itself: preconditions refuse a file that turns off branch protection or a security feature, and every repo is archived, never deleted, when it leaves Terraform. Record: [0035](architectural-decision-records/0035-terraform-guards-itself.md)
+Terraform guards itself: a repo file can't hold a security setting, the plan refuses a key or owner the stack doesn't know, and every repo is archived, never deleted, when it leaves Terraform. Records: [0035](architectural-decision-records/0035-terraform-guards-itself.md), [0043](architectural-decision-records/0043-repo-files-hold-no-security-settings.md)
 
 Until #8 imports them, settings are API calls TJ okays first, logged in [CICD.md](CICD.md#settings-applied-by-api). Record: [0014](architectural-decision-records/0014-foundation-by-hand-then-imported.md)
 

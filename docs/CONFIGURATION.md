@@ -52,6 +52,19 @@ actionlint, with shellcheck on every `run:`; zizmor's pedantic audits over the c
 - A finding is fixed, or silenced with its reason: an inline `# zizmor: ignore[<audit>]`, the caller's own `zizmor.yml`, or a `# nosemgrep` comment.
 - The caller sees `<caller job> / actionlint`, `<caller job> / zizmor` and `<caller job> / semgrep`.
 
+### `terraform.yml`
+
+`terraform fmt` and tflint over the whole repo, and `terraform validate`, `terraform test` and Trivy's misconfiguration scan in each folder the caller lists. All five run in the images `compose.yml` pins, read at the commit the caller pinned. Record: [0042](architectural-decision-records/0042-terraform-module.md)
+
+| Input | Does |
+|---|---|
+| `directories` | Required. The Terraform folders to validate, test and scan, separated by spaces: each stack, and each module a stack calls. Trivy run from the repo root never reaches a module a stack calls with data from files, so a module is listed too |
+
+- The caller runs it on `pull_request` and grants `contents: read`.
+- `init` runs with `-backend=false` and tests use mock providers, so no job reads state or needs a credential.
+- tflint uses its bundled recommended rules, and Trivy `defaults/trivy.yaml`. Neither reads a file of the caller's own yet: no caller has one. Trivy scans Terraform only, and fails on any finding the file doesn't silence.
+- The caller sees `<caller job> / fmt`, `/ validate`, `/ test`, `/ tflint` and `/ trivy`.
+
 ### `auto-merge.yml`
 
 Arms auto-merge on Dependabot's patch and minor version updates and says so in a comment. Majors and digest-only updates wait. No inputs. Record: [0029](architectural-decision-records/0029-auto-merge-module-takes-the-callers-token.md)
@@ -126,7 +139,26 @@ These permissions are the final list. In #3 they covered creating a repo from a 
 
 The stacks use HCP Terraform org `Yggdrasil-Org` for state and locks, in local execution mode: plans and applies run in Actions, not on HCP. Record: [0008](architectural-decision-records/0008-terraform-plan-on-pr-apply-on-merge.md)
 
-`repos/<name>.yml`, `orgs/<name>.yml` and the defaults they override arrive with #8, and their fields are documented here then. Records: [0012](architectural-decision-records/0012-one-file-per-repo-and-org.md), [0035](architectural-decision-records/0035-terraform-guards-itself.md)
+`orgs/<name>.yml` arrives with #8 step 6.13, and its fields are documented here then. Records: [0012](architectural-decision-records/0012-one-file-per-repo-and-org.md), [0035](architectural-decision-records/0035-terraform-guards-itself.md)
+
+### A repo's file
+
+`repos/<owner>/<name>.yml`, one per repo. The folder is the owner: `zimmertr` or one of the five orgs. A file holds only what differs from these defaults, which live in `terraform/github/main.tf`'s `local.defaults`. Record: [0043](architectural-decision-records/0043-repo-files-hold-no-security-settings.md)
+
+| Key | Default | Does |
+|---|---|---|
+| `description` | `""` | The repo's description |
+| `homepage_url` | none | The website shown beside it |
+| `topics` | `[]` | Its topics |
+| `visibility` | `public` | `public` or `private`. A private repo on GitHub Free gets no rulesets, secret scanning, CodeQL or private vulnerability reporting |
+| `archived` | `false` | Archives the repo. An archived repo is read-only, so only the repo itself stays managed |
+| `is_template` | `false` | Marks the repo as a template |
+| `required_checks` | `[]` | The checks main requires, by name, each pinned to GitHub Actions. A public repo needs at least one |
+
+- A key that isn't in this table fails the plan, and so does a folder for an owner the stack doesn't manage. Terraform would otherwise drop an unknown key without a word.
+- No security setting is a key. The repo module turns every one in the table below on for every repo GitHub allows it on. Changing that means changing `terraform/modules/repo/`.
+- Labels aren't managed: `create-issue` makes them as it needs them.
+- Each owner has its own `github` and `restapi` provider and module block, because a token reaches one owner only. The workflow mints one token per owner from `zimmertr-yggdrasil-bot` and passes them as the sensitive map `github_tokens` (#8 step 6.5).
 
 ### What Terraform manages
 
@@ -148,6 +180,5 @@ Each setting `initialize-project` gives a new repo (its `repo.md` and `security.
 | Secrets (security.md 19 and 20) | `github_actions_secret`, `github_dependabot_secret`. A value set this way is stored in state, so #12 decides which, if any, Terraform holds | no |
 | Private vulnerability reporting (security.md 21) | `restapi_object`: `PUT /repos/{owner}/{repo}/private-vulnerability-reporting` | yes |
 | Every action pinned to a full SHA | `github_actions_repository_permissions`: `sha_pinning_required` | yes |
-| The issue labels | `github_issue_labels`, one per repo (#8) | no |
 
 The three `restapi_object` rows fill gaps in `integrations/github`, and each one counts toward the 500-resource budget ([DATA.md](DATA.md#hcp-terraform)). Each sets `ignore_server_additions = true`.

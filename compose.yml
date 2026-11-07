@@ -30,6 +30,30 @@ services:
       - .:/repo
     working_dir: /repo
 
+  # The terraform module's fmt, validate and test (decision record 0042).
+  terraform:
+    image: hashicorp/terraform:1.17.1@sha256:a5d5a5a892c98f60fcbfa81eac2a40fc19e7b3fa7719bccae10ff6111d22524a
+    volumes:
+      - .:/repo
+    working_dir: /repo
+    environment:
+      - TF_IN_AUTOMATION=1
+      # Working files in the container, not the checkout, so a run leaves no
+      # providers behind for the docs checks to read.
+      - TF_DATA_DIR=/tmp/terraform
+
+  tflint:
+    image: ghcr.io/terraform-linters/tflint:v0.65.0@sha256:2788f4d4fc663c0e953b011b01bf443fe5bfce7587ee916e588e6057b85d6359
+    volumes:
+      - .:/repo
+    working_dir: /repo
+
+  trivy:
+    image: ghcr.io/aquasecurity/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c
+    volumes:
+      - .:/repo
+    working_dir: /repo
+
   # Debian, not Alpine: BusyBox's grep has no --include or --exclude-dir.
   shell:
     image: debian:13-slim@sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2

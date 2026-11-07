@@ -11,9 +11,9 @@ next-version: 'v0.1.0'
 # Only a commit that touches a module path releases (decision record 0004).
 # GitVersion skips a commit when every path it changes matches this pattern,
 # which matches any path outside .github/workflows/, actions/ and defaults/,
-# other than compose.yml, whose tool images the lint module runs (record
-# 0037). A commit that touches a module and anything else still counts, `!`
-# and all.
+# other than compose.yml, whose tool images the lint and terraform modules run
+# (records 0037, 0042). A commit that touches a module and anything else still
+# counts, `!` and all.
 # yggdrasil's own CI lives in .github/workflows/ too, so a CI-only change
 # releases a patch.
 #

@@ -52,6 +52,17 @@ actionlint, with shellcheck on every `run:`; zizmor's pedantic audits over the c
 - A finding is fixed, or silenced with its reason: an inline `# zizmor: ignore[<audit>]`, the caller's own `zizmor.yml`, or a `# nosemgrep` comment.
 - The caller sees `<caller job> / actionlint`, `<caller job> / zizmor` and `<caller job> / semgrep`.
 
+### `terraform.yml`
+
+`terraform fmt`; `terraform validate` and `terraform test` in every directory that has Terraform or a test; tflint's recursive lint; and Trivy's scan of the Terraform for misconfigurations. All five run in the images `compose.yml` pins, read at the commit the caller pinned. No inputs. Record: [0042](architectural-decision-records/0042-terraform-module.md)
+
+- The caller runs it on `pull_request` and grants `contents: read`.
+- `scripts/terraform-each.sh` finds the directories: every one with a `.tf` file for `validate`, and every one that owns a `.tftest.hcl` (beside it or in its `tests/`) for `test`. A repo with no Terraform passes.
+- `init` runs with `-backend=false` and tests use mock providers, so no job reads state or needs a credential.
+- A `.tflint.hcl` at the caller's root is used for every directory, and `tflint --init` fetches the plugins it names. Without one, tflint uses its bundled recommended rules.
+- A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`. Trivy scans Terraform only, and fails on any finding the file doesn't silence.
+- The caller sees `<caller job> / fmt`, `/ validate`, `/ test`, `/ tflint` and `/ trivy`.
+
 ### `auto-merge.yml`
 
 Arms auto-merge on Dependabot's patch and minor version updates and says so in a comment. Majors and digest-only updates wait. No inputs. Record: [0029](architectural-decision-records/0029-auto-merge-module-takes-the-callers-token.md)

@@ -32,15 +32,16 @@ if [ -z "$dirs" ]; then
   exit 0
 fi
 
-# Every directory's init reuses the providers the first one downloaded. The
-# cache sits in the mounted checkout (git ignores it), so a local run's next
-# container reuses it too. Terraform warns if the folder is missing, so it is
-# made first.
-export TF_PLUGIN_CACHE_DIR="$PWD/.terraform.d/plugin-cache"
+# Terraform's working files go to the container's /tmp, not the checkout, so a
+# run leaves nothing behind for the docs checks to read. Every directory's init
+# reuses the providers the first one downloaded. Terraform warns if the cache
+# folder is missing, so it is made first.
+export TF_PLUGIN_CACHE_DIR=/tmp/terraform/plugin-cache
 mkdir -p "$TF_PLUGIN_CACHE_DIR"
 
 for dir in $dirs; do
   echo "==> terraform $check $dir"
+  export TF_DATA_DIR="/tmp/terraform/data/$dir"
   # -backend=false: the checks need no state, so they need no HCP token.
   terraform -chdir="$dir" init -backend=false -input=false -no-color > /dev/null
   terraform -chdir="$dir" "$check" -no-color

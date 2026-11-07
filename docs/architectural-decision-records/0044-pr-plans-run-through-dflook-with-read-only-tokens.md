@@ -22,7 +22,7 @@
 
 - 2026-11-07: dflook's README for `terraform-plan` v3.1.2: one comment per PR, updated by each run; `TERRAFORM_CLOUD_TOKENS` for HCP; `TERRAFORM_ACTIONS_GITHUB_TOKEN` keeps the comment token apart from the github provider's `GITHUB_TOKEN`. Its image is pinned by digest in `action.yaml`.
 - 2026-11-07: `terraform-version`'s README: the version comes first from the cloud workspace, then from `required_version`, using the newest version that matches a range. On #49 it chose Terraform 1.17.1 from `required_version`.
-- 2026-11-07, on #49: with no `hostname` in the `cloud` block, the action's `terraform init` failed with `failed to create backend alias to target ""`, and with the default `workspace` input, with `Specified workspace "name" conflicts with TF_WORKSPACE`. `hostname = "app.terraform.io"` and `workspace: github` fixed both.
+- 2026-11-07, on #49: with no `hostname` in the `cloud` block, the action's `terraform init` failed with `failed to create backend alias to target ""`, and with the default `workspace` input, with `Specified workspace "name" conflicts with TF_WORKSPACE`. `hostname = "app.terraform.io"` and `workspace: github` fixed both. The next run failed with `Terraform failed to find workspace "github"`: the workspace had never been made, and the action's init only selects one. With TJ's okay, the `github` workspace was created through HCP's API, in local execution mode with Terraform 1.17.1. The rerun said "Using remote workspace terraform version, which is set to 1.17.1", planned with every token shown as `(sensitive value)`, and posted the comment.
 
 ## Alternatives rejected
 
@@ -34,4 +34,5 @@
 
 - Until 6.9 imports the first repos, the stack manages nothing and the plan is "No changes", so the read-only permissions are first tested by the first import batch's plan. A missing permission fails that plan, and the fix is one more `permission-*` line in each token step.
 - Dependabot's provider bumps get no plan comment. TJ reviews them without one, or the plan runs on them once `TF_API_TOKEN` is also a Dependabot secret.
-- Terraform's version for plan and apply follows the HCP workspace's setting, which Dependabot doesn't move. A bump of the `compose.yml` image changes the checks, not the plan.
+- Terraform's version for plan and apply follows the HCP workspace's setting, which Dependabot doesn't move. A bump of the `compose.yml` image changes the checks, not the plan, until someone sets the workspace to match.
+- Each new stack needs its workspace created by hand before its first plan, with its Terraform version set.

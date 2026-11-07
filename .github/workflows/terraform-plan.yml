@@ -24,10 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # Only this repo's own branches: a fork's PR gets no secrets (record 0010).
-    # Dependabot's PRs can't read Actions secrets either, so they get no plan.
-    if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.user.login != 'dependabot[bot]'
+    # Dependabot's PRs plan too: a run Dependabot starts reads the Dependabot
+    # secrets of the same names instead (docs/CICD.md).
+    if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       pull-requests: write # the plan comment

@@ -13,8 +13,8 @@
 
 ## Decision
 
-- `.github/workflows/terraform-plan.yml` runs on PRs that touch `terraform/`, `repos/` or `orgs/`, from this repo's own branches only, and not on Dependabot's, which can't read Actions secrets. It isn't a required check: a path-filtered check never reports on other PRs.
-- It mints six tokens from `zimmertr-yggdrasil-bot`, one per owner, each with Administration and Metadata read only, and passes them as `github_tokens`. Nothing new is stored: the job holds the same `YGGDRASIL_BOT_PRIVATE_KEY` and `TF_API_TOKEN` as before.
+- `.github/workflows/terraform-plan.yml` runs on PRs that touch `terraform/`, `repos/` or `orgs/`, from this repo's own branches only, Dependabot's included (TJ, 2026-11-07: "this should work for dependabot PRs too"). A run Dependabot starts reads only Dependabot secrets, so `TF_API_TOKEN` is stored as one too, beside the key already there. It isn't a required check: a path-filtered check never reports on other PRs.
+- It mints six tokens from `zimmertr-yggdrasil-bot`, one per owner, each with Administration and Metadata read only, and passes them as `github_tokens`. The job holds the same `YGGDRASIL_BOT_PRIVATE_KEY` and `TF_API_TOKEN` as before.
 - `dflook/terraform-plan` runs the plan and keeps one comment on the PR up to date. Its sibling `dflook/terraform-apply` applies on merge only when the plan still matches that comment (6.8).
 - The action runs in its own image and takes Terraform's version from the HCP workspace `github`, then from `required_version`, not from `compose.yml` (0018 in part).
 
@@ -33,6 +33,6 @@
 ## Consequences
 
 - Until 6.9 imports the first repos, the stack manages nothing and the plan is "No changes", so the read-only permissions are first tested by the first import batch's plan. A missing permission fails that plan, and the fix is one more `permission-*` line in each token step.
-- Dependabot's provider bumps get no plan comment. TJ reviews them without one, or the plan runs on them once `TF_API_TOKEN` is also a Dependabot secret.
+- Dependabot's provider bumps show their plan. No Dependabot PR touched `terraform/` while this was built, so the first one tests it, including whether its `GITHUB_TOKEN` can write the comment. Rotating the HCP token means setting both copies (#12).
 - Terraform's version for plan and apply follows the HCP workspace's setting, which Dependabot doesn't move. A bump of the `compose.yml` image changes the checks, not the plan, until someone sets the workspace to match.
 - Each new stack needs its workspace created by hand before its first plan, with its Terraform version set.

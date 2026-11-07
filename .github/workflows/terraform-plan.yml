@@ -112,6 +112,9 @@ jobs:
           TERRAFORM_CLOUD_TOKENS: app.terraform.io=${{ secrets.TF_API_TOKEN }}
         with:
           path: terraform/github
+          # The action sets TF_WORKSPACE to this, which must match the cloud
+          # block's workspace name.
+          workspace: github
           variables: |
             github_tokens = {
               "zimmertr"               = "${{ steps.zimmertr.outputs.token }}"

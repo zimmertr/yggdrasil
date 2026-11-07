@@ -23,7 +23,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 8. **KISS.** Dependency config (`dependabot.yml`, `renovate.json`) stays in each repo. Only the auto-merge logic is shared.
 9. **A breaking change carries `!`.** A PR that removes a module input, or adds a required one, carries `!` in its title. No CI check compares inputs with the last release: a release that breaks a caller fails that caller's bump PR, so it never merges itself (record 0025, 2026-11-05).
 10. **Every consumer is production, and all are treated alike.** Each checks for yggdrasil releases daily and takes one once it is three days old, and patch and minor bumps merge themselves. A bad release is fixed forward with a new patch.
-11. **Guardrails in Terraform itself.** The `github` stack's variables are typed, and its preconditions fail the plan for any file that turns off branch protection or a security feature, except where GitHub can't apply one (record 0035).
+11. **Guardrails in Terraform itself.** The `github` stack's variables are typed, and a repo's file holds no security setting at all: the repo module turns every one on except where GitHub can't apply it, and the plan fails on any key or owner the stack doesn't know (records 0035, 0043).
 12. **Nothing is destroyed by accident.** Every repo sets `archive_on_destroy`, so removing its file archives it, never deletes it, and a `removed` block stops managing one without touching it. Every other destroy shows in the PR's plan comment, which TJ reads before merging.
 
 ## 3. Core features
@@ -35,7 +35,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 | Weekly image scan | Rescans the released image | `image-scan.yml` |
 | Dependabot auto-merge | Patch and minor updates merge themselves | `dependabot-auto-merge.yml` |
 | Shared conventions | `GitVersion.yml` (SemVer and the bump patterns), the conventional PR title check that reads it, the release process, and `trivy.yaml`, read at the module's pinned ref; a caller can pass its own | today copied in each repo |
-| `github` stack | One YAML file per repo (`repos/<name>.yml`) and per org (`orgs/<name>.yml`), read by Terraform: settings, rulesets, security features, merge settings, immutable releases, org settings | ai-config#3 |
+| `github` stack | One YAML file per repo (`repos/<owner>/<name>.yml`) and per org (`orgs/<name>.yml`), read by Terraform: settings, rulesets, security features, merge settings, immutable releases, org settings | ai-config#3 |
 | Defaults | The `github` stack holds `initialize-project`'s standard settings as defaults, and a repo file sets only what differs, such as `archived: true` | new |
 | Template repo | Terraform creates each new repo from a template that already holds the caller workflows, `dependabot.yml`, `LICENSE` and `.gitignore`, so its first PR runs the shared CI | new |
 | Guardrails | The preconditions (11) and `archive_on_destroy` (12) | new |
@@ -48,7 +48,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 .github/workflows/      yggdrasil's own CI, and the reusable workflows (GitHub requires them here)
 actions/<name>/         composite actions, if a module ever needs a shared step
 defaults/               GitVersion.yml, trivy.yaml
-repos/<name>.yml        one file per managed repo
+repos/<owner>/<name>.yml  one file per managed repo
 orgs/<name>.yml         one file per managed org
 terraform/github/       reads repos/ and orgs/
 terraform/dockerhub/
@@ -64,8 +64,8 @@ Managed repos (17, all under `zimmertr`), every one of them both managed by Terr
 
 - **A repo uses a module.** It adds a short caller: `uses: zimmertr/yggdrasil/.github/workflows/release.yml@<sha> # v1.4.0`, plus its inputs. Its PR CI shows the result.
 - **A module changes.** A PR in yggdrasil runs the release and docker-build modules through test callers, the release module in `dry-run` (it builds, and pushes, scans, tags, releases and opens nothing). The merge releases `vX.Y.Z`, and Dependabot opens a bump PR in each consumer once the release is three days old.
-- **A setting changes.** Edit `repos/<name>.yml`. The PR shows the plan, and the merge applies it.
-- **A new repo.** Add `repos/<name>.yml` and merge. Terraform creates the repo from the template as the App, in an org or under `zimmertr` (record 0024). Then `/initialize-project` seeds its files.
+- **A setting changes.** Edit `repos/<owner>/<name>.yml`. The PR shows the plan, and the merge applies it.
+- **A new repo.** Add `repos/<owner>/<name>.yml` and merge. Terraform creates the repo from the template as the App, in an org or under `zimmertr` (record 0024). Then `/initialize-project` seeds its files.
 - **A new org.** TJ creates it in GitHub's UI (GitHub has no API for that) and installs `zimmertr-yggdrasil-bot`. Then `orgs/<name>.yml`, an import, and Terraform manages it from there. Moving repos into an org is a later project, such as Bluebird's Rebrand.
 
 ## 6. Tech stack

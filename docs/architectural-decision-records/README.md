@@ -73,4 +73,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0046](0046-github-repos-take-the-shared-files-from-the-bot.md) | Each owner's `.github` repo gets the shared files from the repo module, committed by the bot past the PR rule | 2026-11-07 | Accepted. Superseded in part by 0049 |
 | [0047](0047-pr-plans-use-the-applys-write-tokens.md) | PR plans use the same write tokens as the apply, because a read-only token can't see a repo's merge settings | 2026-11-07 | Accepted. Supersedes 0044 in part |
 | [0048](0048-imports-apply-by-hand.md) | An import applies when TJ starts the apply by hand, because an import's plan never matches its comment | 2026-11-07 | Accepted. Supersedes 0045 in part |
-| [0049](0049-repos-may-override-the-shared-files.md) | The shared issue templates and security policy are defaults, and a repo may keep its own to override them | 2026-11-07 | Accepted. Supersedes 0041 and 0046 in part |
+| [0049](0049-shared-templates-and-own-security-policy.md) | Every repo uses the shared issue templates, and a repo may keep its own `SECURITY.md` | 2026-11-07 | Accepted. Supersedes 0041 and 0046 in part |

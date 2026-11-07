@@ -14,7 +14,7 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 | `.github/workflows/` | yggdrasil's own CI, and the reusable workflows (GitHub requires both here) | #2, #4 |
 | `actions/<name>/` | Composite actions, if a module ever needs a shared step. None yet (record 0026) | #4 |
 | `defaults/` | The shared conventions: `GitVersion.yml`, `trivy.yaml` | #4 |
-| `community-health-files/` | The one copy of the issue templates and `SECURITY.md`, which Terraform writes into each owner's `.github` repo (record 0041) | #8 |
+| `community-health-files/` | The one copy of the issue templates and `SECURITY.md`, and the `.github` repos' README, which Terraform writes into each owner's `.github` repo (records 0041, 0046) | #8 |
 | `tests/<module>/` | What a module's test caller builds, such as `tests/docker-build/`'s empty image | #4 |
 | `repos/<owner>/<name>.yml` | One file per managed repo, in its owner's folder: only what differs from the defaults, and never a security setting (record 0043) | #8 |
 | `orgs/<name>.yml` | One file per managed org | #8 |

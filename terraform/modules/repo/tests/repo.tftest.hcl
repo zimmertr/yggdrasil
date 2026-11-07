@@ -106,6 +106,7 @@ run "github_repo_gets_the_shared_files" {
       ".github/ISSUE_TEMPLATE/bug.md",
       ".github/ISSUE_TEMPLATE/config.yml",
       ".github/ISSUE_TEMPLATE/proposal.md",
+      "README.md",
       "SECURITY.md",
     ])
     error_message = "Each file in community-health-files/ is written, the templates under .github/."

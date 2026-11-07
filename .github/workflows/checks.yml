@@ -4,7 +4,8 @@ name: checks
 # 0019). The lint module runs here on this repo, from this PR's own copy, so
 # every change to it is tested before it releases (record 0037).
 #
-# Branch protection requires `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep` and `Docs`;
+# Branch protection requires `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, the five
+# `Terraform /` checks and `Docs`;
 # renaming a job strands PRs on a check that never reports.
 on:
   pull_request:
@@ -20,6 +21,13 @@ jobs:
   lint:
     name: Lint
     uses: $/.github/workflows/lint.yml
+    permissions:
+      contents: read
+
+  # The terraform module, on this repo's stacks under terraform/ (record 0042).
+  terraform:
+    name: Terraform
+    uses: $/.github/workflows/terraform.yml
     permissions:
       contents: read
 

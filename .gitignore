@@ -1,5 +1,7 @@
 # Terraform. Keep .terraform.lock.hcl: it pins the providers.
 .terraform/
+# tflint's plugins, when a .tflint.hcl names any (compose.yml).
+.tflint.d/
 *.tfstate
 *.tfstate.*
 crash.log

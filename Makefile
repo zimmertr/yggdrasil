@@ -9,10 +9,10 @@ RUN := docker compose run --rm -T
 # CI passes --format=github, so findings show as annotations on the PR.
 ZIZMOR_ARGS ?=
 
-.PHONY: check actionlint zizmor semgrep docs links em-dash
+.PHONY: check actionlint zizmor semgrep terraform fmt validate test tflint trivy docs links em-dash
 
 # Everything the PR checks run.
-check: actionlint zizmor semgrep docs
+check: actionlint zizmor semgrep terraform docs
 
 # The actionlint job, over every workflow. The image bundles shellcheck, so
 # run: blocks are checked too.
@@ -29,6 +29,28 @@ zizmor:
 # record 0037.
 semgrep:
 	$(RUN) semgrep semgrep scan --metrics=off --disable-version-check --error --config r/dockerfile.audit.dockerfile-source-not-pinned.dockerfile-source-not-pinned .
+
+# The terraform module's five jobs, run on this repo's Terraform. Decision
+# record 0042.
+terraform: fmt validate test tflint trivy
+
+fmt:
+	$(RUN) terraform fmt -recursive -check -diff
+
+# scripts/terraform-each.sh finds every directory to check.
+validate:
+	$(RUN) --entrypoint sh terraform scripts/terraform-each.sh validate
+
+test:
+	$(RUN) --entrypoint sh terraform scripts/terraform-each.sh test
+
+# This repo has no .tflint.hcl, so tflint uses its bundled recommended rules.
+tflint:
+	$(RUN) tflint --recursive --format=compact
+
+# This repo has no trivy.yaml of its own, so the module's default applies.
+trivy:
+	$(RUN) --entrypoint sh trivy scripts/terraform-each.sh trivy defaults/trivy.yaml
 
 # The Docs job.
 docs: links em-dash

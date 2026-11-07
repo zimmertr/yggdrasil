@@ -66,3 +66,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0039](0039-private-repos-run-the-checks-without-requiring-them.md) | A private repo runs the shared checks without requiring them, and has no auto-merge, while TJ's account is on GitHub Free | 2026-11-06 | Accepted |
 | [0040](0040-no-artifacthub.md) | TJ's Helm charts are not listed on ArtifactHub, and yggdrasil documents no ArtifactHub steps | 2026-11-06 | Accepted. Supersedes 0009 in part |
 | [0041](0041-one-source-for-community-health-files.md) | The issue templates and security policy live once, in yggdrasil, and Terraform writes them into each owner's `.github` repo | 2026-11-06 | Accepted. Supersedes 0038 and 0010 in part |
+| [0042](0042-terraform-module.md) | A terraform module runs fmt, validate, test, tflint and Trivy in every repo with Terraform, in the images `compose.yml` pins | 2026-11-06 | Accepted |

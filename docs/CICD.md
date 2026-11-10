@@ -92,13 +92,13 @@ The call's response listed exactly those ten.
 
 ### 2026-11-10, #8 step 6.9
 
-TJ okayed it ("You own this migration"). The last call here: #57 imported yggdrasil, so its settings are Terraform's now. After #57's apply, each repo's "default branch" ruleset required the same checks as its classic protection, so the classic protection went.
+TJ okayed it. Before: classic branch protection on main, beside the rulesets #57 added with the same required checks. This is the last entry: yggdrasil's settings are in Terraform since #57.
 
 | Call | Sets |
 |---|---|
-| `gh api -X DELETE repos/zimmertr/<repo>/branches/main/protection`, for yggdrasil, ai-config, hevy-trainer-sync, bluebird and bluebird-helm | No classic protection. The rulesets protect main |
+| `gh api -X DELETE repos/zimmertr/<repo>/branches/main/protection`, for yggdrasil, ai-config, hevy-trainer-sync, bluebird and bluebird-helm | No classic protection; the rulesets protect main |
 
-Afterwards each repo answered "Branch not protected" for classic protection, and `GET /repos/zimmertr/<repo>/rules/branches/main` listed deletion, non-fast-forward, the PR rule and the same number of required checks as before.
+Afterwards `GET /repos/zimmertr/<repo>/rules/branches/main` listed the same required checks on each.
 
 ## Dependabot
 

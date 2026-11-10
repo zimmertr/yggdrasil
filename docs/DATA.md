@@ -44,7 +44,7 @@ Terraform, run in a workflow with an installation token for `zimmertr`, with `in
 - 2026-11-07: GitHub returns a repo's merge settings (`allow_merge_commit`, `allow_rebase_merge`, `squash_merge_commit_title` and the rest) only to a token that can change the repo. A plan with Administration read saw them as `false` or unset (record 0047).
 - 2026-11-07: an imported `github_repository` prints every attribute in the plan, `etag` included, and `etag` differs for every token, so an import's PR plan never matches the apply's (record 0048). Once a repo is in state, the plan hides it.
 - 2026-11-07: `github_repository_file` with `branch` set checks that the branch exists first, and an empty repo has no branch until its first commit, so all 24 file writes into the new `.github` repos failed with `404 Not Found`. Without `branch`, the provider writes to the default branch (`integrations/github` 6.13.0, `resource_github_repository_file.go`).
-- 2026-11-10: a plan too big for a PR comment is cut off there with "Plan is too large to fit in a PR comment. See the full plan in the workflow log", and `dflook/terraform-apply` compares main's plan against that cut-off copy, so the apply refuses. #57's six imports did it at 1,140 lines. Check main's plan against the full plan in the PR's run log instead, then start the apply by hand (record 0048).
+- 2026-11-10: `dflook/terraform-plan` cuts a plan too big for a PR comment off with "Plan is too large to fit in a PR comment. See the full plan in the workflow log", and `dflook/terraform-apply` then compares main's plan against the cut-off copy and refuses. #57's comment was cut at 1,140 lines.
 
 ## Docker Hub
 

@@ -13,6 +13,8 @@ What TJ sees from yggdrasil, and what to do when it breaks. Each part that is no
 - **A Dependabot PR** for an action or a tool image, weekly. Patch and minor updates merge themselves once the checks pass, armed by `zimmertr-yggdrasil-bot`, which comments on the PR to say so.
 - **A plan comment** on every PR that touches `repos/`, `orgs/` or `terraform/` (#8). When the PR merges, `Apply github` applies that plan and adds the result to the same comment.
 
+- **A new repo.** One PR adds `repos/<owner>/<name>.yml` with its `description` and the template's four checks in `required_checks` (`PR Title / PR Title`, `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`). The merge creates the repo from `zimmertr/yggdrasil-repo-template`, with every setting and ruleset. Then run `/initialize-project` in it for its license, README and the rest (record 0024).
+
 - **A new org.** TJ creates it in GitHub's UI, since GitHub has no API for that, and installs `zimmertr-yggdrasil-bot` on it. Then one PR adds it to `local.owners`, a provider in `providers.tf`, a token step in `terraform-github.yml`, a repo module block in `main.tf` and an org module block in `orgs.tf`, `orgs/<name>.yml`, and an import of its settings by org id in `imports.tf` (record 0051).
 
 ## When it breaks

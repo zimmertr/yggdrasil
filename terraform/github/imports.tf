@@ -40,7 +40,9 @@ import {
   id       = each.key
 }
 
-# zimmertr's repos from before Terraform (#8 steps 6.9 to 6.12). Each resource
+# zimmertr's repos from before Terraform (#8 steps 6.9 to 6.12), and
+# yggdrasil-repo-template, made by hand on 2026-11-10 because every later repo
+# is created from it (step 6.15). Each resource
 # GitHub can import by the repo's name is imported, so the plan shows what
 # actually changes. The rest are created: the rulesets don't exist yet,
 # because these repos use classic branch protection, and creating each of the
@@ -52,7 +54,7 @@ locals {
       "yggdrasil", "ai-config", "hevy-trainer-sync", "hevy-garmin-sync", "bluebird", "bluebird-helm",
       "Kubernetes-Manifests", "TJs-Kubernetes-Service", "Personal-Website", "zimmertr", "3D-Models", "Bootstrap-Proxmox",
       "Supermicro-X10-Fancontrol", "Mountaineers-Activity-Scraper", "Ender-6-Klipper-Guide", "Better-Lighter-Pack",
-      "Strava-Heatmap-String-Builder", "Resume",
+      "Strava-Heatmap-String-Builder", "Resume", "yggdrasil-repo-template",
     ] :
     r if contains(keys(local.by_owner["zimmertr"]), r)
   ])

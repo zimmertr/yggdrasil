@@ -1,0 +1,7 @@
+description: The template yggdrasil creates every new repo from
+is_template: true
+required_checks:
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep

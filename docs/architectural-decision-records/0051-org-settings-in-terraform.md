@@ -35,4 +35,4 @@ The five orgs (Bluebird-Forecast, Fellfield-Game, GPX-Search, TJs-Kubernetes-Ser
 
 - A setting changed by hand stays until the next merge that touches the stack, and shows in that PR's plan.
 - A new org takes one PR across the stack's files (`docs/USAGE.md`).
-- If GitHub hides `billing_email` from the bot's token, every plan shows it changing, and the module has to ignore it after the import.
+- A plan prints the billing email, old and new. #63's plan, on 2026-11-10, showed each org's billing email before the change, so the bot's token can read it.

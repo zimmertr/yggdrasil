@@ -1,6 +1,6 @@
 # 0043. A repo's file holds no security setting: the repo module turns each one on, and the stack refuses any key or owner it doesn't know
 
-- Status: Accepted. Supersedes 0035's per-feature preconditions and 0012's `repos/<name>.yml` layout
+- Status: Accepted. Supersedes 0035's per-feature preconditions and 0012's `repos/<name>.yml` layout. Superseded in part by 0050
 - Date: 2026-11-06
 - Decider: TJ, 2026-11-06, in #8. On the guards, after the pros, cons and consequences: "LGTM". On the layout, `repos/<owner>/<name>.yml`, chosen from the options. On labels, "Leave labels out". On merging step 6.3 into 6.4, "One PR".
 - Issues and PRs: #8

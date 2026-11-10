@@ -14,6 +14,7 @@ locals {
     visibility      = "public"
     archived        = false
     is_template     = false
+    has_discussions = false
     required_checks = []
   }
 

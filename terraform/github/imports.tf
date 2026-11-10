@@ -39,3 +39,40 @@ import {
   to       = module.lakebagger[each.key].github_repository.this
   id       = each.key
 }
+
+# zimmertr's repos from before Terraform (#8 steps 6.9 to 6.12). Each resource
+# GitHub can import by the repo's name is imported, so the plan shows what
+# actually changes. The rest are created: the rulesets don't exist yet,
+# because these repos use classic branch protection, and creating each of the
+# three restapi_object settings is a PUT or PATCH that sets what the module
+# wants, whatever it was.
+locals {
+  zimmertr_imported = toset([
+    for r in ["yggdrasil", "ai-config", "hevy-trainer-sync", "bluebird", "bluebird-helm"] :
+    r if contains(keys(local.by_owner["zimmertr"]), r)
+  ])
+}
+
+import {
+  for_each = local.zimmertr_imported
+  to       = module.zimmertr[each.key].github_repository.this
+  id       = each.key
+}
+
+import {
+  for_each = local.zimmertr_imported
+  to       = module.zimmertr[each.key].github_repository_vulnerability_alerts.this[0]
+  id       = each.key
+}
+
+import {
+  for_each = local.zimmertr_imported
+  to       = module.zimmertr[each.key].github_repository_dependabot_security_updates.this[0]
+  id       = each.key
+}
+
+import {
+  for_each = local.zimmertr_imported
+  to       = module.zimmertr[each.key].github_actions_repository_permissions.this[0]
+  id       = each.key
+}

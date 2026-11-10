@@ -1,0 +1,6 @@
+description: "My Claude Code configuration: global CLAUDE.md, settings and skills"
+required_checks:
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep

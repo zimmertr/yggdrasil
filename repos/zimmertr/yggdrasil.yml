@@ -1,0 +1,12 @@
+description: Shared, versioned CI modules and the Terraform that manages my GitHub repos and orgs
+required_checks:
+  - Docs
+  - PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep
+  - Terraform / fmt
+  - Terraform / validate
+  - Terraform / test
+  - Terraform / tflint
+  - Terraform / trivy

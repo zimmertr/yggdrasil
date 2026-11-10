@@ -1,0 +1,9 @@
+description: Puts Hevy Trainer's next workout on a Garmin watch, through hevy2garmin
+required_checks:
+  - test
+  - Lint
+  - PR Title / PR Title
+  - Docker Build / Docker Build
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep

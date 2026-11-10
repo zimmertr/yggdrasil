@@ -62,7 +62,7 @@ flowchart LR
 
 Terraform guards itself: a repo file can't hold a security setting, the plan refuses a key or owner the stack doesn't know, and every repo is archived, never deleted, when it leaves Terraform. Records: [0035](architectural-decision-records/0035-terraform-guards-itself.md), [0043](architectural-decision-records/0043-repo-files-hold-no-security-settings.md)
 
-Until #8 imports them, settings are API calls TJ okays first, logged in [CICD.md](CICD.md#settings-applied-by-api). Record: [0014](architectural-decision-records/0014-foundation-by-hand-then-imported.md)
+A repo not imported yet changes its settings by an API call TJ okays first. Records: [0014](architectural-decision-records/0014-foundation-by-hand-then-imported.md), [0050](architectural-decision-records/0050-imports-bring-repos-up-to-the-standard.md)
 
 ## The bot
 

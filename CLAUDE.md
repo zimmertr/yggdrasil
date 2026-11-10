@@ -10,7 +10,7 @@ Prose lives in `docs/`. A change that makes any of it untrue updates it in the s
 |---|---|
 | [`docs/PRD.md`](docs/PRD.md) | The signed-off design: requirements, features, scope, phases |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | The layout, how a repo uses a module, how a setting changes, and which issue builds each part |
-| [`docs/CICD.md`](docs/CICD.md) | From PR to main, the settings applied by API, and every secret |
+| [`docs/CICD.md`](docs/CICD.md) | From PR to main, and every secret |
 | [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md) | Module inputs, the shared defaults, the App's permissions and installations, Terraform's backend |
 | [`docs/DATA.md`](docs/DATA.md) | Each provider's limits and terms, and every quirk found, dated |
 | [`docs/USAGE.md`](docs/USAGE.md) | What TJ sees, and what to do when it breaks |
@@ -36,7 +36,7 @@ Prose lives in `docs/`. A change that makes any of it untrue updates it in the s
 - **Guardrails**: the release `dry-run` and import before apply. Record: [0011](docs/architectural-decision-records/0011-guardrails-as-code.md) Terraform guards itself, with no custom check: typed variables, no security setting in any repo file, preconditions that refuse an unknown key or owner, and `archive_on_destroy` on every repo. Records: [0035](docs/architectural-decision-records/0035-terraform-guards-itself.md), [0043](docs/architectural-decision-records/0043-repo-files-hold-no-security-settings.md) There is no breaking-change check: a caller's own CI fails a bump that breaks it. Record: [0025](docs/architectural-decision-records/0025-no-breaking-change-check.md)
 - **One YAML file per repo and per org**, at `repos/<owner>/<name>.yml` and `orgs/<name>.yml`, holding only what differs from the stack's defaults; new repos start from the template. A repo file never holds a security setting: the repo module turns each one on wherever GitHub allows it, and the plan refuses a key or owner the stack doesn't know. Records: [0012](docs/architectural-decision-records/0012-one-file-per-repo-and-org.md), [0043](docs/architectural-decision-records/0043-repo-files-hold-no-security-settings.md)
 - **Workflows before Terraform**, one issue per phase under #1. Record: [0013](docs/architectural-decision-records/0013-workflows-before-terraform.md)
-- **Settings change only through PRs**, once Terraform manages them (#8). Until then, a settings change is an API call TJ okays first, logged in [`docs/CICD.md`](docs/CICD.md#settings-applied-by-api). Record: [0014](docs/architectural-decision-records/0014-foundation-by-hand-then-imported.md)
+- **Settings change only through PRs.** Terraform manages every imported repo's settings, yggdrasil's included; a repo not imported yet changes by an API call TJ okays first. Records: [0014](docs/architectural-decision-records/0014-foundation-by-hand-then-imported.md), [0050](docs/architectural-decision-records/0050-imports-bring-repos-up-to-the-standard.md)
 - **Skills live in zimmertr/ai-config only**, linked into `~/.claude/skills`. Never copy one into this repo. Record: [0015](docs/architectural-decision-records/0015-skills-live-in-ai-config.md)
 
 ## Issues

@@ -1,6 +1,0 @@
-description: Throwaway repo that proves a new repo is created from the template (#8 step 6.16)
-required_checks:
-  - PR Title / PR Title
-  - Lint / actionlint
-  - Lint / zizmor
-  - Lint / semgrep

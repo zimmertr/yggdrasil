@@ -1,0 +1,63 @@
+name: terraform-cloudflare
+
+# The cloudflare stack's plan and apply, the same flow as terraform-github.yml
+# (decision records 0044, 0045, 0048): a plan comment on each PR that can
+# change the stack, and on the merge to main the apply of that plan, only if a
+# fresh plan still matches the comment. Started by hand from main, it applies
+# main's plan as it is. Not a required check: a path-filtered check never
+# reports on other PRs.
+on:
+  pull_request:
+    paths: &paths
+      - .github/workflows/terraform-cloudflare.yml
+      - terraform/cloudflare/**
+  push:
+    branches: [main]
+    paths: *paths
+  workflow_dispatch:
+
+concurrency:
+  group: terraform-cloudflare-${{ github.event.pull_request.number || 'apply' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  cloudflare:
+    name: ${{ github.event_name == 'pull_request' && 'Plan' || 'Apply' }} cloudflare
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # On a PR, only this repo's own branches: a fork's PR gets no secrets
+    # (record 0010). An apply only ever from main.
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')
+    permissions:
+      contents: read
+      pull-requests: write # the plan comment, and the apply's result on it
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The provider reads CLOUDFLARE_API_TOKEN. Plan and apply load
+      # terraform.tfvars on their own.
+      - name: Plan
+        if: github.event_name == 'pull_request'
+        uses: dflook/terraform-plan@738d3a75f0d801d280dca5eb7357b89c8383267f # v3.1.2
+        env: &dflook-env
+          GITHUB_TOKEN: ${{ github.token }}
+          TERRAFORM_CLOUD_TOKENS: app.terraform.io=${{ secrets.TF_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        with:
+          path: terraform/cloudflare
+          workspace: cloudflare
+
+      - name: Apply
+        if: github.event_name != 'pull_request'
+        uses: dflook/terraform-apply@9fdc48d2744ee0528495a136ad2cd31ad8208a67 # v3.1.2
+        env: *dflook-env
+        with:
+          path: terraform/cloudflare
+          workspace: cloudflare
+          auto_approve: ${{ github.event_name == 'workflow_dispatch' }}

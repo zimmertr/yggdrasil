@@ -11,7 +11,7 @@ What TJ sees from yggdrasil, and what to do when it breaks. Each part that is no
 ## In yggdrasil
 
 - **A Dependabot PR** for an action or a tool image, weekly. Patch and minor updates merge themselves once the checks pass, armed by `zimmertr-yggdrasil-bot`, which comments on the PR to say so.
-- **A plan comment** on every PR that touches `repos/`, `orgs/` or `terraform/` (#8). When the PR merges, `Apply github` applies that plan and adds the result to the same comment.
+- **A plan comment** on every PR that touches `repos/`, `orgs/` or `terraform/` (#8). When the PR merges, `Apply github` (or `Apply cloudflare`, for `terraform/cloudflare/`) applies that plan and adds the result to the same comment.
 
 - **A new repo.** One PR adds `repos/<owner>/<name>.yml` with its `description` and the template's four checks in `required_checks` (`PR Title / PR Title`, `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`). The merge creates the repo from `zimmertr/yggdrasil-repo-template`, with every setting and ruleset. Then run `/initialize-project` in it for its license, README and the rest (record 0024).
 

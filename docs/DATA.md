@@ -63,7 +63,7 @@ Quirks, found in #3 with the throwaway repo `zimmertr/yggdrasil-probe`:
 
 ## Cloudflare
 
-Uses: the stack that moves from Kubernetes-Manifests `terraform/cloudflare` (#10).
+Uses: `terraform/cloudflare`, moved from Kubernetes-Manifests (#10).
 
 - Limits: [Cloudflare API rate limits](https://developers.cloudflare.com/fundamentals/api/reference/limits/).
 - Terms: [Cloudflare Website and Online Services Terms](https://www.cloudflare.com/website-terms/).

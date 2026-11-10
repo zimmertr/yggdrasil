@@ -144,7 +144,7 @@ Each stack has its own workspace, created once by hand before its first plan: `d
 | Workspace | Stack | Terraform version |
 |---|---|---|
 | `github` | `terraform/github` | 1.17.1, created 2026-11-07 with TJ's okay (#8 step 6.5) |
-| `cloudflare` | Kubernetes-Manifests `terraform/cloudflare`, moving here in #10 | 1.16.5 |
+| `cloudflare` | `terraform/cloudflare`, moved from Kubernetes-Manifests with its state (#10) | 1.16.5 |
 
 ### An org's file
 

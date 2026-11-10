@@ -8,6 +8,8 @@ crash.log
 crash.*.log
 *.tfvars
 *.tfvars.json
+# The cloudflare stack's account ID and public hostnames, none of them secret.
+!terraform/cloudflare/terraform.tfvars
 override.tf
 override.tf.json
 *_override.tf

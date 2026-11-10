@@ -1,0 +1,6 @@
+description: A guide for installing Klipper on a Creality Ender 6
+required_checks:
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep

@@ -1,0 +1,11 @@
+description: Generate Strava Heatmap URLs that are compatible with Caltopo's Custom Map Layers
+topics:
+  - caltopo
+  - heatmap
+  - strava
+required_checks:
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep
+  - Docker Build / Docker Build

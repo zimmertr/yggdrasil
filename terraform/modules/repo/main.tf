@@ -85,6 +85,11 @@ resource "github_repository" "this" {
   }
 
   lifecycle {
+    # Merge commits are off, and GitHub then ignores changes to these two, so
+    # a repo imported with other values would show the same change on every
+    # plan (docs/DATA.md).
+    ignore_changes = [merge_commit_title, merge_commit_message]
+
     # Removing every required check would leave main open to any PR. A .github
     # repo has no CI, so it has none to require.
     precondition {

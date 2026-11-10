@@ -44,7 +44,14 @@ override_resource {
   target = module.zimmertr[".github"].github_repository.this
 }
 
+# The org fixture's Lakebagger is imported too.
+override_resource {
+  target = module.lakebagger_org[0].github_organization_settings.this
+}
+
 variables {
+  orgs_dir = "tests/fixtures/orgs-good"
+
   github_tokens = {
     "zimmertr"               = "test"
     "Bluebird-Forecast"      = "test"
@@ -94,4 +101,40 @@ run "refuses_an_unknown_owner" {
   }
 
   expect_failures = [output.repos]
+}
+
+run "reads_each_org_file" {
+  command = plan
+
+  variables {
+    repos_dir = "tests/fixtures/good"
+  }
+
+  assert {
+    condition = (
+      output.orgs == tolist(["Lakebagger"]) &&
+      length(module.lakebagger_org) == 1 &&
+      length(module.bluebird_forecast_org) == 0
+    )
+    error_message = "Each orgs/<name>.yml is one org, and reaches only that org's module."
+  }
+
+  assert {
+    condition = (
+      module.lakebagger_org[0].name == "Lakebagger" &&
+      module.lakebagger_org[0].billing_email == "tj@tjzimmerman.com"
+    )
+    error_message = "An org file's keys merge over the defaults."
+  }
+}
+
+run "refuses_an_unknown_org_key" {
+  command = plan
+
+  variables {
+    repos_dir = "tests/fixtures/good"
+    orgs_dir  = "tests/fixtures/orgs-unknown-key"
+  }
+
+  expect_failures = [output.orgs]
 }

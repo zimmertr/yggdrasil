@@ -111,3 +111,46 @@ import {
   to       = module.zimmertr[each.key].github_repository_ruleset.release_tags[0]
   id       = "${each.key}:${each.value}"
 }
+
+# The five orgs' settings, by org id from GET /orgs/<name>, 2026-11-10 (#8 step
+# 6.13). Each runs only when the org's file is in orgs/.
+locals {
+  org_ids = {
+    "Bluebird-Forecast"      = 328175231
+    "Fellfield-Game"         = 329669184
+    "GPX-Search"             = 329669401
+    "TJs-Kubernetes-Service" = 110358699
+    "Lakebagger"             = 96021189
+  }
+  orgs_imported = { for o, id in local.org_ids : o => id if contains(keys(local.org_files), o) }
+}
+
+import {
+  for_each = contains(keys(local.orgs_imported), "Bluebird-Forecast") ? toset([tostring(local.org_ids["Bluebird-Forecast"])]) : toset([])
+  to       = module.bluebird_forecast_org[0].github_organization_settings.this
+  id       = each.key
+}
+
+import {
+  for_each = contains(keys(local.orgs_imported), "Fellfield-Game") ? toset([tostring(local.org_ids["Fellfield-Game"])]) : toset([])
+  to       = module.fellfield_game_org[0].github_organization_settings.this
+  id       = each.key
+}
+
+import {
+  for_each = contains(keys(local.orgs_imported), "GPX-Search") ? toset([tostring(local.org_ids["GPX-Search"])]) : toset([])
+  to       = module.gpx_search_org[0].github_organization_settings.this
+  id       = each.key
+}
+
+import {
+  for_each = contains(keys(local.orgs_imported), "TJs-Kubernetes-Service") ? toset([tostring(local.org_ids["TJs-Kubernetes-Service"])]) : toset([])
+  to       = module.tjs_kubernetes_service_org[0].github_organization_settings.this
+  id       = each.key
+}
+
+import {
+  for_each = contains(keys(local.orgs_imported), "Lakebagger") ? toset([tostring(local.org_ids["Lakebagger"])]) : toset([])
+  to       = module.lakebagger_org[0].github_organization_settings.this
+  id       = each.key
+}

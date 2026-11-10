@@ -30,7 +30,7 @@ jobs:
     uses: $/.github/workflows/terraform.yml
     with:
       # The same list the Makefile's TF_DIRS holds.
-      directories: terraform/github terraform/modules/repo
+      directories: terraform/github terraform/modules/repo terraform/modules/org
     permissions:
       contents: read
 

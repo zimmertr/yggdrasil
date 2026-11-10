@@ -17,9 +17,10 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 | `community-health-files/` | The one copy of the issue templates and `SECURITY.md`, and the `.github` repos' README, which Terraform writes into each owner's `.github` repo (records 0041, 0046) | #8 |
 | `tests/<module>/` | What a module's test caller builds, such as `tests/docker-build/`'s empty image | #4 |
 | `repos/<owner>/<name>.yml` | One file per managed repo, in its owner's folder: only what differs from the defaults, and never a security setting (record 0043) | #8 |
-| `orgs/<name>.yml` | One file per managed org | #8 |
+| `orgs/<name>.yml` | One file per managed org: its profile and billing email (record 0051) | #8 |
 | `terraform/github/` | The stack that reads `repos/` and `orgs/`, with the defaults, one provider pair per owner, and the preconditions that refuse an unknown key or owner | #8 |
 | `terraform/modules/repo/` | One repo and every setting `initialize-project` gives it, with each security feature always on where GitHub allows it | #8 |
+| `terraform/modules/org/` | One org's settings, the same on every org, with security on for its new repos | #8 |
 | `terraform/dockerhub/` | Docker Hub repositories and their immutable tags | #9 |
 | `terraform/cloudflare/` | The stack moved from Kubernetes-Manifests, with its state | #10 |
 | `GitVersion.yml` | yggdrasil's own version and the PR title patterns that pick each bump | #2 |
@@ -57,7 +58,6 @@ flowchart LR
   pr --> plan["terraform plan<br/>posted on the PR<br/>preconditions refuse unknown keys and owners"]
   plan --> merge["merge to main"]
   merge --> apply["terraform apply"]
-  weekly["weekly drift plan"] -.-> main["main"]
 ```
 
 Terraform guards itself: a repo file can't hold a security setting, the plan refuses a key or owner the stack doesn't know, and every repo is archived, never deleted, when it leaves Terraform. Records: [0035](architectural-decision-records/0035-terraform-guards-itself.md), [0043](architectural-decision-records/0043-repo-files-hold-no-security-settings.md)

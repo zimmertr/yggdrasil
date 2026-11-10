@@ -48,7 +48,7 @@ import {
 # wants, whatever it was.
 locals {
   zimmertr_imported = toset([
-    for r in ["yggdrasil", "ai-config", "hevy-trainer-sync", "bluebird", "bluebird-helm"] :
+    for r in ["yggdrasil", "ai-config", "hevy-trainer-sync", "hevy-garmin-sync", "bluebird", "bluebird-helm"] :
     r if contains(keys(local.by_owner["zimmertr"]), r)
   ])
 }
@@ -75,4 +75,27 @@ import {
   for_each = local.zimmertr_imported
   to       = module.zimmertr[each.key].github_actions_repository_permissions.this[0]
   id       = each.key
+}
+
+# A repo set up with rulesets before its import, by hand to the module's
+# standard. Ruleset ids from GET /repos/zimmertr/<repo>/rulesets, 2026-11-10.
+locals {
+  zimmertr_rulesets = {
+    "hevy-garmin-sync" = { default_branch = 26784694, release_tags = 26784695 }
+  }
+  zimmertr_rulesets_imported = {
+    for r, ids in local.zimmertr_rulesets : r => ids if contains(keys(local.by_owner["zimmertr"]), r)
+  }
+}
+
+import {
+  for_each = local.zimmertr_rulesets_imported
+  to       = module.zimmertr[each.key].github_repository_ruleset.default_branch[0]
+  id       = "${each.key}:${each.value.default_branch}"
+}
+
+import {
+  for_each = local.zimmertr_rulesets_imported
+  to       = module.zimmertr[each.key].github_repository_ruleset.release_tags[0]
+  id       = "${each.key}:${each.value.release_tags}"
 }

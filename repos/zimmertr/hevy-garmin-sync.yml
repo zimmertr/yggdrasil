@@ -1,0 +1,10 @@
+description: Turns Hevy routines (and Hevy Trainer workouts) into Garmin Connect strength workouts on your watch.
+required_checks:
+  - test
+  - Python Lint
+  - Chart
+  - Docker Build / Docker Build
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep
+  - PR Title / PR Title

@@ -15,7 +15,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 
 1. **Consumers bring their own config.** A repo passes `with:` inputs to a module. yggdrasil stores no per-repo pipeline config. The only per-repo data it holds defines the repos and orgs themselves.
 2. **Modules are versioned, and consumers subscribe.** One SemVer covers every module. A consumer pins the commit with the version in a comment. Dependabot (or Renovate) opens a PR for each new release, and the shared auto-merge merges patch and minor bumps; a major waits for TJ. A breaking module change carries `!` in its PR title, which makes it a major. Only a change under the module paths cuts a release, so a settings-only PR bumps nothing downstream.
-3. **Settings change only through PRs.** Every PR posts its `terraform plan`. A merge to main applies it. A weekly plan reports drift.
+3. **Settings change only through PRs.** Every PR posts its `terraform plan`. A merge to main applies it, and puts back any setting changed by hand.
 4. **Import before apply.** No apply runs against a repo until its import shows no changes. No plan that weakens branch protection or a security setting is applied without TJ's okay.
 5. **Safe in public.** Terraform manages settings and never a repo's existing files (it only creates a new repo from the template), so the private repo (Resume) exposes its name, description and settings, never its contents. Plans run only on PRs from yggdrasil's own branches, and no workflow uses `pull_request_target`.
 6. **One bot identity.** A GitHub App, `zimmertr-yggdrasil-bot`, owned by `zimmertr` and installed on every owner yggdrasil manages, mints a short-lived token per run. There is no PAT, unless the verification in task P1 proves one is needed.
@@ -93,7 +93,7 @@ Detailed into tasks after sign-off. In order:
 6. **P5 Every other repo.** Kubernetes-Manifests, TJs-Kubernetes-Service, bluebird-helm and the rest each take the baseline modules (PR title check, actionlint, Dependabot with auto-merge), plus the release, image or chart modules wherever the repo ships something. One PR per repo.
 7. **P6 `github` stack.**
    - Import all 17 repos and the five orgs until the plan is empty.
-   - Then turn on plan on PR, apply on merge, and the weekly drift plan.
+   - Then turn on plan on PR and apply on merge.
 8. **P7 Docker Hub**, if P1 shows Docker's provider can manage it.
 9. **P8 `cloudflare` stack.**
    - Move the stack from Kubernetes-Manifests.
@@ -118,7 +118,7 @@ Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hu
 | License | GPL-3.0 | `LICENSE` |
 | Visibility | Public | GitHub's free security features |
 | Upstreams | GitHub, Docker Hub, Cloudflare, HCP Terraform | `docs/` lists each provider's limits and terms |
-| Terraform runs | Plan on PR, apply on merge | Plan comment, apply job, weekly drift plan |
+| Terraform runs | Plan on PR, apply on merge | Plan comment, apply job |
 | Credential | GitHub App `zimmertr-yggdrasil-bot` | App id and key as yggdrasil secrets; no PAT |
 | Managed repos and orgs | The 17 repos and 5 orgs above (the two strava-heatmap-proxy forks were deleted on 2026-11-05; Email-Infrastructure, Lakebagger/Backend and Lakebagger/Frontend, which held no code, on 2026-11-06) | One YAML file each |
 | Consumers in this project | All 17 repos: the baseline modules everywhere, plus what each repo ships; future repos through the template | P3 to P5, P9 |

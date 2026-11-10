@@ -9,3 +9,9 @@ variable "repos_dir" {
   type        = string
   default     = "../../repos"
 }
+
+variable "orgs_dir" {
+  description = "The folder of org files. Tests point it at their fixtures."
+  type        = string
+  default     = "../../orgs"
+}

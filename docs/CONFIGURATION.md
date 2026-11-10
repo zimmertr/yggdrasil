@@ -146,7 +146,17 @@ Each stack has its own workspace, created once by hand before its first plan: `d
 | `github` | `terraform/github` | 1.17.1, created 2026-11-07 with TJ's okay (#8 step 6.5) |
 | `cloudflare` | Kubernetes-Manifests `terraform/cloudflare`, moving here in #10 | 1.16.5 |
 
-`orgs/<name>.yml` arrives with #8 step 6.13, and its fields are documented here then. Records: [0012](architectural-decision-records/0012-one-file-per-repo-and-org.md), [0035](architectural-decision-records/0035-terraform-guards-itself.md)
+### An org's file
+
+`orgs/<name>.yml`, one per org, named for its login. It holds only the profile and the billing email; every other org setting is the same on every org, in `terraform/modules/org/`. The defaults live in `terraform/github/orgs.tf`'s `local.org_defaults`. Record: [0051](architectural-decision-records/0051-org-settings-in-terraform.md)
+
+| Key | Default | Does |
+|---|---|---|
+| `billing_email` | `tj@tjzimmerman.com` | The billing email. Public |
+| `name` | none | The display name |
+| `description`, `blog`, `email`, `location`, `company`, `twitter_username` | none | The rest of the profile |
+
+The org module sets, on every org: the dependency graph, Dependabot alerts and security updates, secret scanning and push protection on for new repos, so a repo made by hand starts with them before its import; Advanced Security off (GitHub Free); and GitHub's defaults for the rest (members read by default, may create repos and Pages sites, may not fork private repos, no commit sign-off, projects on). A key not in the table fails the plan, and so does a file for an org the stack doesn't manage.
 
 ### A repo's file
 

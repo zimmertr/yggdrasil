@@ -80,6 +80,7 @@ jobs:
           permission-administration: write
           permission-contents: write
           permission-metadata: read
+          permission-organization-administration: write # the org settings (record 0051)
 
       - name: Token for Fellfield-Game
         id: fellfield-game
@@ -91,6 +92,7 @@ jobs:
           permission-administration: write
           permission-contents: write
           permission-metadata: read
+          permission-organization-administration: write # the org settings (record 0051)
 
       - name: Token for GPX-Search
         id: gpx-search
@@ -102,6 +104,7 @@ jobs:
           permission-administration: write
           permission-contents: write
           permission-metadata: read
+          permission-organization-administration: write # the org settings (record 0051)
 
       - name: Token for TJs-Kubernetes-Service
         id: tjs-kubernetes-service
@@ -113,6 +116,7 @@ jobs:
           permission-administration: write
           permission-contents: write
           permission-metadata: read
+          permission-organization-administration: write # the org settings (record 0051)
 
       - name: Token for Lakebagger
         id: lakebagger
@@ -124,6 +128,7 @@ jobs:
           permission-administration: write
           permission-contents: write
           permission-metadata: read
+          permission-organization-administration: write # the org settings (record 0051)
 
       # dflook's actions run in their own image, and take Terraform's version
       # from the HCP workspace, not compose.yml (record 0044). The apply must

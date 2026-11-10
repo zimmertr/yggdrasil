@@ -46,6 +46,7 @@ Terraform, run in a workflow with an installation token for `zimmertr`, with `in
 - 2026-11-07: `github_repository_file` with `branch` set checks that the branch exists first, and an empty repo has no branch until its first commit, so all 24 file writes into the new `.github` repos failed with `404 Not Found`. Without `branch`, the provider writes to the default branch (`integrations/github` 6.13.0, `resource_github_repository_file.go`).
 - 2026-11-10: `dflook/terraform-plan` cuts a plan too big for a PR comment off with "Plan is too large to fit in a PR comment. See the full plan in the workflow log", and `dflook/terraform-apply` then compares main's plan against the cut-off copy and refuses. #57's comment was cut at 1,140 lines.
 - 2026-11-10: with merge commits off, GitHub accepts but doesn't save a change to `merge_commit_title` or `merge_commit_message`. Bootstrap-Proxmox, imported with `PR_TITLE` and `BLANK`, kept them through #60's apply, and #61's plan showed the same change again. The repo module ignores both.
+- 2026-11-10: on GitHub Free, a private repo accepts but doesn't save `allow_auto_merge = true`. Resume still read `false` after #61's apply. The repo module turns auto-merge on for public repos only.
 
 ## Docker Hub
 

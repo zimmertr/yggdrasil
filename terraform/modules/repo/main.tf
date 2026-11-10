@@ -60,7 +60,8 @@ resource "github_repository" "this" {
   squash_merge_commit_message = "PR_BODY"
 
   # repo.md 10.
-  allow_auto_merge       = true
+  # GitHub Free has no auto-merge on a private repo, and doesn't save it.
+  allow_auto_merge       = var.settings.visibility == "public"
   delete_branch_on_merge = true
   allow_update_branch    = true
   has_issues             = true

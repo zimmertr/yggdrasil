@@ -1,0 +1,29 @@
+description: Parse information from Mountaineers.org activities and write the data to CSV or Google Sheets
+homepage_url: https://www.mountaineers.org/activities/activities
+topics:
+  - alpine
+  - alpine-climbing
+  - beautifulsoup
+  - climbing
+  - docker
+  - glacier
+  - google-cloud
+  - google-drive
+  - google-sheets
+  - hiking
+  - mountaineering
+  - mountaineering-club
+  - mountaineers
+  - pacific-northwest
+  - pnw
+  - python
+  - rock
+  - rock-climbing
+  - scrambling
+  - washington-state
+required_checks:
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep
+  - Docker Build / Docker Build

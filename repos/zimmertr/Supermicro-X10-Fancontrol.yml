@@ -1,0 +1,6 @@
+description: A script to dynamically set the fan speed of a Supermicro X10 server
+required_checks:
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep

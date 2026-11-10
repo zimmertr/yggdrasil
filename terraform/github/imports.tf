@@ -51,6 +51,8 @@ locals {
     for r in [
       "yggdrasil", "ai-config", "hevy-trainer-sync", "hevy-garmin-sync", "bluebird", "bluebird-helm",
       "Kubernetes-Manifests", "TJs-Kubernetes-Service", "Personal-Website", "zimmertr", "3D-Models", "Bootstrap-Proxmox",
+      "Supermicro-X10-Fancontrol", "Mountaineers-Activity-Scraper", "Ender-6-Klipper-Guide", "Better-Lighter-Pack",
+      "Strava-Heatmap-String-Builder", "Resume",
     ] :
     r if contains(keys(local.by_owner["zimmertr"]), r)
   ])

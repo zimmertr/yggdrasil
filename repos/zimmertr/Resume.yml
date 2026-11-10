@@ -1,0 +1,2 @@
+description: "LaTeX source for my personal resume; CI publishes an ATS-friendly PDF on every merge to main."
+visibility: private

@@ -1,0 +1,7 @@
+description: tjzimmerman.com
+required_checks:
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep
+  - Docker Build / Docker Build

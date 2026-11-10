@@ -1,0 +1,28 @@
+description: A collection of my Kubernetes Manifests managed by Kustomize & ArgoCD
+topics:
+  - argo-
+  - argo-workflows
+  - argocd
+  - cilium
+  - gateway-api
+  - grafana
+  - helm
+  - homelab
+  - istio
+  - k8s
+  - kubernetes
+  - kustomize
+  - plex
+  - plex-media-server
+  - prometheus
+  - radarr
+  - rutorrent
+  - sonarr
+has_discussions: true
+required_checks:
+  - Validate manifests
+  - Validate Terraform
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep

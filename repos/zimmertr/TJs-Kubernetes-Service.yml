@@ -1,0 +1,28 @@
+description: Enable enthusiasts and administrators alike to easily provision highly available and production-ready Kubernetes clusters on Proxmox VE.
+topics:
+  - argocd
+  - cluster-api-provider-proxmox
+  - containerization
+  - docker
+  - kubernetes
+  - linux
+  - proxmox
+  - proxmox-ve
+  - qemu
+  - talos
+  - talosctl
+  - terraform
+  - virtualization
+has_discussions: true
+required_checks:
+  - shellcheck
+  - talos-kubernetes
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep
+  - Terraform / fmt
+  - Terraform / validate
+  - Terraform / test
+  - Terraform / tflint
+  - Terraform / trivy

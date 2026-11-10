@@ -21,7 +21,6 @@ topics:
 has_discussions: true
 required_checks:
   - Validate manifests
-  - Validate Terraform
   - PR Title / PR Title
   - Lint / actionlint
   - Lint / zizmor

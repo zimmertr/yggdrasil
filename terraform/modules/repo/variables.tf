@@ -22,6 +22,7 @@ variable "settings" {
     visibility      = string
     archived        = bool
     is_template     = bool
+    has_discussions = bool
     required_checks = list(string)
   })
 

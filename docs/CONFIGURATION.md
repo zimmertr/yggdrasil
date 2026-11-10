@@ -160,6 +160,7 @@ Each stack has its own workspace, created once by hand before its first plan: `d
 | `visibility` | `public` | `public` or `private`. A private repo on GitHub Free gets no rulesets, secret scanning, CodeQL or private vulnerability reporting |
 | `archived` | `false` | Archives the repo. An archived repo is read-only, so only the repo itself stays managed |
 | `is_template` | `false` | Marks the repo as a template |
+| `has_discussions` | `false` | Turns Discussions on. Bluebird uses them |
 | `required_checks` | `[]` | The checks main requires, by name, each pinned to GitHub Actions. A public repo needs at least one, except a `.github` repo |
 
 - A key that isn't in this table fails the plan, and so does a folder for an owner the stack doesn't manage. Terraform would otherwise drop an unknown key without a word.

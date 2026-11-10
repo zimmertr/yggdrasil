@@ -67,6 +67,10 @@ resource "github_repository" "this" {
   has_wiki               = false
   has_projects           = false
 
+  # Set, because the provider leaves it unset otherwise and an imported repo's
+  # plan then shows Discussions being removed. Bluebird uses them.
+  has_discussions = var.settings.has_discussions
+
   # Secret scanning and push protection are free on public repos only.
   dynamic "security_and_analysis" {
     for_each = local.public ? [1] : []

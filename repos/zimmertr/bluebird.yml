@@ -1,0 +1,22 @@
+description: The Weather Window Finder
+has_discussions: true
+homepage_url: https://bluebirdforecast.com
+topics:
+  - forecast
+  - hiking
+  - mountaineering
+  - peakbagging
+  - weather
+required_checks:
+  - Python Lint
+  - Frontend Typecheck & Tests
+  - Backend Tests
+  - Browser Smoke & Axe
+  - Lighthouse Budgets
+  - Database Tests
+  - Planet Fill
+  - Docker Build / Docker Build
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep

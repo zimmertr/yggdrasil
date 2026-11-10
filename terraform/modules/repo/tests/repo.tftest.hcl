@@ -14,6 +14,7 @@ variables {
     visibility      = "public"
     archived        = false
     is_template     = false
+    has_discussions = false
     required_checks = ["PR Title / PR Title", "Lint / zizmor"]
   }
 }
@@ -97,6 +98,7 @@ run "github_repo_gets_the_shared_files" {
       visibility      = "public"
       archived        = false
       is_template     = false
+      has_discussions = false
       required_checks = []
     }
   }
@@ -148,6 +150,7 @@ run "private_repo_skips_what_github_free_cannot_do" {
       visibility      = "private"
       archived        = false
       is_template     = false
+      has_discussions = false
       required_checks = []
     }
   }
@@ -185,6 +188,7 @@ run "archived_repo_keeps_only_the_repo" {
       visibility      = "public"
       archived        = true
       is_template     = false
+      has_discussions = false
       required_checks = []
     }
   }
@@ -213,6 +217,7 @@ run "public_repo_without_required_checks_fails" {
       visibility      = "public"
       archived        = false
       is_template     = false
+      has_discussions = false
       required_checks = []
     }
   }

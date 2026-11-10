@@ -90,6 +90,16 @@ TJ okayed it. Before: required checks `Lint / actionlint`, `Lint / zizmor`, `Lin
 
 The call's response listed exactly those ten.
 
+### 2026-11-10, #8 step 6.9
+
+TJ okayed it ("You own this migration"). The last call here: #57 imported yggdrasil, so its settings are Terraform's now. After #57's apply, each repo's "default branch" ruleset required the same checks as its classic protection, so the classic protection went.
+
+| Call | Sets |
+|---|---|
+| `gh api -X DELETE repos/zimmertr/<repo>/branches/main/protection`, for yggdrasil, ai-config, hevy-trainer-sync, bluebird and bluebird-helm | No classic protection. The rulesets protect main |
+
+Afterwards each repo answered "Branch not protected" for classic protection, and `GET /repos/zimmertr/<repo>/rules/branches/main` listed deletion, non-fast-forward, the PR rule and the same number of required checks as before.
+
 ## Dependabot
 
 `.github/dependabot.yml` updates the pinned actions (`github-actions`), the providers in each stack's `.terraform.lock.hcl` (`terraform`, every directory under `terraform/`) and the tool images in `compose.yml` (`docker-compose`) weekly, each version waiting seven days after its release. Security updates skip the wait. Titles are `build(deps): ...`, a patch.

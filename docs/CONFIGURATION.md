@@ -184,13 +184,13 @@ Each setting `initialize-project` gives a new repo (its `repo.md` and `security.
 
 | Setting | Resource and attributes | Tested |
 |---|---|---|
-| A new repo | `github_repository` with a `template` block | yes |
+| A new repo, except a `.github` repo | `github_repository` with a `template` block naming `zimmertr/yggdrasil-repo-template`, which holds the PR Title and Lint callers and `dependabot.yml` | yes |
 | Squash merge only, titled by the PR (repo.md 9) | `github_repository`: `allow_squash_merge`, `allow_merge_commit`, `allow_rebase_merge`, `squash_merge_commit_title = "PR_TITLE"`, `squash_merge_commit_message = "PR_BODY"` | yes |
 | Auto-merge, branch deletion, update branch, no wiki (repo.md 10) | `github_repository`: `allow_auto_merge`, `delete_branch_on_merge`, `allow_update_branch`, `has_wiki`, `has_projects` | yes |
 | A PR for every change, 0 approvals, stale reviews dismissed, conversations resolved, required checks, no force-push or deletion (security.md 1 to 4) | `github_repository_ruleset` on `~DEFAULT_BRANCH`: `pull_request` (`required_approving_review_count = 0`, `dismiss_stale_reviews_on_push`, `required_review_thread_resolution`, `allowed_merge_methods = ["squash"]`), `required_status_checks` (`required_check` with `context` and `integration_id`, `strict_required_status_checks_policy = false`), `deletion`, `non_fast_forward`. No bypass actors, so admins are held too | yes |
 | No Copilot review (security.md 5) | No `copilot_code_review` rule | n/a |
 | Dependabot alerts and security updates (security.md 6) | `github_repository_vulnerability_alerts`, `github_repository_dependabot_security_updates` | yes |
-| `dependabot.yml` and the auto-merge workflow (security.md 7 to 9) | Files the template seeds; each repo owns them after that (0003) | n/a |
+| `dependabot.yml` and the auto-merge workflow (security.md 7 to 9) | Files the template seeds; each repo owns them after that (0003). The template has no auto-merge workflow until #12, because a new repo has no merge token | n/a |
 | CodeQL default setup (security.md 13) | `restapi_object`: `PATCH /repos/{owner}/{repo}/code-scanning/default-setup` | yes |
 | Secret scanning and push protection (security.md 14) | `github_repository`: `security_and_analysis` | yes |
 | Immutable releases (security.md 18) | `restapi_object`: `PUT /repos/{owner}/{repo}/immutable-releases` | yes |

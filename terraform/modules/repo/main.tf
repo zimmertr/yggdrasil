@@ -52,6 +52,17 @@ resource "github_repository" "this" {
   # Removing a repo's file archives the repo, never deletes it (record 0035).
   archive_on_destroy = true
 
+  # A new repo starts from the template, so its first PR already runs the
+  # checks its ruleset requires (decision record 0024). A .github repo has no
+  # CI, so it starts empty.
+  dynamic "template" {
+    for_each = var.name == ".github" ? [] : [1]
+    content {
+      owner      = "zimmertr"
+      repository = "yggdrasil-repo-template"
+    }
+  }
+
   # Squash only, titled and described by the PR (repo.md 9).
   allow_squash_merge          = true
   allow_merge_commit          = false
@@ -89,7 +100,10 @@ resource "github_repository" "this" {
     # Merge commits are off, and GitHub then ignores changes to these two, so
     # a repo imported with other values would show the same change on every
     # plan (docs/DATA.md).
-    ignore_changes = [merge_commit_title, merge_commit_message]
+    #
+    # The template only matters when GitHub creates the repo. Changing it
+    # would replace the repo, and an imported repo has none.
+    ignore_changes = [merge_commit_title, merge_commit_message, template]
 
     # Removing every required check would leave main open to any PR. A .github
     # repo has no CI, so it has none to require.

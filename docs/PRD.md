@@ -37,7 +37,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 | Shared conventions | `GitVersion.yml` (SemVer and the bump patterns), the conventional PR title check that reads it, the release process, and `trivy.yaml`, read at the module's pinned ref; a caller can pass its own | today copied in each repo |
 | `github` stack | One YAML file per repo (`repos/<owner>/<name>.yml`) and per org (`orgs/<name>.yml`), read by Terraform: settings, rulesets, security features, merge settings, immutable releases, org settings | ai-config#3 |
 | Defaults | The `github` stack holds `initialize-project`'s standard settings as defaults, and a repo file sets only what differs, such as `archived: true` | new |
-| Template repo | Terraform creates each new repo from a template that already holds the caller workflows, `dependabot.yml`, `LICENSE` and `.gitignore`, so its first PR runs the shared CI | new |
+| Template repo | Terraform creates each new repo from a template, `zimmertr/yggdrasil-repo-template`, that already holds the PR Title and Lint callers and `dependabot.yml`, so its first PR runs the shared CI. `initialize-project` adds the `LICENSE`, `.gitignore` and README, which differ per repo | new |
 | Guardrails | The preconditions (11) and `archive_on_destroy` (12) | new |
 | `dockerhub` stack | Docker Hub repositories and their immutable tags | ai-config#3 notes |
 | `cloudflare` stack | Moved whole from Kubernetes-Manifests `terraform/cloudflare`, with its state | Kubernetes-Manifests |

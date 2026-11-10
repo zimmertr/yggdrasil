@@ -84,6 +84,14 @@ run "public_repo_gets_everything" {
     condition     = length(github_repository_file.community) == 0
     error_message = "Terraform writes files only into a .github repo."
   }
+
+  assert {
+    condition = (
+      github_repository.this.template[0].owner == "zimmertr" &&
+      github_repository.this.template[0].repository == "yggdrasil-repo-template"
+    )
+    error_message = "A new repo starts from yggdrasil-repo-template."
+  }
 }
 
 run "github_repo_gets_the_shared_files" {
@@ -136,6 +144,11 @@ run "github_repo_gets_the_shared_files" {
       length(restapi_object.private_vulnerability_reporting) == 1
     )
     error_message = "A .github repo has no checks to require and no code for CodeQL, and keeps the rest."
+  }
+
+  assert {
+    condition     = length(github_repository.this.template) == 0
+    error_message = "A .github repo starts empty, without the template's workflows."
   }
 }
 

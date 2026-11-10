@@ -1,6 +1,6 @@
 # Configuration
 
-Every setting yggdrasil depends on, and where each is set. The repo's own settings are logged in [CICD.md](CICD.md#settings-applied-by-api), and its secrets are listed there too.
+Every setting yggdrasil depends on, and where each is set. Its secrets are listed in [CICD.md](CICD.md#secrets).
 
 ## Module inputs
 

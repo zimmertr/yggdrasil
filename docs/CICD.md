@@ -40,56 +40,6 @@ Every job runs in the same pinned container a local `make` run uses. Record: [00
 
 Branch protection requires `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, the five `Terraform /` checks, `Docs` and `PR Title` (logged below). A check joins it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR. CodeQL's default setup scans the workflows too.
 
-## Settings applied by API
-
-Until #8 imports the repo into Terraform, its settings are API calls that TJ okays first. Each one is logged here, so #8 can check its import against this list. Record: [0014](architectural-decision-records/0014-foundation-by-hand-then-imported.md)
-
-### 2026-11-05, #2 item 0.1
-
-Before: merge commits and rebase merges allowed, the squash commit built from the commit messages, auto-merge off, head branches kept, the update-branch button off, wiki and projects on, Dependabot alerts and security updates off, private vulnerability reporting off, immutable releases off, and `sha_pinning_required` false. Secret scanning and push protection were already on.
-
-| Call | Sets |
-|---|---|
-| `gh api -X PATCH repos/zimmertr/yggdrasil -F allow_squash_merge=true -F allow_merge_commit=false -F allow_rebase_merge=false -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=PR_BODY -F allow_auto_merge=true -F delete_branch_on_merge=true -F allow_update_branch=true -F has_wiki=false -F has_projects=false` | Squash only, with the PR title and body; auto-merge; head branches deleted; update-branch button; wiki and projects off |
-| `gh api -X PUT repos/zimmertr/yggdrasil/vulnerability-alerts` | Dependabot alerts |
-| `gh api -X PUT repos/zimmertr/yggdrasil/automated-security-fixes` | Dependabot security updates |
-| `gh api -X PUT repos/zimmertr/yggdrasil/private-vulnerability-reporting` | Private vulnerability reporting |
-| `gh api -X PUT repos/zimmertr/yggdrasil/immutable-releases` | Immutable releases |
-| `gh api -X PUT repos/zimmertr/yggdrasil/actions/permissions -F enabled=true -f allowed_actions=all -F sha_pinning_required=true` | Actions must be pinned to a full commit SHA |
-
-Each setting was read back from its endpoint after the call.
-
-### 2026-11-05, #2 item 0.9
-
-TJ okayed both. Before: no branch protection and no code scanning.
-
-| Call | Sets |
-|---|---|
-| `gh api -X PUT repos/zimmertr/yggdrasil/branches/main/protection --input protection.json` | Required checks `actionlint`, `zizmor`, `Docs` and `PR Title` from GitHub Actions (app 15368), not strict; a PR for every change with 0 approvals and stale reviews dismissed; admins included; conversations resolved; no force-push, no deletion |
-| `gh api -X PATCH repos/zimmertr/yggdrasil/code-scanning/default-setup -f state=configured -f query_suite=default -f 'languages[]=actions'` | CodeQL default setup for the workflows |
-
-`protection.json` held exactly those fields; the read-back of `branches/main/protection` matched it.
-
-### 2026-11-06, #6 step 4.4
-
-TJ okayed it. Before: required checks `actionlint`, `zizmor`, `Docs` and `PR Title`.
-
-| Call | Sets |
-|---|---|
-| `gh api -X PATCH repos/zimmertr/yggdrasil/branches/main/protection/required_status_checks --input checks.json` | Required checks `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, `Docs` and `PR Title` from GitHub Actions (app 15368), not strict |
-
-The call's response listed exactly those five.
-
-### 2026-11-07, #8 step 6.2
-
-TJ okayed it. Before: required checks `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, `Docs` and `PR Title`.
-
-| Call | Sets |
-|---|---|
-| `gh api -X PATCH repos/zimmertr/yggdrasil/branches/main/protection/required_status_checks --input checks.json` | Required checks `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, `Terraform / fmt`, `Terraform / validate`, `Terraform / test`, `Terraform / tflint`, `Terraform / trivy`, `Docs` and `PR Title` from GitHub Actions (app 15368), not strict |
-
-The call's response listed exactly those ten.
-
 ## Dependabot
 
 `.github/dependabot.yml` updates the pinned actions (`github-actions`), the providers in each stack's `.terraform.lock.hcl` (`terraform`, every directory under `terraform/`) and the tool images in `compose.yml` (`docker-compose`) weekly, each version waiting seven days after its release. Security updates skip the wait. Titles are `build(deps): ...`, a patch.

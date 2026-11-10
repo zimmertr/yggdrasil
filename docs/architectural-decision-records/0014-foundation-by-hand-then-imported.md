@@ -1,11 +1,11 @@
 # 0014. yggdrasil's own settings are set by API now and imported into Terraform in #8
 
-- Status: Accepted
+- Status: Done: #57 imported yggdrasil on 2026-11-10
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05. Asked "Why are we making changes manually instead of with terraform?", then, after the reasons below: "Fair enough", and okayed the calls.
 - Issues and PRs: #2, #8
 - Cited in code as: none
-- Guide: [`docs/CICD.md`](../CICD.md), Settings applied by API
+- Guide: [`CLAUDE.md`](../../CLAUDE.md), Rules, "Settings change only through PRs"
 
 ## Context
 
@@ -13,7 +13,7 @@ yggdrasil needs its settings and branch protection before any PR can be trusted,
 
 ## Decision
 
-The foundation's settings are API calls that TJ okays one change at a time, each logged with its exact command in [`docs/CICD.md`](../CICD.md#settings-applied-by-api). #8 imports yggdrasil like every other repo, and its plan must come back empty against that log.
+The foundation's settings are API calls that TJ okays one change at a time, each logged with its exact command in [`docs/CICD.md`](https://github.com/zimmertr/yggdrasil/blob/9ec577f916986b3538d596b4f7682c3a288e3f5b/docs/CICD.md#settings-applied-by-api) (removed in #59, once #57 had imported the repo). #8 imports yggdrasil like every other repo, and its plan must come back empty against that log.
 
 ## Evidence
 

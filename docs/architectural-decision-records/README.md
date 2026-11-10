@@ -38,7 +38,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0011](0011-guardrails-as-code.md) | CI refuses breaking changes without `!`, settings that weaken security, and destroys without a label | 2026-11-05 | Accepted, except the breaking-change check (0025), the schema and the destroy gate (0035) |
 | [0012](0012-one-file-per-repo-and-org.md) | Each managed repo and org is one YAML file that names a profile, and new repos start from a template | 2026-11-05 | Accepted, except the profiles (0035) and the file layout (0043) |
 | [0013](0013-workflows-before-terraform.md) | The modules ship and are proven on hevy-trainer-sync before any Terraform, with one issue per phase | 2026-11-05 | Accepted |
-| [0014](0014-foundation-by-hand-then-imported.md) | yggdrasil's own settings are set by API now and imported into Terraform in #8 | 2026-11-05 | Accepted |
+| [0014](0014-foundation-by-hand-then-imported.md) | yggdrasil's own settings are set by API now and imported into Terraform in #8 | 2026-11-05 | Done (#57) |
 | [0015](0015-skills-live-in-ai-config.md) | Shared skills live only in zimmertr/ai-config, and a repo-specific skill lives only in its repo | 2026-11-05 | Accepted |
 | [0016](0016-pr-plans-keep-the-admin-token-for-now.md) | PR plans run with the App's full token for now | 2026-11-05 | Superseded by 0044 |
 | [0017](0017-docs-and-records.md) | Every change updates its docs page in the same PR, and every decision gets a record here | 2026-11-05 | Accepted, except a record for every decision (0036) |

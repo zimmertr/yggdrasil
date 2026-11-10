@@ -157,7 +157,7 @@ Each stack has its own workspace, created once by hand before its first plan: `d
 | `description` | `""` | The repo's description |
 | `homepage_url` | none | The website shown beside it |
 | `topics` | `[]` | Its topics |
-| `visibility` | `public` | `public` or `private`. A private repo on GitHub Free gets no rulesets, secret scanning, CodeQL or private vulnerability reporting |
+| `visibility` | `public` | `public` or `private`. A private repo on GitHub Free gets no rulesets, secret scanning, CodeQL, private vulnerability reporting or auto-merge |
 | `archived` | `false` | Archives the repo. An archived repo is read-only, so only the repo itself stays managed |
 | `is_template` | `false` | Marks the repo as a template |
 | `has_discussions` | `false` | Turns Discussions on. Bluebird uses them |

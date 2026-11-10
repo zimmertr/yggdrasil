@@ -161,9 +161,10 @@ run "private_repo_skips_what_github_free_cannot_do" {
       length(github_repository_ruleset.release_tags) == 0 &&
       length(restapi_object.private_vulnerability_reporting) == 0 &&
       length(restapi_object.codeql_default_setup) == 0 &&
-      length(github_repository.this.security_and_analysis) == 0
+      length(github_repository.this.security_and_analysis) == 0 &&
+      !github_repository.this.allow_auto_merge
     )
-    error_message = "A private repo gets no rulesets, CodeQL, private reporting or secret scanning on GitHub Free."
+    error_message = "A private repo gets no rulesets, CodeQL, private reporting, secret scanning or auto-merge on GitHub Free."
   }
 
   assert {

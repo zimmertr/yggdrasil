@@ -1,6 +1,0 @@
-description: Throwaway repo that proves removing a repo's file archives it (#8)
-required_checks:
-  - PR Title / PR Title
-  - Lint / actionlint
-  - Lint / zizmor
-  - Lint / semgrep

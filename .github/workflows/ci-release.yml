@@ -25,6 +25,10 @@ jobs:
     uses: $/.github/workflows/release.yml
     permissions:
       contents: write  # the tag and release, on main only
+      # The module's Build & Push asks for it, and a caller must grant what a
+      # called job asks for even when that job never runs. yggdrasil pushes no
+      # image: the dry run builds without pushing.
+      packages: write
     with:
       dry-run: ${{ github.event_name == 'pull_request' }}
       images: >-

@@ -48,9 +48,17 @@ Terraform, run in a workflow with an installation token for `zimmertr`, with `in
 - 2026-11-10: with merge commits off, GitHub accepts but doesn't save a change to `merge_commit_title` or `merge_commit_message`. Bootstrap-Proxmox, imported with `PR_TITLE` and `BLANK`, kept them through #60's apply, and #61's plan showed the same change again. The repo module ignores both.
 - 2026-11-10: on GitHub Free, a private repo accepts but doesn't save `allow_auto_merge = true`. Resume still read `false` after #61's apply. The repo module turns auto-merge on for public repos only.
 
+## GHCR
+
+Uses: the images the release module pushes, at `ghcr.io/<owner>/<name>` (#9). Record: [0052](architectural-decision-records/0052-images-go-to-ghcr-pinned-by-digest.md)
+
+- Limits and terms: [Working with the Container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
+- 2026-11-10, a probe workflow in https://github.com/zimmertr/yggdrasil/pull/73, with only the job's `GITHUB_TOKEN` and `packages: write`: an image tag pushed twice took the second push (the digest changed), and so did a Helm chart version pushed twice with `helm push` to `oci://ghcr.io/zimmertr`. Both new packages started public and linked to `zimmertr/yggdrasil`, the chart with no source label. A private repo and an org weren't tried.
+- 2025-10-13, on GitHub's Immutable Releases discussion (community discussion 171210): immutable tags are "not yet available in GHCR". The feature request (discussion 181783) was still open on 2026-09-04.
+
 ## Docker Hub
 
-Uses: the repositories that consumers push images to, and their immutable tags (#9).
+Uses: Bluebird's images and chart, until zimmertr/bluebird#111 moves them to GHCR. Every other image moves to GHCR in #9.
 
 - Limits: [Docker Hub usage and limits](https://docs.docker.com/docker-hub/usage/).
 - Terms: [Docker Terms of Service](https://www.docker.com/legal/docker-terms-service/).

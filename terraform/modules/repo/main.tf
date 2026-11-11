@@ -27,7 +27,7 @@ locals {
   bot = 5636772
 
   # community-health-files/ISSUE_TEMPLATE/ goes to .github/ISSUE_TEMPLATE/,
-  # and SECURITY.md to the root.
+  # and SECURITY.md, CONTRIBUTING.md and the README to the root.
   source_dir = "${path.module}/../../../community-health-files"
   community_files = local.community ? {
     for f in fileset(local.source_dir, "**") :

@@ -215,7 +215,7 @@ Each setting `initialize-project` gives a new repo (its `repo.md` and `security.
 | Secrets (security.md 19 and 20) | `github_actions_secret`, `github_dependabot_secret`. A value set this way is stored in state, so #12 decides which, if any, Terraform holds | no |
 | Private vulnerability reporting (security.md 21) | `restapi_object`: `PUT /repos/{owner}/{repo}/private-vulnerability-reporting` | yes |
 | Every action pinned to a full SHA | `github_actions_repository_permissions`: `sha_pinning_required` | yes |
-| The shared issue templates and `SECURITY.md`, and a README, in each owner's `.github` repo only | `github_repository_file`, one per file in `community-health-files/`, committed to the default branch by the bot | yes, 2026-11-07 |
+| The shared issue templates, `SECURITY.md` and `CONTRIBUTING.md`, and a README, in each owner's `.github` repo only | `github_repository_file`, one per file in `community-health-files/`, committed to the default branch by the bot | yes, 2026-11-07 |
 
 A repo named `.github` differs in three ways, with no key in its file (record 0046): its default-branch ruleset lets the bot (App ID 5636772) bypass it, so the bot can commit the shared files, while everyone else still needs a PR; it requires no checks, since it has no CI; and it gets no CodeQL, since it holds no code.
 

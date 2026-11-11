@@ -1,6 +1,7 @@
 # The Cloudflare side of the public ingress: one remotely-managed tunnel, its
 # ingress rules, a proxied CNAME per public hostname, and the token cert-manager
-# solves DNS-01 challenges with. cloudflared in public/cloudflared runs with
+# solves DNS-01 challenges with. cloudflared in Kubernetes-Manifests'
+# public/cloudflared runs with
 # this tunnel's token and reads the rules from Cloudflare, so the hostname list
 # in terraform.tfvars is the only place a public hostname is declared.
 terraform {

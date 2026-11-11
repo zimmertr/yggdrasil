@@ -6,6 +6,7 @@ What TJ sees from yggdrasil, and what to do when it breaks. Each part that is no
 
 - **A bump PR from Dependabot or Renovate** three days after a yggdrasil release ships (#5 to #7). Patch and minor bumps merge themselves once the repo's checks pass; a major waits for TJ. Record: [0023](architectural-decision-records/0023-releases-bake-three-days.md)
 - **The module's checks** on every PR, named `caller / callee`.
+- **Versions skip when merges land close together.** Releases run one at a time, and GitHub keeps only the newest waiting run, so a burst of merges releases once, at the last one: 0.1.0 can go to 0.1.6 with no release between. Nothing is lost, because GitVersion counts every merge since the last tag. A release run that main has moved past says "Releases nothing: main has moved past this commit" in its `Version` job, and pushes nothing. Record: [0053](architectural-decision-records/0053-release-only-from-mains-newest-commit.md)
 - **In a private repo** (Resume), the same checks, but none is required and nothing merges itself: read the checks, then merge Dependabot's PRs by hand. Record: [0039](architectural-decision-records/0039-private-repos-run-the-checks-without-requiring-them.md)
 
 ## In yggdrasil

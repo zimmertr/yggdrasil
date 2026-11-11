@@ -77,3 +77,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0050](0050-imports-bring-repos-up-to-the-standard.md) | An import brings a repo up to the module's standard in the same apply, and a repo file may set `has_discussions` | 2026-11-10 | Accepted. Supersedes 0043 in part |
 | [0051](0051-org-settings-in-terraform.md) | Terraform manages each org's settings, the same on every org, with security on for its new repos and no drift report | 2026-11-10 | Accepted |
 | [0052](0052-images-go-to-ghcr-pinned-by-digest.md) | The release module pushes to GHCR with the job's token, and deploys pin the digest | 2026-11-10 | Accepted |
+| [0053](0053-release-only-from-mains-newest-commit.md) | The release module releases only from main's newest commit | 2026-11-11 | Accepted |

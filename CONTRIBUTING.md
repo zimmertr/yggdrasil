@@ -1,6 +1,6 @@
 # Contributing
 
-yggdrasil has one maintainer. For a large change, open an issue first, so the approach gets discussed before you build it.
+Thanks for your interest in contributing to yggdrasil. For a large change, please open an issue first, so the approach is agreed before you put time into it.
 
 If you send a change:
 

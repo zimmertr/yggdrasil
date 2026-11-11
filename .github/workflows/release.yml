@@ -300,7 +300,7 @@ jobs:
           # Exact: with no version the action installs whatever Helm is newest
           # on the day. Renovate doesn't read this input: bump it by hand,
           # here and in chart.yml.
-          version: v4.3.0
+          version: v4.3.1
       # Before the check below, so it also sees a private package.
       - if: ${{ !inputs.dry-run }}
         env:

@@ -39,7 +39,7 @@ jobs:
           # Exact: with no version the action installs whatever Helm is newest
           # on the day. Renovate doesn't read this input: bump it by hand,
           # here and in release.yml.
-          version: v4.3.0
+          version: v4.3.1
       # From the repositories the chart's Chart.yaml names, with no
       # `helm repo add`. Does nothing for a chart with no dependencies.
       - name: Fetch the chart's dependencies

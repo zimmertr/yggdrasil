@@ -1,0 +1,60 @@
+name: GHCR probe
+
+# Throwaway, never merged: #9 step 7.1. What GHCR allows with only the job's
+# GITHUB_TOKEN: pushing an image and a Helm chart, pushing the same tag twice,
+# a new package's visibility, and which repo it links to.
+on:
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  probe:
+    name: GHCR probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/zimmertr/yggdrasil-ghcr-probe
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Log in to ghcr.io
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+      - name: Push an image, then the same tag again with other content
+        run: |
+          set -x
+          mkdir img && cd img
+          printf 'FROM scratch\nLABEL org.opencontainers.image.source=https://github.com/zimmertr/yggdrasil\nLABEL probe=first\n' > Dockerfile
+          docker build -t "$IMAGE:v1" .
+          docker push "$IMAGE:v1"
+          first=$(docker buildx imagetools inspect "$IMAGE:v1" --format '{{json .Manifest.Digest}}')
+          printf 'FROM scratch\nLABEL org.opencontainers.image.source=https://github.com/zimmertr/yggdrasil\nLABEL probe=second\n' > Dockerfile
+          docker build -t "$IMAGE:v1" .
+          if docker push "$IMAGE:v1"; then echo "RESULT second push of v1: accepted"; else echo "RESULT second push of v1: refused"; fi
+          second=$(docker buildx imagetools inspect "$IMAGE:v1" --format '{{json .Manifest.Digest}}')
+          echo "RESULT v1 digest before $first, after $second"
+
+      - name: Push a Helm chart, then the same version again
+        run: |
+          set -x
+          docker run --rm -v "$PWD:/w" -w /w alpine/helm:3.22.1 create yggdrasil-ghcr-probe-chart
+          docker run --rm -v "$PWD:/w" -w /w alpine/helm:3.22.1 package yggdrasil-ghcr-probe-chart
+          helm_push() {
+            docker run --rm -v "$PWD:/w" -w /w -e GH_TOKEN --entrypoint sh alpine/helm:3.22.1 -c \
+              'echo "$GH_TOKEN" | helm registry login ghcr.io -u probe --password-stdin && helm push yggdrasil-ghcr-probe-chart-0.1.0.tgz oci://ghcr.io/zimmertr'
+          }
+          if helm_push; then echo "RESULT first chart push: accepted"; else echo "RESULT first chart push: refused"; fi
+          sed -i 's/^description: .*/description: second push/' yggdrasil-ghcr-probe-chart/Chart.yaml
+          docker run --rm -v "$PWD:/w" -w /w alpine/helm:3.22.1 package yggdrasil-ghcr-probe-chart
+          if helm_push; then echo "RESULT second chart push of 0.1.0: accepted"; else echo "RESULT second chart push of 0.1.0: refused"; fi
+
+      - name: What GitHub says about the new packages
+        run: |
+          for p in yggdrasil-ghcr-probe yggdrasil-ghcr-probe-chart; do
+            echo "RESULT $p: $(gh api "users/zimmertr/packages/container/$p" --jq '"visibility=\(.visibility) repository=\(.repository.full_name // "none")"' 2>&1)"
+            echo "RESULT $p make public: $(gh api -X PATCH "users/zimmertr/packages/container/$p" -f visibility=public 2>&1 | head -c 200)"
+          done

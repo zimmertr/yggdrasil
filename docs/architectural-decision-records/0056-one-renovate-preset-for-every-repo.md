@@ -17,6 +17,7 @@
 - Every update waits seven days after its release. yggdrasil's own modules don't wait.
 - An update whose registry gives no publish date doesn't wait either, because nothing can age it.
 - Everything below a major merges itself once the repo's required checks pass. A major waits for TJ.
+- A Python minor waits for TJ too. Python numbers its yearly releases as minors, and each one can break code.
 - No repo keeps a `dependabot.yml` or an auto-merge workflow. The `auto-merge` module goes once its last caller does.
 
 ## Evidence
@@ -26,6 +27,7 @@
 - 2026-11-11, Renovate's docs: a Docker image is aged only from Docker Hub's push date. GHCR, Quay and ECR give none, and since Renovate 42 the default (`minimumReleaseAgeBehaviour: timestamp-required`) holds such an update forever. Security updates skip `minimumReleaseAge`. [`docs/DATA.md`](../DATA.md#github)
 - 2026-11-11: `renovate-config-validator --strict` passes the preset and yggdrasil's own file.
 - 2026-11-11, Renovate's first run on yggdrasil (#93): two updates opened and merged themselves (#91, #92), eight waited out their seven days, and a GHCR image was proposed with no wait. It listed the providers' ranges in the `.tf` files and no lock file, so the preset sets `rangeStrategy: update-lockfile` for Terraform.
+- 2026-11-11: Mountaineers-Activity-Scraper's dashboard listed "update python docker tag to v3.15" for a `Dockerfile` on `python:3.11-slim`, waiting out its seven days and then due to merge itself. A local run on hevy-garmin-sync classed 3.14 to 3.15 as a `minor` as well.
 
 ## Alternatives rejected
 

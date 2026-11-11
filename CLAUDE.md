@@ -46,7 +46,7 @@ File issues with the `create-issue` skill from zimmertr/ai-config: the two-sente
 - **The reader**: TJ on the board, who knows GitHub and CI but not every module's inputs or every Terraform resource.
 - **The gates**: CI passes; the docs page that owns the topic changes in the same PR, and a record too when the PR makes a decision that shapes the system; the README changes only to stay accurate.
 - **The constraints**: a change that breaks a caller carries `!`; nothing is applied to a repo before its import plans clean; no plan that weakens branch protection or a security setting is applied without TJ's okay; never print a secret's value, and never put a private repo's contents in a public output.
-- **The areas**: `ci` (yggdrasil's own CI), `modules` (the reusable workflows and composite actions), `terraform` (the stacks for GitHub, Docker Hub and Cloudflare, and `repos/`, `orgs/`), `consumers` (switching a repo onto the modules), `security` (credentials, permissions and security settings).
+- **The areas**: `ci` (yggdrasil's own CI), `modules` (the reusable workflows and composite actions), `terraform` (the stacks for GitHub and Cloudflare, and `repos/`, `orgs/`), `consumers` (switching a repo onto the modules), `security` (credentials, permissions and security settings).
 
 ## Working in this repo
 

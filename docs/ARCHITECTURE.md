@@ -3,7 +3,7 @@
 yggdrasil has two halves that share one repo, one version and one bot identity:
 
 - **Modules**: reusable workflows and composite actions. A repo calls one with a pinned `uses:` and its own inputs, instead of copying a pipeline.
-- **Infrastructure**: Terraform that creates and manages TJ's repos and orgs on GitHub, Docker Hub and Cloudflare.
+- **Infrastructure**: Terraform that creates and manages TJ's repos and orgs on GitHub, and the Cloudflare tunnel and DNS.
 
 The full design is in [PRD.md](PRD.md). This page says what each part is, where it lives, and which issue builds it. Each part below is built by the issue it names.
 
@@ -21,7 +21,6 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 | `terraform/github/` | The stack that reads `repos/` and `orgs/`, with the defaults, one provider pair per owner, and the preconditions that refuse an unknown key or owner | #8 |
 | `terraform/modules/repo/` | One repo and every setting `initialize-project` gives it, with each security feature always on where GitHub allows it | #8 |
 | `terraform/modules/org/` | One org's settings, the same on every org, with security on for its new repos | #8 |
-| `terraform/dockerhub/` | Docker Hub repositories and their immutable tags | #9 |
 | `terraform/cloudflare/` | The stack moved from Kubernetes-Manifests, with its state | #10 |
 | `GitVersion.yml` | yggdrasil's own version and the PR title patterns that pick each bump | #2 |
 | `Makefile`, `compose.yml` | Every check as a `make` target, and the pinned images each one runs in | #2 |

@@ -8,7 +8,9 @@ name: release
 # pushing them. Decision records 0027, 0032, 0033 and 0034.
 #
 # The caller sets `concurrency` (one release at a time) and grants
-# `contents: write`, which only the Tag and Release job uses.
+# `contents: write`, which only the Tag and Release job uses, and
+# `packages: write`, which only Build & Push uses. Images go to GHCR, pushed
+# with the job's own token (decision record 0052).
 on:
   workflow_call:
     inputs:
@@ -24,8 +26,8 @@ on:
         description: >-
           JSON list of the images to build and push under the version, each
           {"image": "zimmertr/name", "context": ".", "file": "path/Dockerfile",
-          "platforms": "linux/amd64,linux/arm64", "cache": true}. Only `image`
-          is required. `context` defaults to the repo root, `file` (from the
+          "platforms": "linux/amd64,linux/arm64", "cache": true}, pushed to
+          ghcr.io/<image>, lowercased. Only `image` is required. `context` defaults to the repo root, `file` (from the
           repo root) to the context's Dockerfile, `platforms` to linux/amd64,
           and `cache` to false. Empty for none.
         type: string
@@ -35,17 +37,13 @@ on:
           JSON list of the files to point at the release, one PR each:
           {"repo": "zimmertr/Kubernetes-Manifests", "file": "path/kustomization.yml",
           "set": "yq path, such as .appVersion", "branch": "chore/name-image",
-          "title": "chore(scope): bump name"}. The version is appended to the
-          title as " to X.Y.Z". Empty for none.
+          "title": "chore(scope): bump name", "image": "ghcr.io/zimmertr/name",
+          "digest-set": "yq path, such as .images[0].digest"}. The version is
+          appended to the title as " to X.Y.Z". With `digest-set`, the PR also
+          writes the digest of `image` at this version there. Empty for none.
         type: string
         default: '[]'
     secrets:
-      dockerhub-username:
-        description: Docker Hub user that pushes the images. Needed when `images` isn't empty.
-        required: false
-      dockerhub-token:
-        description: Docker Hub token for that user. Needed when `images` isn't empty.
-        required: false
       deploy-token:
         description: Token with contents and pull-requests write on every `deploys` repo. Needed when `deploys` isn't empty.
         required: false
@@ -120,7 +118,7 @@ jobs:
         env:
           IMAGES: ${{ inputs.images }}
         run: |
-          echo "scans=$(jq -c '[.[] | .image as $i | (.platforms // "linux/amd64" | split(",")[]) | {image: $i, platform: .}]' <<< "$IMAGES")" >> "$GITHUB_OUTPUT"
+          echo "scans=$(jq -c '[.[] | ("ghcr.io/" + (.image | ascii_downcase)) as $i | (.platforms // "linux/amd64" | split(",")[]) | {image: $i, platform: .}]' <<< "$IMAGES")" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build & Push (${{ matrix.image }})
@@ -134,6 +132,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+      packages: write  # the push to GHCR
     strategy:
       matrix:
         include: ${{ fromJSON(inputs.images) }}
@@ -148,19 +147,20 @@ jobs:
       - if: ${{ !inputs.dry-run }}
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
-          username: ${{ secrets.dockerhub-username }}
-          password: ${{ secrets.dockerhub-token }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
       # The tag and the OCI labels (version, revision, source, created and the
       # rest). The version only, no `latest`: deploys pin the version, and a
       # moving tag is one nothing should pull.
       - id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ${{ matrix.image }}
+          # GHCR wants lowercase, which the action gives: Bluebird-Forecast's
+          # images go to ghcr.io/bluebird-forecast.
+          images: ghcr.io/${{ matrix.image }}
           tags: type=raw,value=${{ needs.version.outputs.version }}
           flavor: latest=false
-      # A re-run of a pushed image fails here: Docker Hub's tags are immutable
-      # (record 0024). Re-run the failed jobs, not all of them.
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ${{ matrix.context || '.' }}
@@ -181,9 +181,10 @@ jobs:
           cache-to: ${{ matrix.cache && 'type=gha,mode=max' || '' }}
 
   # What the registry holds, scanned before anything points at it: the PR scan
-  # saw only an amd64 build of the PR branch. By the version tag, which Docker
-  # Hub's immutable tags fix to the bytes pushed (record 0024). No Docker Hub
-  # login, so Trivy's code sees no credential. A fixable Critical or High holds
+  # saw only an amd64 build of the PR branch. By the version tag: only a run
+  # for a version with no git tag yet builds, so nothing else pushes it. No
+  # login: a package pushed from a public repo starts public, so Trivy's code
+  # sees no credential. A fixable Critical or High holds
   # the tag and release back; the image stays pushed, and the fix is the next
   # release.
   scan:
@@ -277,6 +278,23 @@ jobs:
           SET: ${{ matrix.set }}
         with:
           cmd: yq -i "$SET = strenv(VERSION)" "$FILE" && yq -e "($SET) == strenv(VERSION)" "$FILE"
+      # The digest pins what the deploy runs, since a GHCR tag can be moved by
+      # hand (record 0052). Read after the push, before anything points at it.
+      - id: digest
+        if: matrix.digest-set != ''
+        env:
+          IMAGE: ${{ matrix.image }}:${{ needs.version.outputs.version }}
+        run: |
+          DIGEST=$(docker buildx imagetools inspect "$IMAGE" --format '{{.Manifest.Digest}}')
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+      - if: matrix.digest-set != ''
+        uses: mikefarah/yq@504fc38780cc46be8444ea1b72fb55919fc0bfb0 # v4.54.1
+        env:
+          DIGEST: ${{ steps.digest.outputs.digest }}
+          FILE: ${{ matrix.file }}
+          SET: ${{ matrix.digest-set }}
+        with:
+          cmd: yq -i "$SET = strenv(DIGEST)" "$FILE" && yq -e "($SET) == strenv(DIGEST)" "$FILE"
       # Pushes the fixed branch fresh off the default branch, then opens the PR
       # or edits the open one to this version. Does nothing when the file
       # already holds it. zizmor would have `gh pr create` instead, which does

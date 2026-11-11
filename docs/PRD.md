@@ -39,7 +39,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 | Defaults | The `github` stack holds `initialize-project`'s standard settings as defaults, and a repo file sets only what differs, such as `archived: true` | new |
 | Template repo | Terraform creates each new repo from a template, `zimmertr/yggdrasil-repo-template`, that already holds the PR Title and Lint callers and `dependabot.yml`, so its first PR runs the shared CI. `initialize-project` adds the `LICENSE`, `.gitignore` and README, which differ per repo | new |
 | Guardrails | The preconditions (11) and `archive_on_destroy` (12) | new |
-| `dockerhub` stack | Docker Hub repositories and their immutable tags | ai-config#3 notes |
+| GHCR | Every image and chart on `ghcr.io`, pushed with each job's own token, and deploys pin the digest (record 0052). Docker Hub in Terraform was dropped on 2026-11-07 | ai-config#3 notes |
 | `cloudflare` stack | Moved whole from Kubernetes-Manifests `terraform/cloudflare`, with its state | Kubernetes-Manifests |
 
 ## 4. Core components
@@ -51,7 +51,6 @@ defaults/               GitVersion.yml, trivy.yaml
 repos/<owner>/<name>.yml  one file per managed repo
 orgs/<name>.yml         one file per managed org
 terraform/github/       reads repos/ and orgs/
-terraform/dockerhub/
 terraform/cloudflare/
 docs/
 ```
@@ -94,7 +93,7 @@ Detailed into tasks after sign-off. In order:
 7. **P6 `github` stack.**
    - Import all 17 repos and the five orgs until the plan is empty.
    - Then turn on plan on PR and apply on merge.
-8. **P7 Docker Hub**, if P1 shows Docker's provider can manage it.
+8. **P7 GHCR.** Images and charts move from Docker Hub (#9).
 9. **P8 `cloudflare` stack.**
    - Move the stack from Kubernetes-Manifests.
    - Point its `cloud` block at `Yggdrasil-Org`, where its workspace already is after the rename.

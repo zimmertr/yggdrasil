@@ -126,7 +126,7 @@ Scans each image's `linux/amd64` half at the caller's latest GitHub release, fix
 
 zimmertr/hevy-garmin-sync calls every module but `terraform.yml`, and is the example to copy. Its callers at `a80486f`: [`release.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/release.yml) (an image, a chart that pins it, and the chart's deploy), [`pr.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr.yml), [`pr-title.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr-title.yml), [`lint.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/lint.yml), [`dependabot-auto-merge.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/dependabot-auto-merge.yml) and [`image-scan.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/image-scan.yml). It keeps no `GitVersion.yml` or `trivy.yaml`, so the defaults below apply.
 
-- Pin every module to a release's commit SHA, with the version in a comment, so Dependabot can move it. Its `github-actions` entry runs daily with `cooldown: default-days: 3` (record [0023](architectural-decision-records/0023-releases-bake-three-days.md)).
+- Pin every module to a release's commit SHA, with the version in a comment, so Renovate can move it. The shared preset below takes a yggdrasil release as soon as it ships (record [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md)).
 - A caller job's `name` comes first in each check's name: `Docker Build / Docker Build`. Rename the required checks in the same step as the switch.
 - Don't give a caller the same `concurrency` group as the module it calls: `pr-title.yml` already sets one.
 
@@ -138,6 +138,17 @@ A module reads these at the commit its caller pinned, by checking out `job.workf
 |---|---|
 | `defaults/GitVersion.yml` | yggdrasil's own `GitVersion.yml` without its `ignore` rule, so every merge to a caller's main releases. A first release is v0.1.0, and a repo already tagged counts from its last tag. `feat` is a minor, `!` before the colon a major, every other type a patch, and only the title counts |
 | `defaults/trivy.yaml` | Skips pip's vendored SBOM, `**/pip/_vendor/bom.cdx.json`, which Trivy otherwise reads as installed packages at versions that aren't installed |
+
+No module reads `defaults/renovate.json`. Renovate reads it from yggdrasil's main, for every repo whose `.github/renovate.json` extends `github>zimmertr/yggdrasil//defaults/renovate`, so a change applies on Renovate's next run with no bump PR. Record: [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md)
+
+| The preset sets | To |
+|---|---|
+| `extends` | `config:recommended`, `helpers:pinGitHubActionDigests` and `:semanticCommits`, so titles are `chore(deps): ...` or `fix(deps): ...` |
+| `minimumReleaseAge` | `7 days` for every update. `zimmertr/yggdrasil` has none |
+| `minimumReleaseAgeBehaviour` | `timestamp-optional`: an update with no publish date doesn't wait. Renovate's default would hold it forever |
+| `automerge` | On for `minor`, `patch`, `digest`, `pin` and `pinDigest`. A major waits for TJ |
+
+A repo adds its own `packageRules` after the `extends`, and they win over the preset's.
 
 ## The App
 
@@ -202,13 +213,13 @@ Each setting `initialize-project` gives a new repo (its `repo.md` and `security.
 
 | Setting | Resource and attributes | Tested |
 |---|---|---|
-| A new repo, except a `.github` repo | `github_repository` with a `template` block naming `zimmertr/yggdrasil-repo-template`, which holds the PR Title and Lint callers and `dependabot.yml` | yes |
+| A new repo, except a `.github` repo | `github_repository` with a `template` block naming `zimmertr/yggdrasil-repo-template`, which holds the PR Title and Lint callers and `.github/renovate.json` | yes |
 | Squash merge only, titled by the PR (repo.md 9) | `github_repository`: `allow_squash_merge`, `allow_merge_commit`, `allow_rebase_merge`, `squash_merge_commit_title = "PR_TITLE"`, `squash_merge_commit_message = "PR_BODY"` | yes |
 | Auto-merge, branch deletion, update branch, no wiki (repo.md 10) | `github_repository`: `allow_auto_merge`, `delete_branch_on_merge`, `allow_update_branch`, `has_wiki`, `has_projects` | yes |
 | A PR for every change, 0 approvals, stale reviews dismissed, conversations resolved, required checks, no force-push or deletion (security.md 1 to 4) | `github_repository_ruleset` on `~DEFAULT_BRANCH`: `pull_request` (`required_approving_review_count = 0`, `dismiss_stale_reviews_on_push`, `required_review_thread_resolution`, `allowed_merge_methods = ["squash"]`), `required_status_checks` (`required_check` with `context` and `integration_id`, `strict_required_status_checks_policy = false`), `deletion`, `non_fast_forward`. No bypass actors, so admins are held too | yes |
 | No Copilot review (security.md 5) | No `copilot_code_review` rule | n/a |
 | Dependabot alerts and security updates (security.md 6) | `github_repository_vulnerability_alerts`, `github_repository_dependabot_security_updates` | yes |
-| `dependabot.yml` and the auto-merge workflow (security.md 7 to 9) | Files the template seeds; each repo owns them after that (0003). The template has no auto-merge workflow until #12, because a new repo has no merge token | n/a |
+| Dependency updates and their auto-merge (security.md 7 to 9) | `.github/renovate.json`, which the template seeds and which extends the shared preset (0056). TJ's Renovate installation covers every repo of the account | n/a |
 | CodeQL default setup (security.md 13) | `restapi_object`: `PATCH /repos/{owner}/{repo}/code-scanning/default-setup` | yes |
 | Secret scanning and push protection (security.md 14) | `github_repository`: `security_and_analysis` | yes |
 | Immutable releases (security.md 18) | `restapi_object`: `PUT /repos/{owner}/{repo}/immutable-releases` | yes |

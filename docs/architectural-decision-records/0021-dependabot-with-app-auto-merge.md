@@ -1,6 +1,6 @@
 # 0021. Dependabot updates actions and tool images weekly, and its patch and minor updates merge themselves as the App
 
-- Status: Accepted
+- Status: Superseded by 0056
 - Date: 2026-11-05
 - Decider: TJ. The patch and minor rule is TJ's standard ("I thought we were setting a standard to auto merge patch and minor updates?", hevy-trainer-sync record 0037). Using the App here from the start: "Use the App now", 2026-11-05.
 - Issues and PRs: #2, #20

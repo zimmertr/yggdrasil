@@ -13,7 +13,7 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 |---|---|---|
 | `.github/workflows/` | yggdrasil's own CI, and the reusable workflows (GitHub requires both here) | #2, #4 |
 | `actions/<name>/` | Composite actions, if a module ever needs a shared step. None yet (record 0026) | #4 |
-| `defaults/` | The shared conventions: `GitVersion.yml`, `trivy.yaml` | #4 |
+| `defaults/` | The shared conventions: `GitVersion.yml`, `trivy.yaml`, and the Renovate preset every repo extends (record 0056) | #4, #40 |
 | `community-health-files/` | The one copy of the issue templates, `SECURITY.md` and the generic `CONTRIBUTING.md`, and the `.github` repos' README, which Terraform writes into each owner's `.github` repo (records 0041, 0046, 0055) | #8, #44 |
 | `tests/<module>/` | What a module's test caller builds, such as `tests/docker-build/`'s empty image and `tests/chart/`'s one-ConfigMap chart | #4 |
 | `repos/<owner>/<name>.yml` | One file per managed repo, in its owner's folder: only what differs from the defaults, and never a security setting (record 0043) | #8 |
@@ -32,7 +32,7 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 flowchart LR
   subgraph consumer["A consuming repo"]
     caller["caller workflow<br/>uses: zimmertr/yggdrasil/...@sha # vX.Y.Z<br/>with: its own inputs"]
-    dep["Dependabot or Renovate<br/>checks daily"]
+    dep["Renovate"]
   end
   subgraph ygg["yggdrasil"]
     mod["reusable workflow<br/>or composite action"]
@@ -45,7 +45,7 @@ flowchart LR
 
 - The caller passes everything repo-specific as inputs. yggdrasil keeps no per-repo pipeline config. Record: [0002](architectural-decision-records/0002-callers-bring-their-own-config.md)
 - Every module shares one SemVer. A merge that changes a module path releases; a settings-only merge releases nothing. Record: [0004](architectural-decision-records/0004-one-version-for-every-module.md)
-- Each consumer takes a release once it is three days old. Patch and minor bumps merge themselves; a major waits for TJ. Record: [0023](architectural-decision-records/0023-releases-bake-three-days.md)
+- Each consumer takes a release as soon as Renovate sees it. Patch and minor bumps merge themselves; a major waits for TJ. Records: [0023](architectural-decision-records/0023-releases-bake-three-days.md), [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md)
 
 A job inside a reusable workflow reports its check as `<caller job name> / <module job name>`, so a consumer that switches to a module renames its required checks in the same step (#5 to #7). A `./` path inside a reusable workflow resolves in the caller's checkout, not in yggdrasil's, so a module that needs its own files checks out `job.workflow_repository` at `job.workflow_sha`, the commit the caller pinned. Record: [0022](architectural-decision-records/0022-modules-load-their-own-files-from-the-job-context.md)
 

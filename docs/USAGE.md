@@ -4,14 +4,14 @@ What TJ sees from yggdrasil, and what to do when it breaks. Each part that is no
 
 ## In a consuming repo
 
-- **A bump PR from Dependabot or Renovate** three days after a yggdrasil release ships (#5 to #7). Patch and minor bumps merge themselves once the repo's checks pass; a major waits for TJ. Record: [0023](architectural-decision-records/0023-releases-bake-three-days.md)
+- **A bump PR from Renovate** soon after a yggdrasil release ships. Patch and minor bumps merge themselves once the repo's checks pass; a major waits for TJ. Every other update waits seven days first, unless its registry gives no publish date. Record: [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md)
 - **The module's checks** on every PR, named `caller / callee`.
 - **Versions skip when merges land close together.** Releases run one at a time, and GitHub keeps only the newest waiting run, so a burst of merges releases once, at the last one: 0.1.0 can go to 0.1.6 with no release between. Nothing is lost, because GitVersion counts every merge since the last tag. A release run that main has moved past says "Releases nothing: main has moved past this commit" in its `Version` job, and pushes nothing. Record: [0053](architectural-decision-records/0053-release-only-from-mains-newest-commit.md)
-- **In a private repo** (Resume), the same checks, but none is required and nothing merges itself: read the checks, then merge Dependabot's PRs by hand. Record: [0039](architectural-decision-records/0039-private-repos-run-the-checks-without-requiring-them.md)
+- **In a private repo** (Resume), the same checks, but none is required and nothing merges itself: read the checks, then merge Renovate's PRs by hand. Record: [0039](architectural-decision-records/0039-private-repos-run-the-checks-without-requiring-them.md)
 
 ## In yggdrasil
 
-- **A Dependabot PR** for an action or a tool image, weekly. Patch and minor updates merge themselves once the checks pass, armed by `zimmertr-yggdrasil-bot`, which comments on the PR to say so.
+- **A Renovate PR** for an action, a tool image or a Terraform provider. Everything below a major merges itself once the checks pass, except a provider update, which waits for TJ. Renovate's "Dependency Dashboard" issue lists what is waiting out its seven days.
 - **A plan comment** on every PR that touches `repos/`, `orgs/` or `terraform/` (#8). When the PR merges, `Apply github` (or `Apply cloudflare`, for `terraform/cloudflare/`) applies that plan and adds the result to the same comment.
 
 - **A new repo.** One PR adds `repos/<owner>/<name>.yml` with its `description` and the template's four checks in `required_checks` (`PR Title / PR Title`, `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`). The merge creates the repo from `zimmertr/yggdrasil-repo-template`, with every setting and ruleset. Then run `/initialize-project` in it for its license, README and the rest (record 0024).

@@ -44,22 +44,22 @@ Every job runs in the same pinned container a local `make` run uses. Record: [00
 
 Branch protection requires `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, the five `Terraform /` checks, `Docs` and `PR Title` (logged below). A check joins it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR. CodeQL's default setup scans the workflows too.
 
-## Dependabot
+## Renovate
 
-`.github/dependabot.yml` updates the pinned actions (`github-actions`), the providers in each stack's `.terraform.lock.hcl` (`terraform`, every directory under `terraform/`) and the tool images in `compose.yml` (`docker-compose`) weekly, each version waiting seven days after its release. Security updates skip the wait. Titles are `build(deps): ...`, a patch.
+`.github/renovate.json` extends the shared preset, `defaults/renovate.json` ([CONFIGURATION.md](CONFIGURATION.md#shared-defaults)). Renovate updates the pinned actions, the providers each stack pins and the tool images in `compose.yml`, each version waiting seven days after its release. Security updates skip the wait, and so does an image whose registry gives no publish date. Titles are `chore(deps): ...` or `fix(deps): ...`, a patch. Record: [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md)
 
-`dependabot-auto-merge.yml` arms squash auto-merge on Dependabot's patch and minor updates, with a token minted from `zimmertr-yggdrasil-bot`, and comments on the PR as the bot. Majors, digest-only updates and every Terraform provider update wait for TJ: once a merge applies a stack (#8), a provider bump changes what the next apply does. Record: [0042](architectural-decision-records/0042-terraform-module.md) Record: [0021](architectural-decision-records/0021-dependabot-with-app-auto-merge.md)
+Renovate arms squash auto-merge on everything below a major. Majors and every Terraform provider update wait for TJ: a merge applies a stack, so a provider bump changes what the next apply does. Record: [0042](architectural-decision-records/0042-terraform-module.md)
 
 ## Secrets
 
 | Secret | Kind | Holds | Used by |
 |---|---|---|---|
-| `YGGDRASIL_BOT_PRIVATE_KEY` | Dependabot | The App's private key, set by TJ | `dependabot-auto-merge.yml`, and `terraform-github.yml` on Dependabot's PRs |
+| `YGGDRASIL_BOT_PRIVATE_KEY` | Dependabot | The App's private key, set by TJ | `terraform-github.yml` on Dependabot's PRs, which are now only its security updates |
 | `TF_API_TOKEN` | Dependabot | The same HCP Terraform team token, set by TJ on 2026-11-07 | `terraform-github.yml` and `terraform-cloudflare.yml` on Dependabot's PRs, so a provider bump shows its plan |
 | `YGGDRASIL_BOT_PRIVATE_KEY` | Actions | The same key, set by TJ on 2026-11-06 | `terraform-github.yml`, for the plan and the apply |
 | `TF_API_TOKEN` | Actions | The HCP Terraform team token for `Yggdrasil-Org`, set by TJ on 2026-11-06 | `terraform-github.yml` and `terraform-cloudflare.yml`, for the plan and the apply |
 | `CLOUDFLARE_API_TOKEN` | Actions and Dependabot | A Cloudflare API token with Tunnel Edit, Account API Tokens Edit, Zone Read and DNS Edit, the same one as in TJ's `~/.claude/secrets.json`, set on 2026-11-10 with TJ's okay (#10) | `terraform-cloudflare.yml`, for the plan and the apply |
 
-The key and the HCP token are each stored twice because a run Dependabot starts can't read Actions secrets, and other runs can't read Dependabot's. There are no GitHub environments: plan and apply hold the same key, so an environment that locks apply to main would guard nothing the plan doesn't already hold (TJ, 2026-11-06, #8). The plan uses the same write tokens as the apply, since a read-only token can't see a repo's merge settings. Record: [0047](architectural-decision-records/0047-pr-plans-use-the-applys-write-tokens.md) The workflow names the App by its public client ID, so `YGGDRASIL_BOT_APP_ID`, which held the App ID, was deleted on 2026-11-05 with TJ's okay. yggdrasil has no `AUTO_MERGE_PAT`: its auto-merge mints an App token instead. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)
+The key and the HCP token are each stored twice because a run Dependabot starts can't read Actions secrets, and other runs can't read Dependabot's. There are no GitHub environments: plan and apply hold the same key, so an environment that locks apply to main would guard nothing the plan doesn't already hold (TJ, 2026-11-06, #8). The plan uses the same write tokens as the apply, since a read-only token can't see a repo's merge settings. Record: [0047](architectural-decision-records/0047-pr-plans-use-the-applys-write-tokens.md) The workflow names the App by its public client ID, so `YGGDRASIL_BOT_APP_ID`, which held the App ID, was deleted on 2026-11-05 with TJ's okay. yggdrasil has no `AUTO_MERGE_PAT`: Renovate arms auto-merge on its own PRs. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)
 
 Never print, log or paste a secret's value. #12 inventories every secret across TJ's repos and services.

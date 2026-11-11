@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "The dependency rules every repo of TJ's shares (zimmertr/yggdrasil record 0056). A repo extends this file and adds only its own rules.",
+    "Every release waits seven days before it is proposed, so a compromised one has a week to be noticed and pulled. Security updates skip the wait.",
+    "A registry that gives no publish date (GHCR, Quay, ECR) can't be aged, so its updates don't wait: timestamp-optional. The default would hold them forever."
+  ],
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    ":semanticCommits"
+  ],
+  "minimumReleaseAge": "7 days",
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
+  "packageRules": [
+    {
+      "description": "Everything below a major merges itself once the repo's required checks pass. A major waits for TJ.",
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin",
+        "pinDigest"
+      ],
+      "automerge": true
+    },
+    {
+      "description": "yggdrasil's own modules don't wait: they are TJ's releases, so there is no stranger's release to watch for a week.",
+      "matchPackageNames": [
+        "zimmertr/yggdrasil"
+      ],
+      "minimumReleaseAge": null
+    }
+  ]
+}

@@ -47,11 +47,13 @@ import {
 # actually changes. The rest are created: the rulesets don't exist yet,
 # because these repos use classic branch protection, and creating each of the
 # three restapi_object settings is a PUT or PATCH that sets what the module
-# wants, whatever it was.
+# wants, whatever it was. An archived repo leaves the list once it's in state:
+# its module drops the settings these blocks import into, and an import into
+# a resource that isn't declared fails the plan (hevy-trainer-sync, #76).
 locals {
   zimmertr_imported = toset([
     for r in [
-      "yggdrasil", "ai-config", "hevy-trainer-sync", "hevy-garmin-sync", "bluebird", "bluebird-helm",
+      "yggdrasil", "ai-config", "hevy-garmin-sync", "bluebird", "bluebird-helm",
       "Kubernetes-Manifests", "TJs-Kubernetes-Service", "Personal-Website", "zimmertr", "3D-Models", "Bootstrap-Proxmox",
       "Supermicro-X10-Fancontrol", "Mountaineers-Activity-Scraper", "Ender-6-Klipper-Guide", "Better-Lighter-Pack",
       "Strava-Heatmap-String-Builder", "Resume", "yggdrasil-repo-template",

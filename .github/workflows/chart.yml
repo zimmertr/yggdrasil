@@ -1,0 +1,55 @@
+name: chart
+
+# The PR chart module: the chart's dependencies fetched, `helm lint`, a render
+# with the chart's defaults, then the caller's own renders. hevy-garmin-sync's
+# and bluebird-helm's chart check. The release module pushes the chart, as it
+# does the images this module's neighbour docker-build checks. Decision
+# record 0054.
+#
+# The caller runs it on `pull_request` and grants `contents: read`.
+on:
+  workflow_call:
+    inputs:
+      chart:
+        description: The chart's folder, from the repo root.
+        type: string
+        required: true
+      test:
+        description: Bash run from the repo root after the lint and the default render, with the chart's folder in $CHART and its dependencies fetched. A failing command fails the job.
+        type: string
+        default: ''
+
+permissions: {}
+
+jobs:
+  chart:
+    name: Chart
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      CHART: ${{ inputs.chart }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          # Exact: with no version the action installs whatever Helm is newest
+          # on the day. Dependabot doesn't read this input: bump it by hand,
+          # here and in release.yml.
+          version: v4.3.0
+      # From the repositories the chart's Chart.yaml names, with no
+      # `helm repo add`. Does nothing for a chart with no dependencies.
+      - name: Fetch the chart's dependencies
+        run: helm dependency update "$CHART"
+      - name: Lint the chart
+        run: helm lint "$CHART"
+      - name: Render the chart with its defaults
+        run: helm template "$CHART" >/dev/null
+      - name: Run the caller's renders
+        if: inputs.test != ''
+        env:
+          TEST: ${{ inputs.test }}
+        run: bash -euo pipefail -c "$TEST"

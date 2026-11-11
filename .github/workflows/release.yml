@@ -2,15 +2,16 @@ name: release
 
 # The release module: the next version; the caller's images built, pushed and
 # scanned; then the git tag and GitHub release, which wait on every scan; then
-# a PR in each deploy repo that points it at the release. A caller runs it on
-# every push to main, and may run it on PRs with `dry-run`, where it says in
-# the job summary what the merge will release and builds the images without
-# pushing them. Decision records 0027, 0032, 0033 and 0034.
+# the caller's Helm charts pushed under the same version; then a PR in each
+# deploy repo that points it at the release. A caller runs it on every push to
+# main, and may run it on PRs with `dry-run`, where it says in the job summary
+# what the merge will release, builds the images without pushing them and
+# packages the charts. Decision records 0027, 0032, 0033, 0034 and 0054.
 #
 # The caller sets `concurrency` (one release at a time) and grants
 # `contents: write`, which only the Tag and Release job uses, and
-# `packages: write`, which only Build & Push uses. Images go to GHCR, pushed
-# with the job's own token (decision record 0052).
+# `packages: write`, which only Build & Push and Push Chart use. Images and
+# charts go to GHCR, pushed with the job's own token (decision record 0052).
 on:
   workflow_call:
     inputs:
@@ -19,7 +20,7 @@ on:
         type: string
         default: ''
       dry-run:
-        description: Work out the version and build the images, but push, tag and release nothing.
+        description: Work out the version, build the images and package the charts, but push, tag and release nothing.
         type: boolean
         default: false
       images:
@@ -30,6 +31,19 @@ on:
           ghcr.io/<image>, lowercased. Only `image` is required. `context` defaults to the repo root, `file` (from the
           repo root) to the context's Dockerfile, `platforms` to linux/amd64,
           and `cache` to false. Empty for none.
+        type: string
+        default: '[]'
+      charts:
+        description: >-
+          JSON list of the Helm charts to push under the version, each
+          {"chart": "charts/name", "image": "ghcr.io/zimmertr/name",
+          "digest-set": ".image.digest"}, pushed to oci://ghcr.io/<owner>,
+          lowercased, under the name in its Chart.yaml. Only `chart`, the
+          chart's folder, is required. With `image` and `digest-set`, the
+          chart's appVersion becomes the version and the digest of `image` at
+          this version is written into the chart's values.yaml at that yq
+          path. Without them the chart keeps its Chart.yaml's appVersion.
+          Empty for none.
         type: string
         default: '[]'
       deploys:
@@ -258,16 +272,112 @@ jobs:
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
           echo "Released ${TAG}." >> "$GITHUB_STEP_SUMMARY"
 
+  # After the tag, so a chart version is pushed only for a commit that carries
+  # it, and a version already in GHCR is never pushed again: Argo CD pins a
+  # chart by version, not digest, and GHCR would replace it (record 0052). So
+  # "Re-run failed jobs" finishes a release whose push failed and repeats
+  # nothing. A dry run packages each chart, which proves its folder and its
+  # dependencies, and pushes nothing.
+  chart:
+    name: Push Chart (${{ matrix.chart }})
+    needs: [version, release]
+    if: ${{ !cancelled() && !failure() && inputs.charts != '[]' && (inputs.dry-run || needs.release.result == 'success') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write  # the push to GHCR
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(inputs.charts) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          # Exact: with no version the action installs whatever Helm is newest
+          # on the day. Dependabot doesn't read this input: bump it by hand,
+          # here and in chart.yml.
+          version: v4.3.0
+      # Before the check below, so it also sees a private package.
+      - if: ${{ !inputs.dry-run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "$GH_TOKEN" | helm registry login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+      # The chart's name is its OCI path, so it comes from Chart.yaml.
+      - id: chart
+        env:
+          CHART: ${{ matrix.chart }}
+          VERSION: ${{ needs.version.outputs.version }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          NAME=$(helm show chart "$CHART" | sed -n 's/^name: //p')
+          REGISTRY="oci://ghcr.io/${GITHUB_REPOSITORY_OWNER,,}"
+          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
+          echo "registry=${REGISTRY}" >> "$GITHUB_OUTPUT"
+          if [ "$DRY_RUN" = false ] && helm show chart "${REGISTRY}/${NAME}" --version "$VERSION" >/dev/null 2>&1; then
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+            echo "Pushes nothing: ${NAME} ${VERSION} is already in GHCR." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+          fi
+      # The image this release pushed, by digest, written into the chart's
+      # values so an install runs those bytes. Not in a dry run, which pushes
+      # no image to read.
+      - id: digest
+        if: ${{ !inputs.dry-run && steps.chart.outputs.pushed == 'false' && matrix.digest-set != '' }}
+        env:
+          IMAGE: ${{ matrix.image }}:${{ needs.version.outputs.version }}
+        run: |
+          DIGEST=$(docker buildx imagetools inspect "$IMAGE" --format '{{.Manifest.Digest}}')
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+      - if: ${{ !inputs.dry-run && steps.chart.outputs.pushed == 'false' && matrix.digest-set != '' }}
+        uses: mikefarah/yq@504fc38780cc46be8444ea1b72fb55919fc0bfb0 # v4.54.1
+        env:
+          DIGEST: ${{ steps.digest.outputs.digest }}
+          FILE: ${{ matrix.chart }}/values.yaml
+          SET: ${{ matrix.digest-set }}
+        with:
+          cmd: yq -i "$SET = strenv(DIGEST)" "$FILE" && yq -e "($SET) == strenv(DIGEST)" "$FILE"
+      # --dependency-update fetches the chart's dependencies from the
+      # repositories its Chart.yaml names, with no `helm repo add`. A chart
+      # with an image ships the app this release built, so its appVersion is
+      # the version; one without keeps its Chart.yaml's, which the app's own
+      # release bumps.
+      - if: steps.chart.outputs.pushed == 'false'
+        env:
+          CHART: ${{ matrix.chart }}
+          VERSION: ${{ needs.version.outputs.version }}
+          NAME: ${{ steps.chart.outputs.name }}
+          REGISTRY: ${{ steps.chart.outputs.registry }}
+          IMAGE: ${{ matrix.image }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          APP_VERSION=()
+          [ -z "$IMAGE" ] || APP_VERSION=(--app-version "$VERSION")
+          helm package "$CHART" --dependency-update --version "$VERSION" "${APP_VERSION[@]}"
+          if [ "$DRY_RUN" = true ]; then
+            echo "Dry run: packaged ${NAME} ${VERSION} and pushed nothing." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            helm push "${NAME}-${VERSION}.tgz" "$REGISTRY"
+            echo "Pushed ${REGISTRY}/${NAME} ${VERSION}." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
   # One PR per deploy file, on a fixed branch, so quick releases leave one
   # up-to-date PR, not a pile. After the release, because a chart repo's own
-  # release reads the app's latest one. Releases run one at a time, and a run
+  # release follows the app's, and after the charts, so a deploy never names a
+  # chart version that isn't in GHCR yet. Releases run one at a time, and a run
   # for a commit behind main releases nothing, so only "Re-run failed jobs" on
   # an old release whose Version job passed could point a deploy back at an
   # older version: don't; release again from main instead.
   deploy:
     name: Deploy Bump (${{ matrix.repo }})
-    needs: [version, release]
-    if: inputs.deploys != '[]'
+    needs: [version, release, chart]
+    # Spelled out because a caller with no charts skips the chart job, and a
+    # skipped need would otherwise skip this one.
+    if: ${{ !cancelled() && !failure() && needs.release.result == 'success' && inputs.deploys != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions: {}  # everything here uses the deploy token

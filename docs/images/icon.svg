@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
+  <title>yggdrasil</title>
+  <rect width="100" height="100" fill="#16344F"/>
+  <g transform="translate(8 6) scale(0.84)">
+    <g fill="none" stroke="#E9EEF2" stroke-width="7" stroke-linecap="round">
+      <path d="M50 94V26"/>
+      <path d="M50 66C50 52 28 56 28 42"/>
+      <path d="M50 54C50 40 72 44 72 30"/>
+      <path d="M50 80C50 88 36 86 32 94"/>
+      <path d="M50 80C50 88 64 86 68 94"/>
+    </g>
+    <g fill="#86D6AE">
+      <circle cx="50" cy="20" r="8"/>
+      <circle cx="28" cy="36" r="8"/>
+      <circle cx="72" cy="24" r="8"/>
+    </g>
+  </g>
+</svg>

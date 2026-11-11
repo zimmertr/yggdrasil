@@ -1,4 +1,6 @@
 description: CLI tool to parse backpacking gear lists into useful information
+# No longer maintained. Archived on 2026-11-11 with 57 other old repos.
+archived: true
 topics:
   - backpacking
   - gear

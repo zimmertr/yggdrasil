@@ -1,6 +1,5 @@
 # The github stack: TJ's repos and orgs on GitHub (#8). This file pins
-# Terraform and the providers. The modules and resources arrive in #8's later
-# steps.
+# Terraform and the providers; main.tf and orgs.tf call the modules.
 terraform {
   required_version = "~> 1.17"
 

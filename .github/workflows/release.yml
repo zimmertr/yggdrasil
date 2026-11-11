@@ -94,6 +94,8 @@ jobs:
       # read a PR as a branch build. Dependabot doesn't see this pin: bump it
       # by hand.
       - id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           CONFIG=GitVersion.yml
           [ -f "$CONFIG" ] || CONFIG=.yggdrasil/defaults/GitVersion.yml
@@ -108,9 +110,10 @@ jobs:
           # semantic-release refuses a branch behind its remote: the release
           # from main's newest commit counts this one's change, and an old run
           # would push an image it may never tag and point the deploys back at
-          # an older version (record 0053). The checkout fetched every branch,
-          # so origin/main is main's head as of this run.
-          if [ "$GITHUB_REF" = refs/heads/main ] && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+          # an older version (record 0053). Main's head comes from the API:
+          # for a push, actions/checkout sets origin/main to the run's own
+          # commit, so the clone can't tell.
+          if [ "$GITHUB_REF" = refs/heads/main ] && [ "$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)" != "$GITHUB_SHA" ]; then
             RELEASES=false
             echo "Releases nothing: main has moved past this commit, and the release from main's newest commit includes it." | tee -a "$GITHUB_STEP_SUMMARY"
           elif git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then

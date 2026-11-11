@@ -13,7 +13,7 @@ A caller's `concurrency` group runs one release at a time, and GitHub keeps only
 
 ## Decision
 
-- The `Version` job compares the run's commit with `origin/main`, which its full checkout already fetched. When main has moved past the commit, the run releases nothing: build, scan, tag, release and deploy all skip, and the job summary says "Releases nothing: main has moved past this commit, and the release from main's newest commit includes it."
+- The `Version` job compares the run's commit with main's head, read from the API with the job's own token. When main has moved past the commit, the run releases nothing: build, scan, tag, release and deploy all skip, and the job summary says "Releases nothing: main has moved past this commit, and the release from main's newest commit includes it."
 - The check applies only to runs on `refs/heads/main`, so a PR's dry run is unchanged.
 - Skipped versions stay skipped. GitVersion counts every merge since the last tag, so the next release carries every change.
 
@@ -21,6 +21,7 @@ A caller's `concurrency` group runs one release at a time, and GitHub keeps only
 
 - semantic-release does the same: it refuses to publish when the local branch is behind the remote.
 - 2026-11-10, https://github.com/zimmertr/hevy-garmin-sync/actions/runs/42876099619: the re-run of an old release that pushed an image and failed at the tag.
+- 2026-11-11: v1.0.1 compared with `origin/main`, and a re-run of its release after #79 merged still said "v1.0.1 is already tagged" (https://github.com/zimmertr/yggdrasil/actions/runs/42956464159). For a push, `actions/checkout` sets `origin/main` to the run's own commit, so the clone can't see a newer main. v1.0.2 reads it from the API.
 
 ## Alternatives rejected
 

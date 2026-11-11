@@ -12,6 +12,7 @@ What TJ sees from yggdrasil, and what to do when it breaks. Each part that is no
 ## In yggdrasil
 
 - **A Renovate PR** for an action, a tool image or a Terraform provider. Everything below a major merges itself once the checks pass, except a provider update, which waits for TJ. Renovate's "Dependency Dashboard" issue lists what is waiting out its seven days.
+- **A "Configure Renovate" PR in a repo yggdrasil doesn't manage.** The Renovate app is installed on every repo of the account, so a new repo needs no extra step, and Renovate opens that PR wherever it finds no config. Close it without merging: Renovate then leaves the repo alone. In a managed repo Renovate closes it itself once `.github/renovate.json` is on main.
 - **A plan comment** on every PR that touches `repos/`, `orgs/` or `terraform/` (#8). When the PR merges, `Apply github` (or `Apply cloudflare`, for `terraform/cloudflare/`) applies that plan and adds the result to the same comment.
 
 - **A new repo.** One PR adds `repos/<owner>/<name>.yml` with its `description` and the template's four checks in `required_checks` (`PR Title / PR Title`, `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`). The merge creates the repo from `zimmertr/yggdrasil-repo-template`, with every setting and ruleset. Then run `/initialize-project` in it for its license, README and the rest (record 0024).

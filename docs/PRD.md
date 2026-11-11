@@ -7,7 +7,7 @@ Signed off by TJ, 2026-11-05. Built from the `initialize-project` interview.
 yggdrasil is the public, GPL-3.0 monorepo for TJ's GitHub and CI configuration. It has two halves:
 
 - **Modules.** Versioned reusable workflows and composite actions. A repo calls one with a pinned `uses:` and its own inputs, instead of copying a pipeline. This closes zimmertr/ai-config#2.
-- **Infrastructure.** Terraform that creates and manages TJ's repos and orgs, and their settings on GitHub, Docker Hub and Cloudflare. This closes zimmertr/ai-config#3.
+- **Infrastructure.** Terraform that creates and manages TJ's repos and orgs, and their settings on GitHub and Cloudflare. This closes zimmertr/ai-config#3.
 
 The SBOM module (zimmertr/ai-config#13) comes after this project, as one more module.
 
@@ -116,7 +116,7 @@ Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hu
 | Container image | No | No image pipeline for yggdrasil itself |
 | License | GPL-3.0 | `LICENSE` |
 | Visibility | Public | GitHub's free security features |
-| Upstreams | GitHub, Docker Hub, Cloudflare, HCP Terraform | `docs/` lists each provider's limits and terms |
+| Upstreams | GitHub, Cloudflare, HCP Terraform | `docs/` lists each provider's limits and terms |
 | Terraform runs | Plan on PR, apply on merge | Plan comment, apply job |
 | Credential | GitHub App `zimmertr-yggdrasil-bot` | App id and key as yggdrasil secrets; no PAT |
 | Managed repos and orgs | The 17 repos and 5 orgs above (the two strava-heatmap-proxy forks were deleted on 2026-11-05; Email-Infrastructure, Lakebagger/Backend and Lakebagger/Frontend, which held no code, on 2026-11-06) | One YAML file each |

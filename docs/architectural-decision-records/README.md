@@ -27,7 +27,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 |---|---|---|---|
 | [0001](0001-one-public-gpl-3-monorepo.md) | yggdrasil is one public GPL-3.0 repo for the shared CI modules and the Terraform that manages TJ's repos and orgs | 2026-11-05 | Accepted |
 | [0002](0002-callers-bring-their-own-config.md) | Each caller passes its own configuration to a module as inputs | 2026-11-05 | Accepted |
-| [0003](0003-dependency-config-stays-per-repo.md) | Dependency config stays in each repo, and only the auto-merge is shared | 2026-11-05 | Accepted |
+| [0003](0003-dependency-config-stays-per-repo.md) | Dependency config stays in each repo, and only the auto-merge is shared | 2026-11-05 | Superseded by 0056 |
 | [0004](0004-one-version-for-every-module.md) | Every module shares one SemVer, released only when a module path changes, and callers pin the commit | 2026-11-05 | Accepted, except the breaking-change check (0025) |
 | [0005](0005-every-repo-is-production.md) | Every consumer is production: each takes a release the day it ships, and patch and minor bumps merge themselves | 2026-11-05 | Superseded by 0023 |
 | [0006](0006-shared-conventions-ship-as-defaults.md) | The versioning, PR title and scan conventions ship from yggdrasil as defaults a caller can override | 2026-11-05 | Accepted |
@@ -45,9 +45,9 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0018](0018-checks-run-through-make-in-pinned-containers.md) | Every check runs through a make target in a container pinned by digest, the same way locally and in CI | 2026-11-05 | Accepted, except the Terraform plan and apply (0044) |
 | [0019](0019-community-tools-hold-workflows-and-docs.md) | zizmor, lychee and a grep hold every workflow and doc to the repo's rules, instead of a custom check | 2026-11-05 | Accepted |
 | [0020](0020-pr-titles-checked-by-a-community-action.md) | PR titles are checked by action-semantic-pull-request, against the same types GitVersion reads | 2026-11-05 | Accepted |
-| [0021](0021-dependabot-with-app-auto-merge.md) | Dependabot updates actions and tool images weekly, and its patch and minor updates merge themselves as the App | 2026-11-05 | Accepted |
+| [0021](0021-dependabot-with-app-auto-merge.md) | Dependabot updates actions and tool images weekly, and its patch and minor updates merge themselves as the App | 2026-11-05 | Superseded by 0056 |
 | [0022](0022-modules-load-their-own-files-from-the-job-context.md) | A module loads its own files by checking out `job.workflow_repository` at `job.workflow_sha` | 2026-11-05 | Accepted |
-| [0023](0023-releases-bake-three-days.md) | Every consumer is production: each takes a release once it is three days old, and patch and minor bumps merge themselves | 2026-11-05 | Accepted. Supersedes 0005 |
+| [0023](0023-releases-bake-three-days.md) | Every consumer is production: each takes a release once it is three days old, and patch and minor bumps merge themselves | 2026-11-05 | Accepted. Supersedes 0005. Superseded in part by 0056 |
 | [0024](0024-terraform-providers-and-new-repos.md) | Terraform creates each new repo from the template, protects it with a ruleset, and fills the GitHub provider's gaps with Mastercard/restapi | 2026-11-05 | Accepted |
 | [0025](0025-no-breaking-change-check.md) | No breaking-change check: each caller's own CI catches a breaking release | 2026-11-05 | Accepted |
 | [0026](0026-modules-carry-only-what-callers-use.md) | The modules carry only what hevy-trainer-sync and Bluebird use today, in shell, `jq` and `yq`, with no Python | 2026-11-05 | Superseded in part by 0037 |
@@ -80,3 +80,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0053](0053-release-only-from-mains-newest-commit.md) | The release module releases only from main's newest commit | 2026-11-11 | Accepted |
 | [0054](0054-release-module-pushes-the-charts.md) | The release module pushes Helm charts after the tag and before the deploy bumps, and a chart module checks them on PRs | 2026-11-11 | Accepted |
 | [0055](0055-one-shared-contributing-guide.md) | One shared `CONTRIBUTING.md` for every repo without its own, and a repo with its own process keeps its own | 2026-11-11 | Accepted. Supersedes 0038 and 0041 in part |
+| [0056](0056-one-renovate-preset-for-every-repo.md) | One Renovate preset holds the dependency rules, and every repo extends it | 2026-11-11 | Accepted. Supersedes 0003 and 0021, and 0023 in part |

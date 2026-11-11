@@ -1,6 +1,6 @@
 # 0023. Every consumer is production: each takes a release once it is three days old, and patch and minor bumps merge themselves
 
-- Status: Accepted. Supersedes 0005
+- Status: Accepted. Supersedes 0005. Superseded in part by 0056: the three-day wait
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on rollout rings: "We're treating some repos as more important than others? That's not right. Everything is production here." On a bump that can't merge itself: "If it's blocked it's blocked." Then, after #3 found Dependabot's default cooldown: "We can wait 3 days before updating dependencies… Giving things time to bake is a good idea. We're not in a hurry."
 - Issues and PRs: #1, #3, #5, #6, #7

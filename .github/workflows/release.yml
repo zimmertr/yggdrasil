@@ -105,7 +105,7 @@ jobs:
           git -c user.name=release -c user.email=release@localhost commit -q --allow-empty -m "$TITLE"
       # GitVersion's image rather than gittools/actions, so it sees only the
       # repo and none of the runner's GITHUB_* variables, which would make it
-      # read a PR as a branch build. Dependabot doesn't see this pin: bump it
+      # read a PR as a branch build. Renovate doesn't see this pin: bump it
       # by hand.
       - id: version
         env:
@@ -298,7 +298,7 @@ jobs:
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           # Exact: with no version the action installs whatever Helm is newest
-          # on the day. Dependabot doesn't read this input: bump it by hand,
+          # on the day. Renovate doesn't read this input: bump it by hand,
           # here and in chart.yml.
           version: v4.3.0
       # Before the check below, so it also sees a private package.

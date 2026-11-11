@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>zimmertr/yggdrasil//defaults/renovate"
+  ],
+  "packageRules": [
+    {
+      "description": "Terraform provider updates wait for TJ: a merge applies the stack, so a provider bump changes what the next apply does, and TJ reads its plan first (record 0042).",
+      "matchManagers": [
+        "terraform"
+      ],
+      "automerge": false
+    }
+  ]
+}

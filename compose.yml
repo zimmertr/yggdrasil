@@ -1,5 +1,5 @@
 # The tool images every make target runs in, pinned by tag and digest. They
-# live here, not in the Makefile, so Dependabot's docker-compose updates can
+# live here, not in the Makefile, so Renovate's docker-compose updates can
 # move them. CI runs the same targets, so local and CI runs use one image set.
 services:
   actionlint:

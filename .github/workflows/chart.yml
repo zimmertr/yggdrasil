@@ -37,7 +37,7 @@ jobs:
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           # Exact: with no version the action installs whatever Helm is newest
-          # on the day. Dependabot doesn't read this input: bump it by hand,
+          # on the day. Renovate doesn't read this input: bump it by hand,
           # here and in release.yml.
           version: v4.3.0
       # From the repositories the chart's Chart.yaml names, with no

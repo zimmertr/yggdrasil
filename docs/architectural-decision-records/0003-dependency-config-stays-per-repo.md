@@ -1,6 +1,6 @@
 # 0003. Dependency config stays in each repo, and only the auto-merge is shared
 
-- Status: Accepted
+- Status: Superseded by 0056
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on sharing Dependabot configs centrally: "Sounds like bending Dependabot… Which do you think is best? I want to avoid over engineering here and KISS."
 - Issues and PRs: #1, #4, #7

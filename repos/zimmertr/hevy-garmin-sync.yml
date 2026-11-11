@@ -2,7 +2,7 @@ description: Turns Hevy routines (and Hevy Trainer workouts) into Garmin Connect
 required_checks:
   - test
   - Python Lint
-  - Chart
+  - Chart / Chart
   - Docker Build / Docker Build
   - Lint / actionlint
   - Lint / zizmor

@@ -58,7 +58,7 @@ Uses: the images the release module pushes, at `ghcr.io/<owner>/<name>` (#9). Re
 
 ## Docker Hub
 
-Uses: Bluebird's images and chart, until zimmertr/bluebird#111 moves them to GHCR. Every other image moves to GHCR in #9.
+Uses: nothing since 2026-11-11, when Bluebird's images and chart moved to GHCR, the last after #9. The tags pushed before then stay, because older chart versions name them.
 
 - Limits: [Docker Hub usage and limits](https://docs.docker.com/docker-hub/usage/).
 - Terms: [Docker Terms of Service](https://www.docker.com/legal/docker-terms-service/).

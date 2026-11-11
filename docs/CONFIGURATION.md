@@ -146,7 +146,7 @@ No module reads `defaults/renovate.json`. Renovate reads it from yggdrasil's mai
 | `extends` | `config:recommended`, `helpers:pinGitHubActionDigests` and `:semanticCommits`, so titles are `chore(deps): ...` or `fix(deps): ...` |
 | `minimumReleaseAge` | `7 days` for every update. `zimmertr/yggdrasil` has none |
 | `minimumReleaseAgeBehaviour` | `timestamp-optional`: an update with no publish date doesn't wait. Renovate's default would hold it forever |
-| `automerge` | On for `minor`, `patch`, `digest`, `pin` and `pinDigest`. A major waits for TJ |
+| `automerge` | On for `minor`, `patch`, `digest`, `pin` and `pinDigest`. A major waits for TJ. So does a minor of `python` (the image, or the version `actions/setup-python` installs), because Python's minors are its breaking releases |
 | `rangeStrategy` | `update-lockfile` for Terraform, so a provider release inside the `.tf` range moves `.terraform.lock.hcl`. By default Renovate proposes only a release outside the range |
 
 A repo adds its own `packageRules` after the `extends`, and they win over the preset's.

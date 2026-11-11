@@ -1,6 +1,6 @@
 description: Helm chart for Bluebird, published as an OCI artifact
 required_checks:
-  - Lint & render
+  - Chart / Chart
   - PR Title / PR Title
   - Lint / actionlint
   - Lint / zizmor

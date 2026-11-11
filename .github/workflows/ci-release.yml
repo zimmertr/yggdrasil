@@ -3,8 +3,9 @@ name: ci-release
 # yggdrasil releases itself through its own release module, so this is also
 # the module's test caller. On a PR it runs in dry-run: the Version job's
 # summary says what the merge will release, and the module builds
-# tests/docker-build/ for two platforms without pushing it. On main it tags and
-# releases, with no image: yggdrasil ships none. Decision records 0027 and 0032.
+# tests/docker-build/ for two platforms and packages tests/chart/ without
+# pushing either. On main it tags and releases, with no image or chart:
+# yggdrasil ships none. Decision records 0027, 0032 and 0054.
 on:
   pull_request:
   push:
@@ -26,11 +27,18 @@ jobs:
     permissions:
       contents: write  # the tag and release, on main only
       # A caller must grant what a called job asks for, even a job that never
-      # runs. yggdrasil pushes no image: the dry run builds without pushing.
-      packages: write  # the module's Build & Push asks for it
+      # runs. yggdrasil pushes no image or chart: the dry run builds and
+      # packages without pushing.
+      packages: write  # the module's Build & Push and Push Chart ask for it
     with:
       dry-run: ${{ github.event_name == 'pull_request' }}
       images: >-
         ${{ github.event_name == 'pull_request'
             && '[{"image": "zimmertr/yggdrasil-test", "context": "tests/docker-build", "platforms": "linux/amd64,linux/arm64"}]'
+            || '[]' }}
+      # With an image, so the dry run packages the chart at the version as its
+      # appVersion. It reads no digest: a dry run pushes no image.
+      charts: >-
+        ${{ github.event_name == 'pull_request'
+            && '[{"chart": "tests/chart", "image": "ghcr.io/zimmertr/yggdrasil-test", "digest-set": ".image.digest"}]'
             || '[]' }}

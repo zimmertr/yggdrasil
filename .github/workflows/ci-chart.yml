@@ -1,0 +1,29 @@
+name: ci-chart
+
+# The chart module's test caller, on tests/chart/. Only on PRs that touch the
+# module or its test chart. Not a required check: a path-filtered check never
+# reports on other PRs. Decision record 0054.
+on:
+  pull_request:
+    paths:
+      - .github/workflows/chart.yml
+      - .github/workflows/ci-chart.yml
+      - tests/chart/**
+
+concurrency:
+  group: ci-chart-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  chart:
+    name: Chart Test
+    # `$/` is this repo at the running commit.
+    uses: $/.github/workflows/chart.yml
+    permissions:
+      contents: read
+    with:
+      chart: tests/chart
+      test: |
+        helm template "$CHART" --set message=changed | grep -q '^  message: "changed"$'

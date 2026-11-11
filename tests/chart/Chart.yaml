@@ -1,0 +1,7 @@
+apiVersion: v2
+# The chart module's and the release dry run's test chart. Never pushed.
+name: yggdrasil-test-helm
+description: A one-ConfigMap chart for yggdrasil's own CI.
+type: application
+version: 0.0.0
+appVersion: "0.0.0"

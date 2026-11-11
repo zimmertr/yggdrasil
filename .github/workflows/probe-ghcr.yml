@@ -48,7 +48,7 @@ jobs:
               'echo "$GH_TOKEN" | helm registry login ghcr.io -u probe --password-stdin && helm push yggdrasil-ghcr-probe-chart-0.1.0.tgz oci://ghcr.io/zimmertr'
           }
           if helm_push; then echo "RESULT first chart push: accepted"; else echo "RESULT first chart push: refused"; fi
-          sed -i 's/^description: .*/description: second push/' yggdrasil-ghcr-probe-chart/Chart.yaml
+          sudo sed -i 's/^description: .*/description: second push/' yggdrasil-ghcr-probe-chart/Chart.yaml
           docker run --rm -v "$PWD:/w" -w /w alpine/helm:3.22.1 package yggdrasil-ghcr-probe-chart
           if helm_push; then echo "RESULT second chart push of 0.1.0: accepted"; else echo "RESULT second chart push of 0.1.0: refused"; fi
 

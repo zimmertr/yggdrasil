@@ -60,7 +60,7 @@ jobs:
       contents: read
     outputs:
       version: ${{ steps.version.outputs.version }}
-      tagged: ${{ steps.version.outputs.tagged }}
+      releases: ${{ steps.version.outputs.releases }}
       scans: ${{ steps.scans.outputs.scans }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -101,17 +101,26 @@ jobs:
             gittools/gitversion:6.8.2@sha256:f10e8320b2cf86f879a9304e074ac11f16b897380e0e4a86dd39682b265da568 \
             /repo /config "/repo/$CONFIG" /nocache /output json /format '{SemVer}' | tail -n 1)
           echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::GitVersion gave '${VERSION}'"; exit 1; }
-          TAGGED=false
-          git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null && TAGGED=true
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "tagged=${TAGGED}" >> "$GITHUB_OUTPUT"
           # A merge that touches nothing GitVersion counts gives back the last
           # tagged version, which is how a settings-only merge releases nothing.
-          if [ "$TAGGED" = true ]; then
+          # A run for a commit main has moved past releases nothing too, as
+          # semantic-release refuses a branch behind its remote: the release
+          # from main's newest commit counts this one's change, and an old run
+          # would push an image it may never tag and point the deploys back at
+          # an older version (record 0053). The checkout fetched every branch,
+          # so origin/main is main's head as of this run.
+          if git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
+            RELEASES=false
             echo "Releases nothing: v${VERSION} is already tagged." | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [ "$GITHUB_REF" = refs/heads/main ] && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+            RELEASES=false
+            echo "Releases nothing: main has moved past this commit, and the release from main's newest commit includes it." | tee -a "$GITHUB_STEP_SUMMARY"
           else
+            RELEASES=true
             echo "Releases v${VERSION}." | tee -a "$GITHUB_STEP_SUMMARY"
           fi
+          echo "releases=${RELEASES}" >> "$GITHUB_OUTPUT"
       # One scan per image and platform, since Trivy reads one platform of an
       # index at a time.
       - id: scans
@@ -124,8 +133,8 @@ jobs:
     name: Build & Push (${{ matrix.image }})
     needs: version
     # A dry run builds every image as a test. A real run builds only on main,
-    # for a version not yet tagged.
-    if: inputs.images != '[]' && (inputs.dry-run || (github.ref == 'refs/heads/main' && needs.version.outputs.tagged == 'false'))
+    # for a version not yet tagged, from main's newest commit.
+    if: inputs.images != '[]' && (inputs.dry-run || (github.ref == 'refs/heads/main' && needs.version.outputs.releases == 'true'))
     runs-on: ubuntu-latest
     # Releases run one at a time, so a hung push would hold every later merge
     # until GitHub's six-hour default.
@@ -230,7 +239,7 @@ jobs:
     # Main only: a release from any other ref would tag that ref. With no
     # images, build and scan are skipped, which is fine; a failure in either
     # stops it.
-    if: ${{ !cancelled() && !failure() && !inputs.dry-run && github.ref == 'refs/heads/main' && needs.version.outputs.tagged == 'false' }}
+    if: ${{ !cancelled() && !failure() && !inputs.dry-run && github.ref == 'refs/heads/main' && needs.version.outputs.releases == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: ${{ inputs.environment }}
@@ -248,9 +257,10 @@ jobs:
 
   # One PR per deploy file, on a fixed branch, so quick releases leave one
   # up-to-date PR, not a pile. After the release, because a chart repo's own
-  # release reads the app's latest one. Releases run one at a time, so only a
-  # re-run of an old release could point a deploy back at an older version:
-  # don't re-run one after a newer release; release again instead.
+  # release reads the app's latest one. Releases run one at a time, and a run
+  # for a commit behind main releases nothing, so only "Re-run failed jobs" on
+  # an old release whose Version job passed could point a deploy back at an
+  # older version: don't; release again from main instead.
   deploy:
     name: Deploy Bump (${{ matrix.repo }})
     needs: [version, release]

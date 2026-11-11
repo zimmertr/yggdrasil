@@ -25,12 +25,13 @@ Works out the next version, builds and pushes the caller's images under it and s
 - A `GitVersion.yml` and a `trivy.yaml` at the caller's root are used. Without them, the module reads its `defaults/`.
 - Every image is built with `APP_VERSION`, `APP_COMMIT` and `APP_BUILT_AT` as build arguments and the OCI version, revision and source labels, tagged with the version only, with an SBOM and `provenance: mode=max`.
 - `docker/metadata-action` makes the tag and the OCI labels, and lowercases the name. Only a version with no git tag yet is built, so a re-run of a released version builds nothing. Each scan reads the image by its version tag.
+- A run for a commit that main has moved past releases nothing: no image, tag, release or deploy PR. The run from main's newest commit releases its change (record 0053).
 - GHCR has no immutable tags. A deploy that sets `digest-set` runs the digest it was given, even if someone moves the tag by hand.
 - A new package from a public repo starts public, and links to the repo that pushed it.
 - A fixable Critical or High on any image or platform stops the tag and release. The image stays pushed; the fix is the next release.
 - After the release, `peter-evans/create-pull-request` gives each deploy file one PR on its fixed `branch`, rebuilt off the repo's default branch each release, and squash auto-merge is armed (or a plain squash merge when the checks are already green). A PR still open from an earlier release is moved to the newest.
 - A `set` path that matches nothing fails the job.
-- Don't re-run an old release after a newer one shipped: its deploy PR would point the deploy back at the older version. Release again instead.
+- To finish an old release that failed, release again from main. "Re-run failed jobs" on it skips the `Version` job, which already passed, so its deploy PR could point the deploy back at an older version.
 - `yq` drops a file's blank lines the first time it edits it. Comments stay.
 - The caller sees `<caller job> / Version`, `/ Build & Push (<image>)`, `/ Scan Pushed Image (<image>, <platform>)`, `/ Tag and Release` and `/ Deploy Bump (<repo>)`.
 

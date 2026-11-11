@@ -69,17 +69,6 @@ actionlint, with shellcheck on every `run:`; zizmor's pedantic audits over the c
 - tflint uses its bundled recommended rules, and Trivy `defaults/trivy.yaml`. Neither reads a file of the caller's own yet: no caller has one. Trivy scans Terraform only, and fails on any finding the file doesn't silence.
 - The caller sees `<caller job> / fmt`, `/ validate`, `/ test`, `/ tflint` and `/ trivy`.
 
-### `auto-merge.yml`
-
-Arms auto-merge on Dependabot's patch and minor version updates and says so in a comment. Majors and digest-only updates wait. No inputs. Record: [0029](architectural-decision-records/0029-auto-merge-module-takes-the-callers-token.md)
-
-| Secret | Does |
-|---|---|
-| `merge-token` | Required. A token that can merge PRs in the caller's repo, such as its `AUTO_MERGE_PAT`. Store it as a Dependabot secret: a run Dependabot starts can't read Actions secrets |
-
-- The caller runs it on `pull_request` and grants `pull-requests: write`.
-- The caller sees `<caller job> / Auto-merge patch and minor updates`, skipped on any PR Dependabot didn't open.
-
 ### `docker-build.yml`
 
 On a PR: hadolint, then the `linux/amd64` image built and loaded but not pushed, scanned by Trivy (fixable only), a sticky scan comment, the caller's smoke test, and a failure on any fixable Critical or High. Record: [0030](architectural-decision-records/0030-docker-build-module.md)
@@ -124,7 +113,7 @@ Scans each image's `linux/amd64` half at the caller's latest GitHub release, fix
 
 ## An example caller
 
-zimmertr/hevy-garmin-sync calls every module but `terraform.yml`, and is the example to copy. Its callers at `a80486f`: [`release.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/release.yml) (an image, a chart that pins it, and the chart's deploy), [`pr.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr.yml), [`pr-title.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr-title.yml), [`lint.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/lint.yml), [`dependabot-auto-merge.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/dependabot-auto-merge.yml) and [`image-scan.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/image-scan.yml). It keeps no `GitVersion.yml` or `trivy.yaml`, so the defaults below apply.
+zimmertr/hevy-garmin-sync calls every module but `terraform.yml`, and is the example to copy. Its callers at `a80486f`: [`release.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/release.yml) (an image, a chart that pins it, and the chart's deploy), [`pr.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr.yml), [`pr-title.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr-title.yml), [`lint.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/lint.yml) and [`image-scan.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/image-scan.yml). It keeps no `GitVersion.yml` or `trivy.yaml`, so the defaults below apply.
 
 - Pin every module to a release's commit SHA, with the version in a comment, so Renovate can move it. The shared preset below takes a yggdrasil release as soon as it ships (record [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md)).
 - A caller job's `name` comes first in each check's name: `Docker Build / Docker Build`. Rename the required checks in the same step as the switch.

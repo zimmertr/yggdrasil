@@ -14,13 +14,13 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 ## 2. Core requirements
 
 1. **Consumers bring their own config.** A repo passes `with:` inputs to a module. yggdrasil stores no per-repo pipeline config. The only per-repo data it holds defines the repos and orgs themselves.
-2. **Modules are versioned, and consumers subscribe.** One SemVer covers every module. A consumer pins the commit with the version in a comment. Dependabot (or Renovate) opens a PR for each new release, and the shared auto-merge merges patch and minor bumps; a major waits for TJ. A breaking module change carries `!` in its PR title, which makes it a major. Only a change under the module paths cuts a release, so a settings-only PR bumps nothing downstream.
+2. **Modules are versioned, and consumers subscribe.** One SemVer covers every module. A consumer pins the commit with the version in a comment. Renovate opens a PR for each new release and merges patch and minor bumps itself; a major waits for TJ (record 0056, 2026-11-11). A breaking module change carries `!` in its PR title, which makes it a major. Only a change under the module paths cuts a release, so a settings-only PR bumps nothing downstream.
 3. **Settings change only through PRs.** Every PR posts its `terraform plan`. A merge to main applies it, and puts back any setting changed by hand.
 4. **Import before apply.** No apply runs against a repo until its import shows no changes. No plan that weakens branch protection or a security setting is applied without TJ's okay.
 5. **Safe in public.** Terraform manages settings and never a repo's existing files (it only creates a new repo from the template), so the private repo (Resume) exposes its name, description and settings, never its contents. Plans run only on PRs from yggdrasil's own branches, and no workflow uses `pull_request_target`.
 6. **One bot identity.** A GitHub App, `zimmertr-yggdrasil-bot`, owned by `zimmertr` and installed on every owner yggdrasil manages, mints a short-lived token per run. There is no PAT, unless the verification in task P1 proves one is needed.
 7. **Secret values stay out of Terraform** where possible.
-8. **KISS.** Dependency config (`dependabot.yml`, `renovate.json`) stays in each repo. Only the auto-merge logic is shared.
+8. **KISS.** The dependency rules live once, in `defaults/renovate.json`. Each repo's `.github/renovate.json` extends it and adds only its own (record 0056, 2026-11-11).
 9. **A breaking change carries `!`.** A PR that removes a module input, or adds a required one, carries `!` in its title. No CI check compares inputs with the last release: a release that breaks a caller fails that caller's bump PR, so it never merges itself (record 0025, 2026-11-05).
 10. **Every consumer is production, and all are treated alike.** Each checks for yggdrasil releases daily and takes one once it is three days old, and patch and minor bumps merge themselves. A bad release is fixed forward with a new patch.
 11. **Guardrails in Terraform itself.** The `github` stack's variables are typed, and a repo's file holds no security setting at all: the repo module turns every one on except where GitHub can't apply it, and the plan fails on any key or owner the stack doesn't know (records 0035, 0043).
@@ -33,11 +33,11 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 | Release workflow | GitVersion, image build and push, a Trivy scan of each pushed platform, immutable GitHub release, deploy bump (`yq` sets a kustomization's `newTag`, a chart's `appVersion`, or both) | hevy-trainer-sync and Bluebird `release.yml` |
 | PR workflows | PR title check; image build with hadolint, the Trivy comment and a smoke test | `pr-title.yml`, `pr.yml` |
 | Weekly image scan | Rescans the released image | `image-scan.yml` |
-| Dependabot auto-merge | Patch and minor updates merge themselves | `dependabot-auto-merge.yml` |
+| Dependency updates | One Renovate preset every repo extends: seven days' wait, and everything below a major merges itself | `defaults/renovate.json` |
 | Shared conventions | `GitVersion.yml` (SemVer and the bump patterns), the conventional PR title check that reads it, the release process, and `trivy.yaml`, read at the module's pinned ref; a caller can pass its own | today copied in each repo |
 | `github` stack | One YAML file per repo (`repos/<owner>/<name>.yml`) and per org (`orgs/<name>.yml`), read by Terraform: settings, rulesets, security features, merge settings, immutable releases, org settings | ai-config#3 |
 | Defaults | The `github` stack holds `initialize-project`'s standard settings as defaults, and a repo file sets only what differs, such as `archived: true` | new |
-| Template repo | Terraform creates each new repo from a template, `zimmertr/yggdrasil-repo-template`, that already holds the PR Title and Lint callers and `dependabot.yml`, so its first PR runs the shared CI. `initialize-project` adds the `LICENSE`, `.gitignore` and README, which differ per repo | new |
+| Template repo | Terraform creates each new repo from a template, `zimmertr/yggdrasil-repo-template`, that already holds the PR Title and Lint callers and `.github/renovate.json`, so its first PR runs the shared CI. `initialize-project` adds the `LICENSE`, `.gitignore` and README, which differ per repo | new |
 | Guardrails | The preconditions (11) and `archive_on_destroy` (12) | new |
 | GHCR | Every image and chart on `ghcr.io`, pushed with each job's own token, and deploys pin the digest (record 0052). Docker Hub in Terraform was dropped on 2026-11-07 | ai-config#3 notes |
 | `cloudflare` stack | Moved whole from Kubernetes-Manifests `terraform/cloudflare`, with its state | Kubernetes-Manifests |
@@ -62,7 +62,7 @@ Managed repos (17, all under `zimmertr`), every one of them both managed by Terr
 ## 5. Flows
 
 - **A repo uses a module.** It adds a short caller: `uses: zimmertr/yggdrasil/.github/workflows/release.yml@<sha> # v1.4.0`, plus its inputs. Its PR CI shows the result.
-- **A module changes.** A PR in yggdrasil runs the release and docker-build modules through test callers, the release module in `dry-run` (it builds, and pushes, scans, tags, releases and opens nothing). The merge releases `vX.Y.Z`, and Dependabot opens a bump PR in each consumer once the release is three days old.
+- **A module changes.** A PR in yggdrasil runs the release and docker-build modules through test callers, the release module in `dry-run` (it builds, and pushes, scans, tags, releases and opens nothing). The merge releases `vX.Y.Z`, and Renovate opens a bump PR in each consumer on its next run.
 - **A setting changes.** Edit `repos/<owner>/<name>.yml`. The PR shows the plan, and the merge applies it.
 - **A new repo.** Add `repos/<owner>/<name>.yml` and merge. Terraform creates the repo from the template as the App, in an org or under `zimmertr` (record 0024). Then `/initialize-project` seeds its files.
 - **A new org.** TJ creates it in GitHub's UI (GitHub has no API for that) and installs `zimmertr-yggdrasil-bot`. Then `orgs/<name>.yml`, an import, and Terraform manages it from there. Moving repos into an org is a later project, such as Bluebird's Rebrand.
@@ -121,11 +121,11 @@ Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hu
 | Credential | GitHub App `zimmertr-yggdrasil-bot` | App id and key as yggdrasil secrets; no PAT |
 | Managed repos and orgs | The 17 repos and 5 orgs above (the two strava-heatmap-proxy forks were deleted on 2026-11-05; Email-Infrastructure, Lakebagger/Backend and Lakebagger/Frontend, which held no code, on 2026-11-06) | One YAML file each |
 | Consumers in this project | All 17 repos: the baseline modules everywhere, plus what each repo ships; future repos through the template | P3 to P5, P9 |
-| Dependency config | Stays per repo | Only auto-merge is shared |
+| Dependency config | One preset in `defaults/`, extended per repo | Record 0056 replaced the per-repo files and the shared auto-merge on 2026-11-11 |
 
 ## Settled at sign-off
 
-1. One SemVer for all modules, released only when module paths change. Consumers subscribe through Dependabot or Renovate, and non-breaking bumps merge themselves.
+1. One SemVer for all modules, released only when module paths change. Consumers subscribe through Renovate, and non-breaking bumps merge themselves.
 2. The versioning, conventional-commit and release conventions ship from yggdrasil, and a caller can override them.
 3. Workflows (P2 to P5) come before Terraform (P6 to P8): each module is proven on hevy-trainer-sync before anything else depends on it.
 4. The HCP org is `Yggdrasil-Org`. Kubernetes-Manifests#1888 points the Cloudflare stack at it.

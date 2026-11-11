@@ -1,6 +1,6 @@
 # 0029. The auto-merge module takes each caller's own merge token, not the App's key
 
-- Status: Accepted, except the comment marker, which 0034 replaces with the sticky-comment action
+- Status: Superseded by [0056](0056-one-renovate-preset-for-every-repo.md). The module was deleted on 2026-11-11, once no repo called it
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on #4 item 2.7, choosing "Each repo's own PAT" over storing the App key in every repo
 - Issues and PRs: #4, #30

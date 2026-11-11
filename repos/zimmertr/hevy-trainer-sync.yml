@@ -1,4 +1,6 @@
 description: Puts Hevy Trainer's next workout on a Garmin watch, through hevy2garmin
+# Replaced by hevy-garmin-sync and removed from the cluster on 2026-11-10.
+archived: true
 required_checks:
   - test
   - Lint

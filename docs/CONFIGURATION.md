@@ -15,7 +15,7 @@ Works out the next version, builds and pushes the caller's images under it and s
 | `environment` | `''` | The GitHub environment the `Tag and Release` job runs in, for its protection rules. Empty runs it in none |
 | `dry-run` | `false` | Works out the version and says it in the job summary, and builds every image without pushing it. Scans, tags and releases nothing. On a PR, the version is the one the squash merge will get |
 | `images` | `[]` | A JSON list, one entry per image: `{"image": "zimmertr/bluebird", "context": ".", "file": "fill/Dockerfile", "platforms": "linux/amd64,linux/arm64", "cache": true}`. Each is pushed to `ghcr.io/<image>`, lowercased. Only `image` is required. `context` defaults to the repo root, `file` (a path from the repo root) to the context's `Dockerfile`, `platforms` to `linux/amd64`, `cache` to `false` |
-| `deploys` | `[]` | A JSON list, one entry per file to point at the release: `{"repo": "zimmertr/bluebird-helm", "file": "charts/bluebird/Chart.yaml", "set": ".appVersion", "branch": "chore/bump-appversion", "title": "chore(release): bump chart appVersion"}`. `set` is a `yq` path; for a kustomization, `(.images[] \| select(.name == "zimmertr/hevy-trainer-sync")).newTag`, its quotes escaped inside the JSON. The PR title is `title` plus ` to X.Y.Z`. `image` and `digest-set` are optional: with them, the PR also writes the digest of `image` (its full name, such as `ghcr.io/zimmertr/hevy-trainer-sync`) at the release, at the `yq` path `digest-set`, such as `(.images[] \| select(.name == "ghcr.io/zimmertr/hevy-trainer-sync")).digest`. Every other field is required |
+| `deploys` | `[]` | A JSON list, one entry per file to point at the release: `{"repo": "zimmertr/bluebird-helm", "file": "charts/bluebird/Chart.yaml", "set": ".appVersion", "branch": "chore/bump-appversion", "title": "chore(release): bump chart appVersion"}`. `set` is a `yq` path; for a kustomization, `(.images[] \| select(.name == "zimmertr/personal-website")).newTag`, its quotes escaped inside the JSON. The PR title is `title` plus ` to X.Y.Z`. `image` and `digest-set` are optional: with them, the PR also writes the digest of `image` (its full name, such as `ghcr.io/zimmertr/personal-website`) at the release, at the `yq` path `digest-set`, such as `(.images[] \| select(.name == "ghcr.io/zimmertr/personal-website")).digest`. Every other field is required |
 
 | Secret | Does |
 |---|---|
@@ -100,7 +100,7 @@ Scans each image's `linux/amd64` half at the caller's latest GitHub release, fix
 
 | Input | Does |
 |---|---|
-| `images` | Required. A JSON list, one entry per image: `{"image": "zimmertr/bluebird", "category": "trivy-released-image", "remedy": "..."}`. `category` names the Security tab's alert set; keep it the same to keep the history. `remedy` is optional words for the failure message |
+| `images` | Required. A JSON list, one entry per image: `{"image": "ghcr.io/zimmertr/bluebird", "category": "trivy-released-image", "remedy": "..."}`, the full reference. `category` names the Security tab's alert set; keep it the same to keep the history. `remedy` is optional words for the failure message |
 
 - The caller runs it on a `schedule` and `workflow_dispatch`, and grants `contents: read` and `security-events: write`.
 - A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`.
@@ -108,7 +108,7 @@ Scans each image's `linux/amd64` half at the caller's latest GitHub release, fix
 
 ## An example caller
 
-zimmertr/hevy-trainer-sync calls all five modules, and is the example to copy (#5). The repo is archived since 2026-11-10, so read it at the commit below. Its callers at the commit that finished the switch: [`release.yml`](https://github.com/zimmertr/hevy-trainer-sync/blob/ea07366b189162f99aedf2a5cd6bd03637cbce18/.github/workflows/release.yml), [`pr.yml`](https://github.com/zimmertr/hevy-trainer-sync/blob/ea07366b189162f99aedf2a5cd6bd03637cbce18/.github/workflows/pr.yml), [`pr-title.yml`](https://github.com/zimmertr/hevy-trainer-sync/blob/ea07366b189162f99aedf2a5cd6bd03637cbce18/.github/workflows/pr-title.yml), [`dependabot-auto-merge.yml`](https://github.com/zimmertr/hevy-trainer-sync/blob/ea07366b189162f99aedf2a5cd6bd03637cbce18/.github/workflows/dependabot-auto-merge.yml) and [`image-scan.yml`](https://github.com/zimmertr/hevy-trainer-sync/blob/ea07366b189162f99aedf2a5cd6bd03637cbce18/.github/workflows/image-scan.yml). It keeps no `GitVersion.yml` or `trivy.yaml`, so the defaults below apply.
+zimmertr/hevy-garmin-sync calls all six modules, and is the example to copy. Its callers at `3fd4b6b`: [`release.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/3fd4b6ba23ef0cad4cc3f1e50c1a9e019102a57e/.github/workflows/release.yml) (with the chart job a repo with a Helm chart adds until #74), [`pr.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/3fd4b6ba23ef0cad4cc3f1e50c1a9e019102a57e/.github/workflows/pr.yml), [`pr-title.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/3fd4b6ba23ef0cad4cc3f1e50c1a9e019102a57e/.github/workflows/pr-title.yml), [`lint.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/3fd4b6ba23ef0cad4cc3f1e50c1a9e019102a57e/.github/workflows/lint.yml), [`dependabot-auto-merge.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/3fd4b6ba23ef0cad4cc3f1e50c1a9e019102a57e/.github/workflows/dependabot-auto-merge.yml) and [`image-scan.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/3fd4b6ba23ef0cad4cc3f1e50c1a9e019102a57e/.github/workflows/image-scan.yml). It keeps no `GitVersion.yml` or `trivy.yaml`, so the defaults below apply.
 
 - Pin every module to a release's commit SHA, with the version in a comment, so Dependabot can move it. Its `github-actions` entry runs daily with `cooldown: default-days: 3` (record [0023](architectural-decision-records/0023-releases-bake-three-days.md)).
 - A caller job's `name` comes first in each check's name: `Docker Build / Docker Build`. Rename the required checks in the same step as the switch.
@@ -181,7 +181,7 @@ The org module sets, on every org: the dependency graph, Dependabot alerts and s
 
 ### What Terraform manages
 
-Each setting `initialize-project` gives a new repo (its `repo.md` and `security.md`), and the resource that holds it. The pins are `integrations/github` 6.13.0, `Mastercard/restapi` 3.0.0 and `docker/docker` 0.7.0. "Tested" means #3 applied it with the App's token and a second plan found nothing to change ([DATA.md](DATA.md#github)). Record: [0024](architectural-decision-records/0024-terraform-providers-and-new-repos.md)
+Each setting `initialize-project` gives a new repo (its `repo.md` and `security.md`), and the resource that holds it. The pins are `integrations/github` 6.13.0 and `Mastercard/restapi` 3.0.0. "Tested" means #3 applied it with the App's token and a second plan found nothing to change ([DATA.md](DATA.md#github)). Record: [0024](architectural-decision-records/0024-terraform-providers-and-new-repos.md)
 
 | Setting | Resource and attributes | Tested |
 |---|---|---|
@@ -195,7 +195,7 @@ Each setting `initialize-project` gives a new repo (its `repo.md` and `security.
 | CodeQL default setup (security.md 13) | `restapi_object`: `PATCH /repos/{owner}/{repo}/code-scanning/default-setup` | yes |
 | Secret scanning and push protection (security.md 14) | `github_repository`: `security_and_analysis` | yes |
 | Immutable releases (security.md 18) | `restapi_object`: `PUT /repos/{owner}/{repo}/immutable-releases` | yes |
-| Immutable image tags (security.md 18) | `docker_hub_repository`: `immutable_tags_settings` | yes |
+| Immutable image tags (security.md 18) | None: GHCR has none, so deploys pin the digest instead (record 0052) | n/a |
 | Secrets (security.md 19 and 20) | `github_actions_secret`, `github_dependabot_secret`. A value set this way is stored in state, so #12 decides which, if any, Terraform holds | no |
 | Private vulnerability reporting (security.md 21) | `restapi_object`: `PUT /repos/{owner}/{repo}/private-vulnerability-reporting` | yes |
 | Every action pinned to a full SHA | `github_actions_repository_permissions`: `sha_pinning_required` | yes |

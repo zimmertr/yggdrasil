@@ -30,6 +30,13 @@
         "zimmertr/yggdrasil"
       ],
       "minimumReleaseAge": null
+    },
+    {
+      "description": "A Terraform provider is pinned twice: a range in the .tf files and an exact version in .terraform.lock.hcl. update-lockfile moves the lock file when a release fits the range. Without it Renovate proposes only a release outside the range.",
+      "matchManagers": [
+        "terraform"
+      ],
+      "rangeStrategy": "update-lockfile"
     }
   ]
 }

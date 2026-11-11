@@ -25,6 +25,7 @@
 - 2026-11-11: a Dependabot repo carried 17 to 118 lines of `dependabot.yml` and a 21-line auto-merge caller. A repo on the preset carries about four lines.
 - 2026-11-11, Renovate's docs: a Docker image is aged only from Docker Hub's push date. GHCR, Quay and ECR give none, and since Renovate 42 the default (`minimumReleaseAgeBehaviour: timestamp-required`) holds such an update forever. Security updates skip `minimumReleaseAge`. [`docs/DATA.md`](../DATA.md#github)
 - 2026-11-11: `renovate-config-validator --strict` passes the preset and yggdrasil's own file.
+- 2026-11-11, Renovate's first run on yggdrasil (#93): two updates opened and merged themselves (#91, #92), eight waited out their seven days, and a GHCR image was proposed with no wait. It listed the providers' ranges in the `.tf` files and no lock file, so the preset sets `rangeStrategy: update-lockfile` for Terraform.
 
 ## Alternatives rejected
 

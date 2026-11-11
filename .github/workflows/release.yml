@@ -298,8 +298,8 @@ jobs:
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           # Exact: with no version the action installs whatever Helm is newest
-          # on the day. Renovate doesn't read this input: bump it by hand,
-          # here and in chart.yml.
+          # on the day. Renovate reads this input, and bumps it here and in
+          # chart.yml in one PR.
           version: v4.3.1
       # Before the check below, so it also sees a private package.
       - if: ${{ !inputs.dry-run }}

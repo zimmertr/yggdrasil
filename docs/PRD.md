@@ -39,7 +39,7 @@ The SBOM module (zimmertr/ai-config#13) comes after this project, as one more mo
 | Defaults | The `github` stack holds `initialize-project`'s standard settings as defaults, and a repo file sets only what differs, such as `archived: true` | new |
 | Template repo | Terraform creates each new repo from a template, `zimmertr/yggdrasil-repo-template`, that already holds the PR Title and Lint callers and `dependabot.yml`, so its first PR runs the shared CI. `initialize-project` adds the `LICENSE`, `.gitignore` and README, which differ per repo | new |
 | Guardrails | The preconditions (11) and `archive_on_destroy` (12) | new |
-| GHCR | Every image and chart on `ghcr.io`, pushed with each job's own token; a version is pushed once, and deploys pin the digest (record 0052). Docker Hub in Terraform was dropped on 2026-11-07 | ai-config#3 notes |
+| GHCR | Every image and chart on `ghcr.io`, pushed with each job's own token, and deploys pin the digest (record 0052). Docker Hub in Terraform was dropped on 2026-11-07 | ai-config#3 notes |
 | `cloudflare` stack | Moved whole from Kubernetes-Manifests `terraform/cloudflare`, with its state | Kubernetes-Manifests |
 
 ## 4. Core components

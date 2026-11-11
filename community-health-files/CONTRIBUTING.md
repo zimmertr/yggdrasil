@@ -7,17 +7,25 @@ Record 0055.
 
 # Contributing
 
-These are one-person projects, so changes come through PRs that TJ reviews. For a large change, open an issue first, so the approach gets discussed before you build it.
+Thanks for your interest in contributing. Bug reports, fixes, documentation and new features are all welcome.
 
-If you send a change:
+## Before you start
 
-1. Branch from the latest `main`.
-2. Make one change per PR, and title it `type(scope): summary`, such as `fix(parser): handle an empty file`. In a repo that cuts releases the title picks the version: a `!` before the colon is a major, `feat` a minor, and anything else a patch.
-3. Where the repo builds something, build and run it in Docker, as its README shows, so nothing installs on your machine. Where it has a `Makefile`, its targets are the checks CI runs.
-4. Where the repo has tests, a change in behaviour ships with one in the same PR.
-5. Where the repo has a `docs/` folder, update the page that owns the topic in the same PR.
-6. Open the PR and read what its checks say.
+- For a bug or a small fix, open a pull request directly.
+- For a larger change, open an issue first, so the approach is agreed before you put time into it.
+- Questions are welcome as issues too.
 
-Never commit a secret, a token or personal data.
+## Sending a pull request
 
-Security problems go through private reporting, not issues: open the repository's **Security** tab and choose **Report a vulnerability**.
+1. Fork the repository and branch from the latest `main`.
+2. Keep each pull request to one change, and title it `type(scope): summary`, such as `fix(parser): handle an empty file`. In a repository that publishes releases, the title sets the next version: a `!` before the colon is a major, `feat` a minor, and anything else a patch.
+3. Where the project builds something, build and run it in Docker as its README shows, so nothing is installed on your machine. Where it has a `Makefile`, its targets are the checks CI runs.
+4. Where the project has tests, add or update one when you change behaviour.
+5. Where the project has a `docs/` folder, update the page that covers what you changed.
+6. Open the pull request and make sure its checks pass. Every pull request gets a review.
+
+Please don't commit secrets, tokens or personal data.
+
+## Reporting a security problem
+
+Please report security problems privately and not in a public issue: open the repository's **Security** tab and choose **Report a vulnerability**.

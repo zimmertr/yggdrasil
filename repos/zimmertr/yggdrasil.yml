@@ -1,4 +1,10 @@
 description: Shared, versioned CI modules and the Terraform that manages my GitHub repos and orgs
+topics:
+  - ci-cd
+  - cloudflare
+  - github-actions
+  - reusable-workflows
+  - terraform
 required_checks:
   - Docs
   - PR Title

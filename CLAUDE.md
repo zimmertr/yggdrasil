@@ -48,6 +48,8 @@ File issues with the `create-issue` skill from zimmertr/ai-config: the two-sente
 - **The constraints**: a change that breaks a caller carries `!`; nothing is applied to a repo before its import plans clean; no plan that weakens branch protection or a security setting is applied without TJ's okay; never print a secret's value, and never put a private repo's contents in a public output.
 - **The areas**: `ci` (yggdrasil's own CI), `modules` (the reusable workflows and composite actions), `terraform` (the stacks for GitHub and Cloudflare, and `repos/`, `orgs/`), `consumers` (switching a repo onto the modules), `security` (credentials, permissions and security settings).
 
+Label colours: `P1` is `d93f0b`, `P2` `fbca04` and `P3` `c2e0c6`; every area is `1d76db`; a session label is `5ec3f7`; the types keep GitHub's defaults.
+
 ## Working in this repo
 
 - Work in a fresh clone in the session's scratchpad, never in TJ's checkout. Branch from the latest `origin/main`.

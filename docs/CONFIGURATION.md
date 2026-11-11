@@ -147,6 +147,7 @@ A module reads these at the commit its caller pinned, by checking out `job.workf
 - **Installed on**: `zimmertr` (all repositories), and the orgs Bluebird-Forecast, Fellfield-Game, GPX-Search, TJs-Kubernetes-Service and Lakebagger. TJ installs it on any new owner, because a token minted for one owner can't write to another.
 - **Repository permissions**: Actions, Administration, Contents, Environments, Pull requests and Workflows (read and write); Metadata (read).
 - **Organization permissions**: Administration (read and write); Members (read).
+- **Logo**: [`docs/images/icon.png`](images/icon.png), with the badge background `#16344F`. The repo's social preview is [`docs/images/social-preview.png`](images/social-preview.png). Each is drawn from the `.svg` beside it, and TJ uploads both by hand, the logo under the App's display information and the preview under the repo's settings.
 
 A permission change takes effect on an owner only after that owner accepts it in its installation settings.
 

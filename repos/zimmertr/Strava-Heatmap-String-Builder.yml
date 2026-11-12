@@ -1,4 +1,6 @@
 description: Generate Strava Heatmap URLs that are compatible with Caltopo's Custom Map Layers
+# No longer maintained. Archived on 2026-11-11.
+archived: true
 topics:
   - caltopo
   - heatmap

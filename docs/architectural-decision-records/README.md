@@ -73,7 +73,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0046](0046-github-repos-take-the-shared-files-from-the-bot.md) | Each owner's `.github` repo gets the shared files from the repo module, committed by the bot past the PR rule | 2026-11-07 | Accepted. Superseded in part by 0049 |
 | [0047](0047-pr-plans-use-the-applys-write-tokens.md) | PR plans use the same write tokens as the apply, because a read-only token can't see a repo's merge settings | 2026-11-07 | Accepted. Supersedes 0044 in part |
 | [0048](0048-imports-apply-by-hand.md) | An import applies when TJ starts the apply by hand, because an import's plan never matches its comment | 2026-11-07 | Accepted. Supersedes 0045 in part |
-| [0049](0049-shared-templates-and-own-security-policy.md) | Every repo uses the shared issue templates, and a repo may keep its own `SECURITY.md` | 2026-11-07 | Accepted. Supersedes 0041 and 0046 in part |
+| [0049](0049-shared-templates-and-own-security-policy.md) | Every repo uses the shared issue templates, and a repo may keep its own `SECURITY.md` | 2026-11-07 | Accepted. Supersedes 0041 and 0046 in part. Superseded in part by 0058 |
 | [0050](0050-imports-bring-repos-up-to-the-standard.md) | An import brings a repo up to the module's standard in the same apply, and a repo file may set `has_discussions` | 2026-11-10 | Accepted. Supersedes 0043 in part |
 | [0051](0051-org-settings-in-terraform.md) | Terraform manages each org's settings, the same on every org, with security on for its new repos and no drift report | 2026-11-10 | Accepted |
 | [0052](0052-images-go-to-ghcr-pinned-by-digest.md) | The release module pushes to GHCR with the job's token, and deploys pin the digest | 2026-11-10 | Accepted |
@@ -82,3 +82,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0055](0055-one-shared-contributing-guide.md) | One shared `CONTRIBUTING.md` for every repo without its own, and a repo with its own process keeps its own | 2026-11-11 | Accepted. Supersedes 0038 and 0041 in part |
 | [0056](0056-one-renovate-preset-for-every-repo.md) | One Renovate preset holds the dependency rules, and every repo extends it | 2026-11-11 | Accepted. Supersedes 0003 and 0021, and 0023 in part |
 | [0057](0057-sbom-stays-on-the-image.md) | An image's SBOM is the attestation BuildKit puts on it, and no release carries an SBOM file | 2026-11-11 | Accepted. Supersedes 0001 in part |
+| [0058](0058-a-repo-may-add-its-own-issue-forms.md) | A repo that needs its own issue form keeps copies of the shared templates beside it | 2026-11-12 | Accepted. Supersedes 0049 in part |

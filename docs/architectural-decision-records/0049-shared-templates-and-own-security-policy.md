@@ -1,6 +1,6 @@
 # 0049. Every repo uses the shared issue templates, and a repo may keep its own `SECURITY.md`
 
-- Status: Accepted. Supersedes 0041 and 0046 in part: a repo may keep its own `SECURITY.md`
+- Status: Accepted. Supersedes 0041 and 0046 in part: a repo may keep its own `SECURITY.md`. Superseded in part by 0058
 - Date: 2026-11-07
 - Decider: TJ, 2026-11-07, in #8 step 6.17: first "Yggdrasil should be shipping defaults to .github repos for each account/org. Then repos should be able to override those with their own repo configs", then "Yes" to aligning every repo's templates and keeping only Bluebird's `SECURITY.md`.
 - Issues and PRs: #8, #56

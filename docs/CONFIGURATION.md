@@ -24,7 +24,7 @@ Works out the next version, builds and pushes the caller's images under it and s
 
 - The caller runs it on every push to main. It grants `contents: write` and `packages: write`, and sets a `concurrency` group so releases run one at a time. A dry run on PRs is optional: it previews the version, but it also builds every image on every platform and packages every chart.
 - A `GitVersion.yml` and a `trivy.yaml` at the caller's root are used. Without them, the module reads its `defaults/`.
-- Every image is built with `APP_VERSION`, `APP_COMMIT` and `APP_BUILT_AT` as build arguments and the OCI version, revision and source labels, tagged with the version only, with an SBOM and `provenance: mode=max`.
+- Every image is built with `APP_VERSION`, `APP_COMMIT` and `APP_BUILT_AT` as build arguments and the OCI version, revision and source labels, tagged with the version only, with an SBOM and `provenance: mode=max`. The SBOM is BuildKit's SPDX attestation, one per platform, read with `docker buildx imagetools inspect <image>:<version> --format '{{ json .SBOM }}'`. The GitHub release carries no SBOM file (record 0057).
 - `docker/metadata-action` makes the tag and the OCI labels, and lowercases the name. Only a version with no git tag yet is built, so a re-run of a released version builds nothing. Each scan reads the image by its version tag.
 - A run for a commit that main has moved past releases nothing: no image, tag, release or deploy PR. The run from main's newest commit releases its change (record 0053).
 - GHCR has no immutable tags. A deploy that sets `digest-set` runs the digest it was given, even if someone moves the tag by hand.

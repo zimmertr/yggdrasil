@@ -1,6 +1,6 @@
 # 0001. yggdrasil is one public GPL-3.0 repo for the shared CI modules and the Terraform that manages TJ's repos and orgs
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0057
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05: "Make it public. I want a clever name… I think I also want this to manage creating and managing other repos too for ai-config#3… License: GPL 3." Then "Lets proceed with yggdrasil", and "I do want this to be simple in the end. Just fully featured, standardized, and centralized. A place to manage github."
 - Issues and PRs: #1, zimmertr/ai-config#2, zimmertr/ai-config#3

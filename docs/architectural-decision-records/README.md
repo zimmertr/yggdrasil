@@ -25,7 +25,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 
 | Record | Decision | Date | Status |
 |---|---|---|---|
-| [0001](0001-one-public-gpl-3-monorepo.md) | yggdrasil is one public GPL-3.0 repo for the shared CI modules and the Terraform that manages TJ's repos and orgs | 2026-11-05 | Accepted |
+| [0001](0001-one-public-gpl-3-monorepo.md) | yggdrasil is one public GPL-3.0 repo for the shared CI modules and the Terraform that manages TJ's repos and orgs | 2026-11-05 | Accepted. Superseded in part by 0057 |
 | [0002](0002-callers-bring-their-own-config.md) | Each caller passes its own configuration to a module as inputs | 2026-11-05 | Accepted |
 | [0003](0003-dependency-config-stays-per-repo.md) | Dependency config stays in each repo, and only the auto-merge is shared | 2026-11-05 | Superseded by 0056 |
 | [0004](0004-one-version-for-every-module.md) | Every module shares one SemVer, released only when a module path changes, and callers pin the commit | 2026-11-05 | Accepted, except the breaking-change check (0025) |
@@ -81,3 +81,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0054](0054-release-module-pushes-the-charts.md) | The release module pushes Helm charts after the tag and before the deploy bumps, and a chart module checks them on PRs | 2026-11-11 | Accepted |
 | [0055](0055-one-shared-contributing-guide.md) | One shared `CONTRIBUTING.md` for every repo without its own, and a repo with its own process keeps its own | 2026-11-11 | Accepted. Supersedes 0038 and 0041 in part |
 | [0056](0056-one-renovate-preset-for-every-repo.md) | One Renovate preset holds the dependency rules, and every repo extends it | 2026-11-11 | Accepted. Supersedes 0003 and 0021, and 0023 in part |
+| [0057](0057-sbom-stays-on-the-image.md) | An image's SBOM is the attestation BuildKit puts on it, and no release carries an SBOM file | 2026-11-11 | Accepted. Supersedes 0001 in part |

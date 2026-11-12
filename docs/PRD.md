@@ -9,7 +9,7 @@ yggdrasil is the public, GPL-3.0 monorepo for TJ's GitHub and CI configuration. 
 - **Modules.** Versioned reusable workflows and composite actions. A repo calls one with a pinned `uses:` and its own inputs, instead of copying a pipeline. This closes zimmertr/ai-config#2.
 - **Infrastructure.** Terraform that creates and manages TJ's repos and orgs, and their settings on GitHub and Cloudflare. This closes zimmertr/ai-config#3.
 
-The SBOM module (zimmertr/ai-config#13) comes after this project, as one more module.
+The release module puts an SBOM on every image it builds, so no SBOM module follows (zimmertr/ai-config#13, record 0057).
 
 ## 2. Core requirements
 
@@ -100,7 +100,7 @@ Detailed into tasks after sign-off. In order:
    - The plan must come back empty before anything else changes.
 10. **P9 ai-config.** `initialize-project` tells new repos to call yggdrasil. ai-config#2 and #3 close.
 
-Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hub and Cloudflare. That covers replacing `AUTO_MERGE_PAT` and `GH_PAT` with `zimmertr-yggdrasil-bot`. SBOM (ai-config#13) follows this project.
+Filed separately on yggdrasil: an audit of every secret across GitHub, Docker Hub and Cloudflare. That covers replacing `AUTO_MERGE_PAT` and `GH_PAT` with `zimmertr-yggdrasil-bot`.
 
 ## 8. Interview choices
 

@@ -1,0 +1,6 @@
+description: tjzimmerman.com as a 3D mountain world to run and climb through
+required_checks:
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep

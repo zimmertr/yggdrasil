@@ -1,4 +1,6 @@
 description: tjzimmerman.com
+# trailhead replaces it. Archived on 2026-11-12.
+archived: true
 required_checks:
   - PR Title / PR Title
   - Lint / actionlint

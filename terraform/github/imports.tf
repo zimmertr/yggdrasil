@@ -54,7 +54,7 @@ locals {
   zimmertr_imported = toset([
     for r in [
       "yggdrasil", "ai-config", "hevy-garmin-sync", "bluebird", "bluebird-helm",
-      "Kubernetes-Manifests", "TJs-Kubernetes-Service", "Personal-Website", "zimmertr", "3D-Models", "Bootstrap-Proxmox",
+      "Kubernetes-Manifests", "TJs-Kubernetes-Service", "zimmertr", "3D-Models", "Bootstrap-Proxmox",
       "Supermicro-X10-Fancontrol", "Mountaineers-Activity-Scraper", "Ender-6-Klipper-Guide",
       "Strava-Heatmap-String-Builder", "Resume", "yggdrasil-repo-template",
     ] :

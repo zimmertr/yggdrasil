@@ -1,0 +1,8 @@
+description: A collection of my dotfiles that aren't significant enough to warrant their own repo.
+required_checks:
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep
+  - Shell (ubuntu-latest)
+  - Shell (macos-latest)

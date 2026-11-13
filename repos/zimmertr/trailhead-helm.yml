@@ -1,0 +1,6 @@
+description: Helm chart for trailhead, published as an OCI artifact
+required_checks:
+  - PR Title / PR Title
+  - Lint / actionlint
+  - Lint / zizmor
+  - Lint / semgrep

@@ -1,5 +1,15 @@
 description: tjzimmerman.com as a 3D mountain world to run and climb through
 required_checks:
+  - Static Checks
+  - Unit Tests
+  - Database Tests
+  - Image (web)
+  - Image (api)
+  - Image (admin)
+  - Image (fetcher)
+  - Browser Smoke & Axe
+  - Lighthouse Budgets
+  - Compose
   - PR Title / PR Title
   - Lint / actionlint
   - Lint / zizmor

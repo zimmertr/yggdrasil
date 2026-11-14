@@ -1,0 +1,11 @@
+# The docker-build module's container-structure-test run (ci-docker-build.yml,
+# record 0060): the build argument reached the label, and the file is in.
+schemaVersion: 2.0.0
+metadataTest:
+  labels:
+    - key: test.message
+      value: hello
+fileExistenceTests:
+  - name: hello.txt
+    path: /hello.txt
+    shouldExist: true

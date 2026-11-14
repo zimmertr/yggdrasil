@@ -30,5 +30,7 @@ jobs:
       context: tests/docker-build
       build-args: MESSAGE=hello
       upload-image: true
+      structure-test: tests/docker-build/structure-test.yaml
+      # The deprecated input, until its last caller moves (record 0060).
       smoke-test: |
         test "$(docker image inspect "$IMAGE" --format '{{ index .Config.Labels "test.message" }}')" = hello

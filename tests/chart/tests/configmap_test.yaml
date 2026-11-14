@@ -1,0 +1,19 @@
+# The chart module's helm-unittest run (ci-chart.yml, record 0060).
+suite: configmap
+templates:
+  - configmap.yaml
+tests:
+  - it: carries the default message
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: data.message
+          value: hello
+  - it: carries a message it is given
+    set:
+      message: changed
+    asserts:
+      - equal:
+          path: data.message
+          value: changed

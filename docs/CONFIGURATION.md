@@ -184,6 +184,8 @@ Each stack has its own workspace, created once by hand before its first plan: `d
 | `github` | `terraform/github` | 1.17.1, created 2026-11-07 with TJ's okay (#8 step 6.5) |
 | `cloudflare` | `terraform/cloudflare`, moved from Kubernetes-Manifests with its state (#10) | 1.16.5 |
 
+The cloudflare stack's hostnames are public by design. Its tunnel sends them to the Istio gateway on TJ's home network, whose addresses and LAN names are recorded only in the private zimmertr/homelab-ipam repo. A PR that adds or removes a hostname updates that record in the same sitting.
+
 ### An org's file
 
 `orgs/<name>.yml`, one per org, named for its login. It holds only the profile and the billing email; every other org setting is the same on every org, in `terraform/modules/org/`. The defaults live in `terraform/github/orgs.tf`'s `local.org_defaults`. Record: [0051](architectural-decision-records/0051-org-settings-in-terraform.md)

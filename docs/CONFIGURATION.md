@@ -156,6 +156,8 @@ No module reads `defaults/renovate.json`. Renovate reads it from yggdrasil's mai
 | `minimumReleaseAgeBehaviour` | `timestamp-optional`: an update with no publish date doesn't wait. Renovate's default would hold it forever |
 | `automerge` | On for `minor`, `patch`, `digest`, `pin` and `pinDigest`. A major waits for TJ. So does a minor of `python` (the image, or the version `actions/setup-python` installs), because Python's minors are its breaking releases |
 | `rangeStrategy` | `update-lockfile` for Terraform, so a provider release inside the `.tf` range moves `.terraform.lock.hcl`. By default Renovate proposes only a release outside the range |
+| `versioning` | For `helmunittest/helm-unittest`, a regex: in `4.3.0-1.2.1` the plugin's major is the major and Helm's the compatibility, so Docker versioning's fixed suffix doesn't hide the plugin's releases (record [0060](architectural-decision-records/0060-standard-tools-test-charts-and-images.md)) |
+| `customManagers` | A regex for a `Makefile`'s `NAME := image:tag@sha256:...` lines, so a Makefile's images move like any other. A pin without its digest isn't read (record [0060](architectural-decision-records/0060-standard-tools-test-charts-and-images.md)) |
 
 A repo adds its own `packageRules` after the `extends`, and they win over the preset's.
 

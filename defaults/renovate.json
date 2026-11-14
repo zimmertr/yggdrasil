@@ -47,6 +47,26 @@
         "minor"
       ],
       "automerge": false
+    },
+    {
+      "description": "helm-unittest's image tags join the Helm version and the plugin's, as 4.3.0-1.2.1. Docker versioning takes the part after the hyphen as a fixed suffix and would never offer the plugin's updates. Here the plugin's major is the major, so a new one waits for TJ like any major, then Helm's minor and patch and the plugin's minor and patch are compared in turn. Helm's major is the compatibility: a Helm 5 tag comes with the Helm 5 move in setup-helm, not on its own (record 0060).",
+      "matchPackageNames": [
+        "helmunittest/helm-unittest"
+      ],
+      "versioning": "regex:^(?<compatibility>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<major>\\d+)\\.(?<build>\\d+)\\.(?<revision>\\d+)$"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Docker images a Makefile pins for its targets, as `NAME := image:tag@sha256:...`. Renovate has no Makefile manager, so without this they would only move by hand (record 0060). Only a pin with its digest is read, so a bare tag is a reminder to add one.",
+      "managerFilePatterns": [
+        "/(^|/)Makefile$/"
+      ],
+      "matchStrings": [
+        "(?:^|\\n)[A-Z0-9_]+[ \\t]*:?=[ \\t]*(?<depName>[a-z0-9][a-z0-9._/-]*):(?<currentValue>[A-Za-z0-9][A-Za-z0-9._-]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "docker"
     }
   ]
 }

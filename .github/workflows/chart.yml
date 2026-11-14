@@ -14,12 +14,6 @@ on:
         description: The chart's folder, from the repo root.
         type: string
         required: true
-      # Deprecated (record 0060): a chart's checks are helm-unittest suites.
-      # Removed in a major once bluebird-helm and trailhead-helm move to them.
-      test:
-        description: Deprecated, use helm-unittest suites in the chart's tests/ folder. Bash run from the repo root after the lint and the default render, with the chart's folder in $CHART and its dependencies fetched. A failing command fails the job.
-        type: string
-        default: ''
 
 permissions: {}
 
@@ -67,8 +61,3 @@ jobs:
           HELM_CACHE_HOME: /tmp/helm
         with:
           args: ${{ inputs.chart }}
-      - name: Run the caller's renders
-        if: inputs.test != ''
-        env:
-          TEST: ${{ inputs.test }}
-        run: bash -euo pipefail -c "$TEST"

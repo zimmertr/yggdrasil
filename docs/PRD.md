@@ -31,7 +31,7 @@ The release module puts an SBOM on every image it builds, so no SBOM module foll
 | Feature | What it does | Source |
 |---|---|---|
 | Release workflow | GitVersion, image build and push, a Trivy scan of each pushed platform, immutable GitHub release, deploy bump (`yq` sets a kustomization's `newTag`, a chart's `appVersion`, or both) | hevy-trainer-sync and Bluebird `release.yml` |
-| PR workflows | PR title check; image build with hadolint, the Trivy comment and a smoke test | `pr-title.yml`, `pr.yml` |
+| PR workflows | PR title check; image build with hadolint, the Trivy comment and a container-structure-test file | `pr-title.yml`, `pr.yml` |
 | PR previews | Each PR's image pushed under the tag the Argo CD pull request generator reads, the `create pr container` label and the preview's address, on `pull_request` (record 0059) | Bluebird `pr-preview.yml` |
 | Weekly image scan | Rescans the released image | `image-scan.yml` |
 | Dependency updates | One Renovate preset every repo extends: seven days' wait, and everything below a major merges itself | `defaults/renovate.json` |

@@ -1,9 +1,10 @@
 name: docker-build
 
 # The PR image module: hadolint, then the linux/amd64 image the release would
-# ship, built but not pushed, scanned by Trivy, run through the caller's smoke
-# test, and refused on any fixable Critical or High. hevy-trainer-sync's and
-# Bluebird's Docker Build job. Decision records 0030 and 0034.
+# ship, built but not pushed, scanned by Trivy, tested with the caller's
+# container-structure-test file (or, deprecated, its smoke test), and refused
+# on any fixable Critical or High. hevy-trainer-sync's and Bluebird's Docker
+# Build job. Decision records 0030, 0034 and 0060.
 #
 # The caller runs it on `pull_request` and grants `contents: read` and
 # `pull-requests: write`, for the sticky scan comment.
@@ -18,8 +19,14 @@ on:
         description: Build arguments, one KEY=value per line.
         type: string
         default: ''
+      structure-test:
+        description: A container-structure-test file, from the repo root, run against the built image. Any failing test fails the job.
+        type: string
+        default: ''
+      # Deprecated (record 0060): an image's checks are a container-structure-test
+      # file. Removed in a major once bluebird and Mountaineers-Activity-Scraper move.
       smoke-test:
-        description: Bash run against the built image, whose tag is in $IMAGE (`<repo name>:pr-scan`). A failing command fails the job.
+        description: Deprecated, use structure-test. Bash run against the built image, whose tag is in $IMAGE (`<repo name>:pr-scan`). A failing command fails the job.
         type: string
         default: ''
       cache:
@@ -121,6 +128,26 @@ jobs:
         with:
           header: image-scan
           path: scan-comment.md
+
+      # No maintained action installs container-structure-test, and its
+      # gcr.io image stopped at v1.16 in 2023, so the release binary, checked
+      # against the hash its release published (record 0060).
+      - name: Install container-structure-test
+        if: inputs.structure-test != ''
+        env:
+          VERSION: v1.22.1
+          SHA256: fa35e89512a8978585f76cf41397956d2e3a30c62c2ad3fb857b1597074d14ca
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/container-structure-test" \
+            "https://github.com/GoogleContainerTools/container-structure-test/releases/download/${VERSION}/container-structure-test-linux-amd64"
+          echo "${SHA256}  $RUNNER_TEMP/container-structure-test" | sha256sum --check --strict
+          chmod +x "$RUNNER_TEMP/container-structure-test"
+      - name: Test the built image (container-structure-test)
+        if: inputs.structure-test != ''
+        env:
+          IMAGE: ${{ steps.names.outputs.image }}
+          CONFIG: ${{ inputs.structure-test }}
+        run: '"$RUNNER_TEMP/container-structure-test" test --image "$IMAGE" --config "$CONFIG"'
 
       - name: Smoke test the built image
         if: inputs.smoke-test != ''

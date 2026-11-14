@@ -111,6 +111,23 @@ Scans each image's `linux/amd64` half at the caller's latest GitHub release, fix
 - A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`.
 - The caller sees `<caller job> / Scan released image (<image>)` for each image.
 
+### `pr-preview.yml`
+
+On a PR from the repo's own branches: the PR's head built for `linux/amd64` and pushed as `<image>:pr-<N>-<head sha>`, the tag an Argo CD pull request generator looks for. On the owner's PRs, the `create pr container` label and one comment naming the preview's address. Record: [0059](architectural-decision-records/0059-pr-preview-module.md)
+
+| Input | Does |
+|---|---|
+| `image` | Required. The image without a tag, such as `ghcr.io/zimmertr/bluebird-pr` |
+| `url` | Required. The preview's address, for the comment, such as `http://pr-12.ganymede.sol.milkyway` |
+| `title` | Required. The comment's heading |
+
+- The caller runs it on `pull_request` with types `opened`, `synchronize` and `reopened`, and grants `contents: read`, `packages: write` and `pull-requests: write`. Never `pull_request_target` (record [0010](architectural-decision-records/0010-safe-in-public.md)).
+- A fork's PR is skipped. Any other author's PR, such as Renovate's, gets the image but no label or comment, so no preview starts until someone adds the label.
+- A tag already in GHCR is not rebuilt, so a re-run keeps the digest Argo CD runs.
+- The build arguments are the release module's: `APP_VERSION` is `pr-<N>`, `APP_COMMIT` the head commit, `APP_BUILT_AT` the build time.
+- The layer cache is scoped per PR, with the default scope read as a warm start.
+- The caller sees `<caller job> / Preview Image`.
+
 ## An example caller
 
 zimmertr/hevy-garmin-sync calls every module but `terraform.yml`, and is the example to copy. Its callers at `a80486f`: [`release.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/release.yml) (an image, a chart that pins it, and the chart's deploy), [`pr.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr.yml), [`pr-title.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr-title.yml), [`lint.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/lint.yml) and [`image-scan.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/image-scan.yml). It keeps no `GitVersion.yml` or `trivy.yaml`, so the defaults below apply.

@@ -50,20 +50,23 @@ jobs:
         run: helm lint "$CHART"
       - name: Render the chart with its defaults
         run: helm template "$CHART" >/dev/null
+      # helm-unittest makes a `__snapshot__` folder beside the suites, and its
+      # image runs as uid 1000, which can't write the runner's checkout.
+      - name: Let helm-unittest write beside the suites
+        if: hashFiles(format('{0}/tests/**/*_test.yaml', inputs.chart)) != ''
+        run: find "$CHART/tests" -type d -exec chmod a+w {} +
       # Every `*_test.yaml` in the chart's tests/ folder, with the
-      # dependencies fetched above. helm-unittest's own image, at the Helm
-      # minor this module installs. Renovate reads no image in a `run:`, so the
-      # tag and digest change by hand, with the Helm minor. Run as
-      # the runner's user, not as a `docker://` step: the tool makes a
-      # `__snapshot__` folder beside the suites, which the image's own user
-      # can't write in the checkout, and its cache goes in the container.
+      # dependencies fetched above. helm-unittest's own image, at the newest
+      # Helm it ships; Renovate moves the tag and digest (yggdrasil's
+      # .github/renovate.json says how it reads the tag). Its cache goes in the
+      # container: the runner's home, mounted in, isn't its user's to write.
       - name: Run the chart's unit tests (helm-unittest)
         if: hashFiles(format('{0}/tests/**/*_test.yaml', inputs.chart)) != ''
+        uses: docker://helmunittest/helm-unittest:4.3.0-1.2.1@sha256:28ea86c3e0b07f501f0c2e9c08b9f41e240f4a4b571cb5106b36cf0f0607e989
         env:
-          IMAGE: helmunittest/helm-unittest:4.3.0-1.2.1@sha256:28ea86c3e0b07f501f0c2e9c08b9f41e240f4a4b571cb5106b36cf0f0607e989
-        run: >-
-          docker run --rm --user "$(id -u):$(id -g)" -e HELM_CACHE_HOME=/tmp/helm
-          -v "$PWD:/apps" -w /apps "$IMAGE" "$CHART"
+          HELM_CACHE_HOME: /tmp/helm
+        with:
+          args: ${{ inputs.chart }}
       - name: Run the caller's renders
         if: inputs.test != ''
         env:

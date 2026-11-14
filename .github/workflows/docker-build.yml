@@ -129,25 +129,15 @@ jobs:
           header: image-scan
           path: scan-comment.md
 
-      # No maintained action installs container-structure-test, and its
-      # gcr.io image stopped at v1.16 in 2023, so the release binary, checked
-      # against the hash its release published (record 0060).
-      - name: Install container-structure-test
-        if: inputs.structure-test != ''
-        env:
-          VERSION: v1.22.1
-          SHA256: fa35e89512a8978585f76cf41397956d2e3a30c62c2ad3fb857b1597074d14ca
-        run: |
-          curl -fsSL -o "$RUNNER_TEMP/container-structure-test" \
-            "https://github.com/GoogleContainerTools/container-structure-test/releases/download/${VERSION}/container-structure-test-linux-amd64"
-          echo "${SHA256}  $RUNNER_TEMP/container-structure-test" | sha256sum --check --strict
-          chmod +x "$RUNNER_TEMP/container-structure-test"
+      # The tool's own image, pinned by digest; Renovate moves it (record
+      # 0060). The step gets the runner's Docker socket, so it finds the image
+      # loaded above.
       - name: Test the built image (container-structure-test)
         if: inputs.structure-test != ''
-        env:
-          IMAGE: ${{ steps.names.outputs.image }}
-          CONFIG: ${{ inputs.structure-test }}
-        run: '"$RUNNER_TEMP/container-structure-test" test --image "$IMAGE" --config "$CONFIG"'
+        uses: docker://ghcr.io/googlecontainertools/container-structure-test:1.22.1@sha256:710da3ca8ed29a42423315592f74f02df4e3d2ba19f1df7257bd481ea75ba5aa
+        with:
+          entrypoint: /ko-app/container-structure-test
+          args: test --image ${{ steps.names.outputs.image }} --config ${{ inputs.structure-test }}
 
       - name: Smoke test the built image
         if: inputs.smoke-test != ''

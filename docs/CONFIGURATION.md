@@ -98,7 +98,7 @@ On a PR: the chart's dependencies fetched, `helm lint`, a render with the chart'
 | `test` | `''` | Deprecated: write helm-unittest suites. Bash run from the repo root after the lint and the default render, with the chart's folder in `$CHART` and its dependencies fetched. Any failing command fails the job |
 
 - The caller runs it on `pull_request` and grants `contents: read`.
-- Helm is v4.3.1, the version the release module packages with; helm-unittest runs from its own image at Helm 4.3.0, the newest it ships. `helm dependency update` reads the repositories the chart's `Chart.yaml` names, so no `helm repo add` is needed.
+- Helm is v4.3.1, the version the release module packages with; helm-unittest runs from its own image at Helm 4.3.0, the newest it ships, and Renovate moves it. `helm dependency update` reads the repositories the chart's `Chart.yaml` names, so no `helm repo add` is needed.
 - The caller sees `<caller job> / Chart`.
 
 ### `image-scan.yml`

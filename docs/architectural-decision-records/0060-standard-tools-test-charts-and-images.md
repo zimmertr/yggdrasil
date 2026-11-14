@@ -13,7 +13,7 @@ The chart module's `test` input and the docker-build module's `smoke-test` input
 
 ## Decision
 
-- The chart module runs helm-unittest on every `*_test.yaml` in the chart's `tests/` folder, with no input. It runs helm-unittest's own image, `helmunittest/helm-unittest`, pinned by tag and digest at the Helm minor the module installs, as a `docker://` step.
+- The chart module runs helm-unittest on every `*_test.yaml` in the chart's `tests/` folder, with no input. It runs helm-unittest's own image, `helmunittest/helm-unittest`, pinned by tag and digest at the Helm minor the module installs, with `docker run` as the runner's user. A `docker://` step can't set the user, and the image's own can't write the `__snapshot__` folder the tool makes beside the suites (seen 2026-11-13).
 - The docker-build module takes `structure-test`, a container-structure-test file, and runs it against the built image. No maintained action installs the tool and its gcr.io image stopped at v1.16 in 2023, so the module downloads the release binary and checks it against the SHA-256 its release published.
 - `test` and `smoke-test` stay, deprecated, until their last callers move: bluebird-helm and trailhead-helm for `test`, bluebird and Mountaineers-Activity-Scraper for `smoke-test`. A major release removes them.
 - A check neither tool can hold is raised with TJ before any shell is written for it.

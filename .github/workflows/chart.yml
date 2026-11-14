@@ -52,16 +52,17 @@ jobs:
         run: helm template "$CHART" >/dev/null
       # Every `*_test.yaml` in the chart's tests/ folder, with the
       # dependencies fetched above. helm-unittest's own image, at the Helm
-      # minor this module installs; Renovate moves the tag and digest.
+      # minor this module installs; Renovate moves the tag and digest. Run as
+      # the runner's user, not as a `docker://` step: the tool makes a
+      # `__snapshot__` folder beside the suites, which the image's own user
+      # can't write in the checkout, and its cache goes in the container.
       - name: Run the chart's unit tests (helm-unittest)
         if: hashFiles(format('{0}/tests/**/*_test.yaml', inputs.chart)) != ''
-        uses: docker://helmunittest/helm-unittest:4.3.0-1.2.1@sha256:28ea86c3e0b07f501f0c2e9c08b9f41e240f4a4b571cb5106b36cf0f0607e989
-        # The runner mounts its own home into the container, which the image's
-        # user can't write; the plugin's cache goes in the container instead.
         env:
-          HELM_CACHE_HOME: /tmp/helm
-        with:
-          args: ${{ inputs.chart }}
+          IMAGE: helmunittest/helm-unittest:4.3.0-1.2.1@sha256:28ea86c3e0b07f501f0c2e9c08b9f41e240f4a4b571cb5106b36cf0f0607e989
+        run: >-
+          docker run --rm --user "$(id -u):$(id -g)" -e HELM_CACHE_HOME=/tmp/helm
+          -v "$PWD:/apps" -w /apps "$IMAGE" "$CHART"
       - name: Run the caller's renders
         if: inputs.test != ''
         env:

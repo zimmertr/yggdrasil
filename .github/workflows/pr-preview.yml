@@ -1,0 +1,128 @@
+name: pr-preview
+
+# The preview image module: the PR's head built for linux/amd64 and pushed as
+# `<image>:pr-<N>-<head sha>`, the tag the Argo CD pull request generator
+# looks for. The owner's own PRs also get the `create pr container` label,
+# which turns that generator on, and one comment naming the preview's address.
+# Bluebird's pr-preview.yml, moved here for hevy-garmin-sync. Decision record
+# 0059.
+#
+# The caller runs it on `pull_request` (types opened, synchronize, reopened),
+# never `pull_request_target` (record 0010), and grants `contents: read`,
+# `packages: write` and `pull-requests: write`. A fork's `pull_request` run
+# gets a read-only token, so its push would fail; the gate below skips it
+# first.
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: The image to push, without a tag, such as ghcr.io/zimmertr/bluebird-pr.
+        type: string
+        required: true
+      url:
+        description: The preview's address, for the comment, such as http://pr-12.ganymede.sol.milkyway.
+        type: string
+        required: true
+      title:
+        description: The comment's heading, such as "Bluebird Forecast preview environment".
+        type: string
+        required: true
+
+permissions: {}
+
+jobs:
+  preview:
+    name: Preview Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Same-repo PRs only. A fork's token can't push anyway, so this keeps its
+    # run from failing, and it is the guard should a caller ever be moved to a
+    # trigger that hands forks a write token.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      packages: write # the preview image
+      pull-requests: write # the `create pr container` label and the comment
+    env:
+      IMAGE: ${{ inputs.image }}
+      # Must match the Argo CD generator: pr-{{ .number }}-{{ .head_sha }}
+      TAG: pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+    steps:
+      # The PR's head, not the merge commit, so the image holds the commit its
+      # tag names. No token left in .git/config, where the PR's .dockerignore
+      # could let it into the image.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      # The owner's PRs only, so a Renovate PR builds its image but starts no
+      # pod. Adding the label by hand opts any PR in later. The API creates the
+      # label the first time it is used.
+      - if: github.event.pull_request.user.login == github.repository_owner
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              ...context.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['create pr container'],
+            })
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      # A re-run or a reopen on the same commit asks for a tag already pushed,
+      # from the same source. A rebuild would put a new digest (the build time
+      # differs) under it, so the image already pushed stays.
+      - id: pushed
+        run: |
+          if docker manifest inspect "${IMAGE}:${TAG}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "${IMAGE}:${TAG} is already pushed; skipping the build." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      # The OCI labels, and the build time the release module passes too.
+      - id: meta
+        if: steps.pushed.outputs.exists == 'false'
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ inputs.image }}
+          tags: type=raw,value=${{ env.TAG }}
+          flavor: latest=false
+      - if: steps.pushed.outputs.exists == 'false'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # The names the release module passes. A preview has no SemVer, so
+          # its version names the PR it came from.
+          build-args: |
+            APP_VERSION=pr-${{ github.event.pull_request.number }}
+            APP_COMMIT=${{ github.event.pull_request.head.sha }}
+            APP_BUILT_AT=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          # Every PR's cache in its own scope, with the default scope as a
+          # warm start. A failed cache export never fails a pushed image.
+          cache-from: |
+            type=gha,scope=pr-${{ github.event.pull_request.number }}
+            type=gha
+          cache-to: type=gha,mode=max,scope=pr-${{ github.event.pull_request.number }},ignore-error=true
+
+      # Only a labelled PR gets a preview, so only the owner's get the comment.
+      - if: github.event.pull_request.user.login == github.repository_owner
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: pr-preview
+          message: |
+            ### ${{ inputs.title }}
+
+            Once Argo CD syncs, this PR runs at **${{ inputs.url }}**, from `${{ env.IMAGE }}:${{ env.TAG }}`.
+
+            _Rewritten on each push; the preview goes when the PR closes._

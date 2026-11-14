@@ -31,4 +31,4 @@ The chart module's `test` input and the docker-build module's `smoke-test` input
 
 ## Consequences
 
-ci-chart.yml and ci-docker-build.yml test both tools on the test chart and image, and keep testing the deprecated inputs until they go. Renovate moves the helm-unittest image. The container-structure-test version and hash change by hand, together.
+ci-chart.yml and ci-docker-build.yml test both tools on the test chart and image, and keep testing the deprecated inputs until they go. Renovate sees neither pin, so both change by hand: helm-unittest's tag and digest with the Helm minor, and container-structure-test's version and hash together.

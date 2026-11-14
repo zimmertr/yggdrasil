@@ -52,7 +52,8 @@ jobs:
         run: helm template "$CHART" >/dev/null
       # Every `*_test.yaml` in the chart's tests/ folder, with the
       # dependencies fetched above. helm-unittest's own image, at the Helm
-      # minor this module installs; Renovate moves the tag and digest. Run as
+      # minor this module installs. Renovate reads no image in a `run:`, so the
+      # tag and digest change by hand, with the Helm minor. Run as
       # the runner's user, not as a `docker://` step: the tool makes a
       # `__snapshot__` folder beside the suites, which the image's own user
       # can't write in the checkout, and its cache goes in the container.

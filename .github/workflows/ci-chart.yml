@@ -25,7 +25,3 @@ jobs:
       contents: read
     with:
       chart: tests/chart
-      # The deprecated input, until its last caller moves (record 0060). The
-      # suites in tests/chart/tests run on their own.
-      test: |
-        helm template "$CHART" --set message=changed | grep -q '^  message: "changed"$'

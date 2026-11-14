@@ -4,7 +4,7 @@
 - Date: 2026-11-13
 - Decider: TJ, 2026-11-13, on hevy-garmin-sync#67: "Both, and other repos need to align on this solution instead of hand-rolling", and that the rule be written down so future agents follow it.
 - Issues and PRs: hevy-garmin-sync#62, hevy-garmin-sync#67
-- Cited in code as: record 0060, in `.github/workflows/chart.yml`, `docker-build.yml`, `ci-chart.yml` and `ci-docker-build.yml`
+- Cited in code as: record 0060, in `.github/workflows/chart.yml`, `docker-build.yml`, `ci-chart.yml`, `ci-docker-build.yml` and `defaults/renovate.json`
 - Guide: [`CLAUDE.md`](../../CLAUDE.md), Working in this repo, "Charts and images are tested with standard tools"
 
 ## Context
@@ -16,7 +16,8 @@ The chart module's `test` input and the docker-build module's `smoke-test` input
 - The chart module runs helm-unittest on every `*_test.yaml` in the chart's `tests/` folder, with no input. It runs helm-unittest's own image, `helmunittest/helm-unittest`, as a `docker://` step pinned by tag and digest. The image runs as uid 1000, which can't write the runner's checkout, and the tool makes a `__snapshot__` folder beside the suites (seen 2026-11-13), so a step first lets every user write the chart's `tests/` folders.
 - The docker-build module takes `structure-test`, a container-structure-test file, and runs it against the built image. It runs the tool's own image, `ghcr.io/googlecontainertools/container-structure-test`, as a `docker://` step pinned by tag and digest. The step gets the runner's Docker socket, so it finds the image the module loaded.
 - `test` and `smoke-test` stay, deprecated, until their last callers move: bluebird-helm and trailhead-helm for `test`, bluebird and Mountaineers-Activity-Scraper for `smoke-test`. A major release removes them.
-- Renovate moves both pins, as it moves every action and image, and nothing is updated by hand (TJ, 2026-11-13: "I will never update anything by hand"). helm-unittest's tags join two versions, as `4.3.0-1.2.1`, so yggdrasil's `.github/renovate.json` gives it a versioning of its own: the plugin's major is the major, Helm's major is the compatibility, and the rest compare in order.
+- Renovate moves both pins, as it moves every action and image, and nothing is updated by hand (TJ, 2026-11-13: "I will never update anything by hand"). helm-unittest's tags join two versions, as `4.3.0-1.2.1`, so the shared preset, `defaults/renovate.json`, gives it a versioning of its own: the plugin's major is the major, Helm's major is the compatibility, and the rest compare in order. It sits in the preset because a caller's Makefile pins the same image to run the suites locally.
+- Renovate has no Makefile manager, so the preset adds one: a regex that reads `NAME := image:tag@sha256:...`. A pin without its digest isn't read, so every Makefile image is pinned the way the modules pin theirs.
 - A check neither tool can hold is raised with TJ before any shell is written for it.
 
 ## Evidence
@@ -24,6 +25,7 @@ The chart module's `test` input and the docker-build module's `smoke-test` input
 - 2026-11-13: container-structure-test v1.22.1's run options are user, privileged, TTY, env file, env vars, capabilities and bind mounts. It can't run a container read-only or with no network, and its commands run to completion, so it can't wait on a long-running process. hevy-garmin-sync dropped its read-only and no-network runs for that reason; its unit tests already prove the preview opens no real client.
 - 2026-11-13: helm-unittest v1.2.1 (2026-10-03) ships an image per Helm version, `4.3.0-1.2.1` among them. container-structure-test v1.22.1 ships `ghcr.io/googlecontainertools/container-structure-test:1.22.1`; its gcr.io image stopped at v1.16 in 2023.
 - 2026-11-13: Renovate 44.200.0's lookup dry run over a copy pinned to `4.2.0-1.1.2` and `1.21.0` offered `4.3.0-1.2.1` and `1.22.1`, both as minor updates.
+- 2026-11-13: Renovate reads a custom regex without multiline mode, so `^` and `$` match only the file's ends and a first pattern found nothing in hevy-garmin-sync's Makefile. With `(?:^|\n)` in their place, the same dry run read all five of its pins and offered trivy `0.68.1` to `0.76.2`, hadolint `v2.12.0` to `v2.15.1` and alpine/helm `4.3.0` to `4.3.1`, pins that had fallen behind by hand.
 
 ## Alternatives rejected
 

@@ -71,32 +71,34 @@ actionlint, with shellcheck on every `run:`; zizmor's pedantic audits over the c
 
 ### `docker-build.yml`
 
-On a PR: hadolint, then the `linux/amd64` image built and loaded but not pushed, scanned by Trivy (fixable only), a sticky scan comment, the caller's smoke test, and a failure on any fixable Critical or High. Record: [0030](architectural-decision-records/0030-docker-build-module.md)
+On a PR: hadolint, then the `linux/amd64` image built and loaded but not pushed, scanned by Trivy (fixable only), a sticky scan comment, the caller's container-structure-test file, and a failure on any fixable Critical or High. Records: [0030](architectural-decision-records/0030-docker-build-module.md), [0060](architectural-decision-records/0060-standard-tools-test-charts-and-images.md)
 
 | Input | Default | Does |
 |---|---|---|
 | `context` | `.` | The build context, which holds the `Dockerfile` |
 | `build-args` | `''` | Build arguments, one `KEY=value` per line |
-| `smoke-test` | `''` | Bash run against the built image, whose tag is in `$IMAGE` (`<repo name>:pr-scan`). Any failing command fails the job |
+| `structure-test` | `''` | A [container-structure-test](https://github.com/GoogleContainerTools/container-structure-test) file, from the repo root, run against the built image: commands and their output, files, metadata. Any failing test fails the job |
+| `smoke-test` | `''` | Deprecated: use `structure-test`. Bash run against the built image, whose tag is in `$IMAGE` (`<repo name>:pr-scan`). Any failing command fails the job |
 | `cache` | `false` | Uses the GitHub Actions layer cache |
 | `upload-image` | `false` | Saves the image as the artifact `<repo name>-image`, holding `<repo name>-image.tar`, for later jobs to `docker load` |
 
 - The caller runs it on `pull_request` and grants `contents: read` and `pull-requests: write`.
 - A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`.
 - `marocchino/sticky-pull-request-comment` keeps one scan comment per PR (header `image-scan`). Dependabot's PRs get the step summary instead, since their token is read-only.
+- container-structure-test can't run a container read-only or with no network, or wait on a running process. A check that needs one goes to TJ before any shell is written for it.
 - The caller sees `<caller job> / Docker Build`.
 
 ### `chart.yml`
 
-On a PR: the chart's dependencies fetched, `helm lint`, a render with the chart's defaults, then the caller's own renders. The release module pushes the chart. Record: [0054](architectural-decision-records/0054-release-module-pushes-the-charts.md)
+On a PR: the chart's dependencies fetched, `helm lint`, a render with the chart's defaults, then the chart's [helm-unittest](https://github.com/helm-unittest/helm-unittest) suites: every `*_test.yaml` under its `tests/` folder. The release module pushes the chart. Records: [0054](architectural-decision-records/0054-release-module-pushes-the-charts.md), [0060](architectural-decision-records/0060-standard-tools-test-charts-and-images.md)
 
 | Input | Default | Does |
 |---|---|---|
 | `chart` | | Required. The chart's folder, from the repo root |
-| `test` | `''` | Bash run from the repo root after the lint and the default render, with the chart's folder in `$CHART` and its dependencies fetched. Any failing command fails the job |
+| `test` | `''` | Deprecated: write helm-unittest suites. Bash run from the repo root after the lint and the default render, with the chart's folder in `$CHART` and its dependencies fetched. Any failing command fails the job |
 
 - The caller runs it on `pull_request` and grants `contents: read`.
-- Helm is v4.3.0, the version the release module packages with. `helm dependency update` reads the repositories the chart's `Chart.yaml` names, so no `helm repo add` is needed.
+- Helm is v4.3.1, the version the release module packages with; helm-unittest runs from its own image at Helm 4.3.0, the newest it ships, and Renovate moves it. `helm dependency update` reads the repositories the chart's `Chart.yaml` names, so no `helm repo add` is needed.
 - The caller sees `<caller job> / Chart`.
 
 ### `image-scan.yml`

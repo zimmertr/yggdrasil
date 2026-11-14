@@ -1,0 +1,2 @@
+description: "Audits each Hevy app release for changes to Hevy Trainer's weight and rep rules that hevy-garmin-sync follows."
+visibility: private

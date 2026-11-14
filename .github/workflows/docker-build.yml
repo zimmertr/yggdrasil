@@ -1,9 +1,10 @@
 name: docker-build
 
 # The PR image module: hadolint, then the linux/amd64 image the release would
-# ship, built but not pushed, scanned by Trivy, run through the caller's smoke
-# test, and refused on any fixable Critical or High. hevy-trainer-sync's and
-# Bluebird's Docker Build job. Decision records 0030 and 0034.
+# ship, built but not pushed, scanned by Trivy, tested with the caller's
+# container-structure-test file (or, deprecated, its smoke test), and refused
+# on any fixable Critical or High. hevy-trainer-sync's and Bluebird's Docker
+# Build job. Decision records 0030, 0034 and 0060.
 #
 # The caller runs it on `pull_request` and grants `contents: read` and
 # `pull-requests: write`, for the sticky scan comment.
@@ -18,8 +19,14 @@ on:
         description: Build arguments, one KEY=value per line.
         type: string
         default: ''
+      structure-test:
+        description: A container-structure-test file, from the repo root, run against the built image. Any failing test fails the job.
+        type: string
+        default: ''
+      # Deprecated (record 0060): an image's checks are a container-structure-test
+      # file. Removed in a major once bluebird and Mountaineers-Activity-Scraper move.
       smoke-test:
-        description: Bash run against the built image, whose tag is in $IMAGE (`<repo name>:pr-scan`). A failing command fails the job.
+        description: Deprecated, use structure-test. Bash run against the built image, whose tag is in $IMAGE (`<repo name>:pr-scan`). A failing command fails the job.
         type: string
         default: ''
       cache:
@@ -121,6 +128,16 @@ jobs:
         with:
           header: image-scan
           path: scan-comment.md
+
+      # The tool's own image, pinned by digest; Renovate moves it (record
+      # 0060). The step gets the runner's Docker socket, so it finds the image
+      # loaded above.
+      - name: Test the built image (container-structure-test)
+        if: inputs.structure-test != ''
+        uses: docker://ghcr.io/googlecontainertools/container-structure-test:1.22.1@sha256:710da3ca8ed29a42423315592f74f02df4e3d2ba19f1df7257bd481ea75ba5aa
+        with:
+          entrypoint: /ko-app/container-structure-test
+          args: test --image ${{ steps.names.outputs.image }} --config ${{ inputs.structure-test }}
 
       - name: Smoke test the built image
         if: inputs.smoke-test != ''

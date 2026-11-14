@@ -84,3 +84,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0057](0057-sbom-stays-on-the-image.md) | An image's SBOM is the attestation BuildKit puts on it, and no release carries an SBOM file | 2026-11-11 | Accepted. Supersedes 0001 in part |
 | [0058](0058-a-repo-may-add-its-own-issue-forms.md) | A repo that needs its own issue form keeps copies of the shared templates beside it | 2026-11-12 | Accepted. Supersedes 0049 in part |
 | [0059](0059-pr-preview-module.md) | The pr-preview module builds each PR's preview image on `pull_request`, and Bluebird and hevy-garmin-sync both call it | 2026-11-13 | Accepted |
+| [0060](0060-standard-tools-test-charts-and-images.md) | A chart's checks are helm-unittest suites and an image's a container-structure-test file, never shell | 2026-11-13 | Accepted |

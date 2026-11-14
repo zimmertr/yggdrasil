@@ -1,10 +1,10 @@
 name: chart
 
 # The PR chart module: the chart's dependencies fetched, `helm lint`, a render
-# with the chart's defaults, then the caller's own renders. hevy-garmin-sync's
-# and bluebird-helm's chart check. The release module pushes the chart, as it
-# does the images this module's neighbour docker-build checks. Decision
-# record 0054.
+# with the chart's defaults, then the chart's helm-unittest suites from its
+# `tests/` folder. hevy-garmin-sync's and bluebird-helm's chart check. The
+# release module pushes the chart, as it does the images this module's
+# neighbour docker-build checks. Decision records 0054 and 0060.
 #
 # The caller runs it on `pull_request` and grants `contents: read`.
 on:
@@ -14,8 +14,10 @@ on:
         description: The chart's folder, from the repo root.
         type: string
         required: true
+      # Deprecated (record 0060): a chart's checks are helm-unittest suites.
+      # Removed in a major once bluebird-helm and trailhead-helm move to them.
       test:
-        description: Bash run from the repo root after the lint and the default render, with the chart's folder in $CHART and its dependencies fetched. A failing command fails the job.
+        description: Deprecated, use helm-unittest suites in the chart's tests/ folder. Bash run from the repo root after the lint and the default render, with the chart's folder in $CHART and its dependencies fetched. A failing command fails the job.
         type: string
         default: ''
 
@@ -48,6 +50,23 @@ jobs:
         run: helm lint "$CHART"
       - name: Render the chart with its defaults
         run: helm template "$CHART" >/dev/null
+      # helm-unittest makes a `__snapshot__` folder beside the suites, and its
+      # image runs as uid 1000, which can't write the runner's checkout.
+      - name: Let helm-unittest write beside the suites
+        if: hashFiles(format('{0}/tests/**/*_test.yaml', inputs.chart)) != ''
+        run: find "$CHART/tests" -type d -exec chmod a+w {} +
+      # Every `*_test.yaml` in the chart's tests/ folder, with the
+      # dependencies fetched above. helm-unittest's own image, at the newest
+      # Helm it ships; Renovate moves the tag and digest (yggdrasil's
+      # .github/renovate.json says how it reads the tag). Its cache goes in the
+      # container: the runner's home, mounted in, isn't its user's to write.
+      - name: Run the chart's unit tests (helm-unittest)
+        if: hashFiles(format('{0}/tests/**/*_test.yaml', inputs.chart)) != ''
+        uses: docker://helmunittest/helm-unittest:4.3.0-1.2.1@sha256:28ea86c3e0b07f501f0c2e9c08b9f41e240f4a4b571cb5106b36cf0f0607e989
+        env:
+          HELM_CACHE_HOME: /tmp/helm
+        with:
+          args: ${{ inputs.chart }}
       - name: Run the caller's renders
         if: inputs.test != ''
         env:

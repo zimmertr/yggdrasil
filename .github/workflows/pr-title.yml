@@ -21,8 +21,9 @@ name: PR Title
 # No `concurrency` group. Renovate pushes a branch and edits its PR at once,
 # which starts two runs on the same commit. A group would cancel one, and
 # Renovate reads a cancelled run as pending forever, so it never merges
-# (docs/DATA.md). The job takes seconds, so cancelling saved nothing.
-on:
+# (docs/DATA.md). The job takes seconds, so cancelling saved nothing, and
+# zizmor's pedantic concurrency-limits is ignored here for that reason.
+on: # zizmor: ignore[concurrency-limits]
   pull_request:
     types: [opened, edited, reopened, synchronize]
   workflow_call:

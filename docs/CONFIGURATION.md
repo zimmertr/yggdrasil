@@ -134,7 +134,7 @@ zimmertr/hevy-garmin-sync calls every module but `terraform.yml`, and is the exa
 
 - Pin every module to a release's commit SHA, with the version in a comment, so Renovate can move it. The shared preset below takes a yggdrasil release as soon as it ships (record [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md)).
 - A caller job's `name` comes first in each check's name: `Docker Build / Docker Build`. Rename the required checks in the same step as the switch.
-- Don't give a caller the same `concurrency` group as the module it calls: `pr-title.yml` already sets one.
+- Don't give the `pr-title.yml` caller a `concurrency` group that cancels runs. Renovate never merges a PR whose head commit has a cancelled run ([DATA.md](DATA.md#github)).
 
 ## Shared defaults
 

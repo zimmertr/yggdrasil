@@ -63,7 +63,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0036](0036-records-only-for-system-decisions.md) | A decision record is written only for a decision that shapes the system | 2026-11-06 | Accepted |
 | [0037](0037-lint-module.md) | A lint module runs actionlint, zizmor and Semgrep in every repo, in the images `compose.yml` pins | 2026-11-06 | Accepted. Supersedes 0026 in part |
 | [0038](0038-consumers-take-a-trimmed-set-of-repo-files.md) | A repo moving onto the modules takes a trimmed set of `initialize-project`'s repo files once, and adds the rest as later work reaches it | 2026-11-06 | Superseded in part by 0041 and 0055 |
-| [0039](0039-private-repos-run-the-checks-without-requiring-them.md) | A private repo runs the shared checks without requiring them, and has no auto-merge, while TJ's account is on GitHub Free | 2026-11-06 | Accepted |
+| [0039](0039-private-repos-run-the-checks-without-requiring-them.md) | A private repo runs the shared checks without requiring them, and has no auto-merge, while TJ's account is on GitHub Free | 2026-11-06 | Accepted. Superseded in part by 0061 |
 | [0040](0040-no-artifacthub.md) | TJ's Helm charts are not listed on ArtifactHub, and yggdrasil documents no ArtifactHub steps | 2026-11-06 | Accepted. Supersedes 0009 in part |
 | [0041](0041-one-source-for-community-health-files.md) | The issue templates and security policy live once, in yggdrasil, and Terraform writes them into each owner's `.github` repo | 2026-11-06 | Accepted. Supersedes 0038 and 0010 in part. Superseded in part by 0049 and 0055 |
 | [0042](0042-terraform-module.md) | A terraform module runs fmt, validate, test, tflint and Trivy in every repo with Terraform, in the images `compose.yml` pins | 2026-11-06 | Accepted |
@@ -85,3 +85,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0058](0058-a-repo-may-add-its-own-issue-forms.md) | A repo that needs its own issue form keeps copies of the shared templates beside it | 2026-11-12 | Accepted. Supersedes 0049 in part |
 | [0059](0059-pr-preview-module.md) | The pr-preview module builds each PR's preview image on `pull_request`, and Bluebird and hevy-garmin-sync both call it | 2026-11-13 | Accepted |
 | [0060](0060-standard-tools-test-charts-and-images.md) | A chart's checks are helm-unittest suites and an image's a container-structure-test file, never shell | 2026-11-13 | Accepted |
+| [0061](0061-private-repos-merge-updates-through-renovate.md) | A private repo's updates below a major merge themselves, through Renovate's own merge once every check passes | 2026-11-16 | Accepted. Supersedes 0039 in part |

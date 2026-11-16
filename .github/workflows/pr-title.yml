@@ -17,14 +17,15 @@ name: PR Title
 # Also the pr-title module: other repos call this file with `workflow_call`
 # from a job on the same four `pull_request` types, and see the check as
 # `<caller job> / PR Title`. Decision record 0028.
+#
+# No `concurrency` group. Renovate pushes a branch and edits its PR at once,
+# which starts two runs on the same commit. A group would cancel one, and
+# Renovate reads a cancelled run as pending forever, so it never merges
+# (docs/DATA.md). The job takes seconds, so cancelling saved nothing.
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
   workflow_call:
-
-concurrency:
-  group: pr-title-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
 
 permissions: {}
 

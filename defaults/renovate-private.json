@@ -1,0 +1,11 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "The preset a private repo of TJ's extends, in place of defaults/renovate.json, which it adds one setting to (zimmertr/yggdrasil record 0061).",
+    "GitHub Free gives a private repo no required checks, so GitHub's auto-merge would have nothing to wait for. platformAutomerge false makes Renovate merge the PR itself, and only once every check on its newest commit has passed."
+  ],
+  "extends": [
+    "github>zimmertr/yggdrasil//defaults/renovate"
+  ],
+  "platformAutomerge": false
+}

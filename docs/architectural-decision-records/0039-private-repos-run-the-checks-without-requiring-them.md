@@ -1,6 +1,6 @@
 # 0039. A private repo runs the shared checks without requiring them, and has no auto-merge, while TJ's account is on GitHub Free
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by [0061](0061-private-repos-merge-updates-through-renovate.md): a private repo's updates merge themselves through Renovate
 - Date: 2026-11-06
 - Decider: TJ, 2026-11-06, in #7, choosing to run the checks without requiring them over GitHub Pro or leaving the private repos out
 - Issues and PRs: #7

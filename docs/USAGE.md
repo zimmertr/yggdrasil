@@ -7,7 +7,7 @@ What TJ sees from yggdrasil, and what to do when it breaks. Each part that is no
 - **A bump PR from Renovate** soon after a yggdrasil release ships. Patch and minor bumps merge themselves once the repo's checks pass; a major waits for TJ. Every other update waits seven days first, unless its registry gives no publish date. Record: [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md)
 - **The module's checks** on every PR, named `caller / callee`.
 - **Versions skip when merges land close together.** Releases run one at a time, and GitHub keeps only the newest waiting run, so a burst of merges releases once, at the last one: 0.1.0 can go to 0.1.6 with no release between. Nothing is lost, because GitVersion counts every merge since the last tag. A release run that main has moved past says "Releases nothing: main has moved past this commit" in its `Version` job, and pushes nothing. Record: [0053](architectural-decision-records/0053-release-only-from-mains-newest-commit.md)
-- **In a private repo** (Resume), the same checks, but none is required and nothing merges itself: read the checks, then merge Renovate's PRs by hand. Record: [0039](architectural-decision-records/0039-private-repos-run-the-checks-without-requiring-them.md)
+- **In a private repo** (Resume, hevy-app-audit, homelab-ipam), the same checks, but none is required. Renovate merges its own PRs once every check passes, with the same exceptions as a public repo, so read the checks before merging anything by hand. Records: [0039](architectural-decision-records/0039-private-repos-run-the-checks-without-requiring-them.md), [0061](architectural-decision-records/0061-private-repos-merge-updates-through-renovate.md)
 
 ## In yggdrasil
 

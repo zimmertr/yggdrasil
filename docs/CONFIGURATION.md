@@ -160,6 +160,8 @@ No module reads `defaults/renovate.json`. Renovate reads it from yggdrasil's mai
 
 A repo adds its own `packageRules` after the `extends`, and they win over the preset's.
 
+A private repo extends `github>zimmertr/yggdrasil//defaults/renovate-private` instead. It is the same preset plus `platformAutomerge: false`, so Renovate merges each PR itself once every check on its newest commit passes, because GitHub Free gives a private repo no required checks for GitHub's auto-merge to wait on. Record: [0061](architectural-decision-records/0061-private-repos-merge-updates-through-renovate.md)
+
 ## The App
 
 `zimmertr-yggdrasil-bot`, checked with `gh api apps/zimmertr-yggdrasil-bot` on 2026-11-05. Record: [0007](architectural-decision-records/0007-one-bot-identity.md)
@@ -208,7 +210,7 @@ The org module sets, on every org: the dependency graph, Dependabot alerts and s
 | `description` | `""` | The repo's description |
 | `homepage_url` | none | The website shown beside it |
 | `topics` | `[]` | Its topics |
-| `visibility` | `public` | `public` or `private`. A private repo on GitHub Free gets no rulesets, secret scanning, CodeQL, private vulnerability reporting or auto-merge |
+| `visibility` | `public` | `public` or `private`. A private repo on GitHub Free gets no rulesets, secret scanning, CodeQL, private vulnerability reporting or auto-merge, so its `.github/renovate.json` extends the private preset ([Shared defaults](#shared-defaults)) |
 | `archived` | `false` | Archives the repo. An archived repo is read-only, so only the repo itself stays managed |
 | `is_template` | `false` | Marks the repo as a template |
 | `has_discussions` | `false` | Turns Discussions on. Bluebird uses them |

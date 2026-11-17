@@ -424,7 +424,7 @@ jobs:
       # already holds it. zizmor would have `gh pr create` instead, which does
       # only the last of those; the rest would be shell (record 0033).
       - id: pr  # zizmor: ignore[superfluous-actions]
-        uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # v8.1.2
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
         with:
           token: ${{ secrets.deploy-token }}
           branch: ${{ matrix.branch }}
@@ -489,7 +489,7 @@ jobs:
           cmd: yq -i "$SET = strenv(DIGEST)" "$FILE" && yq -e "($SET) == strenv(DIGEST)" "$FILE"
       - id: retry  # zizmor: ignore[superfluous-actions]
         if: steps.check.outputs.moved == 'true'
-        uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # v8.1.2
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
         with:
           token: ${{ secrets.deploy-token }}
           branch: ${{ matrix.branch }}

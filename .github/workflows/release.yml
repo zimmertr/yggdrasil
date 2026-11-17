@@ -386,7 +386,8 @@ jobs:
       matrix:
         include: ${{ fromJSON(inputs.deploys) }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ matrix.repo }}
           token: ${{ secrets.deploy-token }}
@@ -445,38 +446,32 @@ jobs:
       # main just before the previous bump merges, and create-pull-request
       # commits on that fetch without fetching again, so the PR conflicts from
       # the start. GitHub then runs none of its checks and auto-merge never
-      # fires, so nothing would report it. GitHub answers `mergeable` UNKNOWN
-      # until it has worked it out, so this asks for up to a minute, and lets a
-      # slow answer pass with a warning rather than fail a good release. No
-      # maintained action waits on `mergeable`, so it is shell.
+      # fires, so nothing would report it. Asking whether main has moved since
+      # the checkout catches that at once, where GitHub's own `mergeable`
+      # answer takes a while to settle. No maintained action does either.
       - id: check
         if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
         env:
           REPO: ${{ matrix.repo }}
-          PR: ${{ steps.pr.outputs.pull-request-number }}
+          CHECKED_OUT: ${{ steps.checkout.outputs.commit }}
           GH_TOKEN: ${{ secrets.deploy-token }}
-        run: &check |
-          for _ in $(seq 12); do
-            ANSWER=$(gh pr view "$PR" --repo "$REPO" --json state,mergeable --jq '"\(.state) \(.mergeable)"')
-            case "$ANSWER" in
-              "MERGED "* | *" MERGEABLE") echo "conflict=false" >> "$GITHUB_OUTPUT"; exit 0 ;;
-              *" CONFLICTING") echo "conflict=true" >> "$GITHUB_OUTPUT"; exit 0 ;;
-            esac
-            sleep 5
-          done
-          echo "::warning::GitHub hadn't said whether ${REPO}#${PR} conflicts after a minute, so it is left as it is."
-          echo "conflict=false" >> "$GITHUB_OUTPUT"
-      # On a conflict, build the bump again on a fresh main and push it to the
-      # same branch, which replaces the stale commit in the same PR. Never
-      # rebase the old commit: it carries every other line of the old file,
-      # so taking its side reverts whatever merged in between.
-      - if: steps.check.outputs.conflict == 'true'
+        run: &main-moved |
+          MAIN=$(gh api "repos/${REPO}/commits/HEAD" --jq .sha)
+          if [ "$MAIN" = "$CHECKED_OUT" ]; then MOVED=false; else MOVED=true; fi
+          echo "moved=${MOVED}" >> "$GITHUB_OUTPUT"
+      # If main moved, build the bump again on the new main and push it to the
+      # same branch, which replaces the stale commit in the same PR. When main
+      # moved for another reason, this only rebuilds a PR that was fine.
+      # Never rebase the old commit with its side taken: it carries every
+      # other line of the old file, so that reverts whatever merged in between.
+      - id: recheckout
+        if: steps.check.outputs.moved == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ matrix.repo }}
           token: ${{ secrets.deploy-token }}
           persist-credentials: false
-      - if: steps.check.outputs.conflict == 'true'
+      - if: steps.check.outputs.moved == 'true'
         uses: mikefarah/yq@f2944b823f84906a127dbd29e4c2a3e60c4e550e # v4.54.3
         env:
           VERSION: ${{ needs.version.outputs.version }}
@@ -484,7 +479,7 @@ jobs:
           SET: ${{ matrix.set }}
         with:
           cmd: yq -i "$SET = strenv(VERSION)" "$FILE" && yq -e "($SET) == strenv(VERSION)" "$FILE"
-      - if: steps.check.outputs.conflict == 'true' && matrix.digest-set != ''
+      - if: steps.check.outputs.moved == 'true' && matrix.digest-set != ''
         uses: mikefarah/yq@f2944b823f84906a127dbd29e4c2a3e60c4e550e # v4.54.3
         env:
           DIGEST: ${{ steps.digest.outputs.digest }}
@@ -493,7 +488,7 @@ jobs:
         with:
           cmd: yq -i "$SET = strenv(DIGEST)" "$FILE" && yq -e "($SET) == strenv(DIGEST)" "$FILE"
       - id: retry  # zizmor: ignore[superfluous-actions]
-        if: steps.check.outputs.conflict == 'true'
+        if: steps.check.outputs.moved == 'true'
         uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # v8.1.2
         with:
           token: ${{ secrets.deploy-token }}
@@ -504,25 +499,25 @@ jobs:
             Automated by the ${{ github.repository }} v${{ needs.version.outputs.version }} release.
 
             - Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.version.outputs.version }}
-      - if: steps.retry.outputs.pull-request-operation == 'updated'
+      - if: steps.retry.outputs.pull-request-operation == 'created' || steps.retry.outputs.pull-request-operation == 'updated'
         env:
           REPO: ${{ matrix.repo }}
           PR: ${{ steps.retry.outputs.pull-request-number }}
           GH_TOKEN: ${{ secrets.deploy-token }}
         run: *merge
       - id: recheck
-        if: steps.retry.outputs.pull-request-operation == 'updated'
+        if: steps.retry.outputs.pull-request-operation == 'created' || steps.retry.outputs.pull-request-operation == 'updated'
         env:
           REPO: ${{ matrix.repo }}
-          PR: ${{ steps.retry.outputs.pull-request-number }}
+          CHECKED_OUT: ${{ steps.recheckout.outputs.commit }}
           GH_TOKEN: ${{ secrets.deploy-token }}
-        run: *check
-      # A second conflict means main is moving faster than a bump can land, so
-      # the run goes red for a person to look.
-      - if: steps.recheck.outputs.conflict == 'true'
+        run: *main-moved
+      # Main moving again within seconds is rare, so the run goes red for a
+      # person to look rather than trying a third time.
+      - if: steps.recheck.outputs.moved == 'true'
         env:
           REPO: ${{ matrix.repo }}
           PR: ${{ steps.retry.outputs.pull-request-number }}
         run: |
-          echo "${REPO}#${PR} conflicts with main after a second try. Use Re-run failed jobs, unless a newer release has run since: its bump has already replaced this one." | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "${REPO} main moved again while ${REPO}#${PR} was rebuilt, so it may conflict. Use Re-run failed jobs, unless a newer release has run since: its bump has already replaced this one." | tee -a "$GITHUB_STEP_SUMMARY"
           exit 1

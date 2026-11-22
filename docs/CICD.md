@@ -49,7 +49,7 @@ Every job runs in the same pinned container a local `make` run uses. Record: [00
 | `ci-release.yml` | `Release / Build & Push (zimmertr/yggdrasil-test)` | The same dry run building `tests/docker-build/` for `linux/amd64` and `linux/arm64`, pushing nothing | A build that fails |
 | `ci-release.yml` | `Release / Push Chart (tests/chart)` | The same dry run packaging `tests/chart/` at the version, pushing nothing | A chart that doesn't package |
 
-Branch protection requires the five `Lint /` checks, the five `Terraform /` checks and `PR Title`. A check joins it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR. CodeQL's default setup scans the workflows too.
+Branch protection requires the five `Lint /` checks, the five `Terraform /` checks, `Bats` and `PR Title`. A check joins it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR. CodeQL's default setup scans the workflows too.
 
 ## Renovate
 

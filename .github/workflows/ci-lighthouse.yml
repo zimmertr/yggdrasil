@@ -1,0 +1,40 @@
+name: ci-lighthouse
+
+# The lighthouse module's test caller: docker-build builds tests/lighthouse/,
+# a static page, and the lighthouse module audits it. Only on PRs that touch
+# either module or the test, and not a required check: a path-filtered check
+# never reports on other PRs. Decision record 0065.
+on:
+  pull_request:
+    paths:
+      - .github/workflows/lighthouse.yml
+      - .github/workflows/ci-lighthouse.yml
+      - .github/workflows/docker-build.yml
+      - tests/lighthouse/**
+
+concurrency:
+  group: ci-lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  docker-build:
+    name: Docker Build
+    uses: $/.github/workflows/docker-build.yml
+    permissions:
+      contents: read
+      pull-requests: write # the module's sticky scan comment
+    with:
+      context: tests/lighthouse
+      upload-image: true
+
+  lighthouse:
+    name: Lighthouse Test
+    needs: docker-build
+    uses: $/.github/workflows/lighthouse.yml
+    permissions:
+      contents: read
+    with:
+      config: tests/lighthouse/lighthouserc.json
+      port: 8080

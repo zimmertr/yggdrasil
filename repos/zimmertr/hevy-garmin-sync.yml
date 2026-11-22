@@ -3,8 +3,11 @@ required_checks:
   - test
   - Python Lint
   - Chart / Chart
-  - Docker Build / Docker Build
+  - Docker Build / Docker Build (zimmertr/hevy-garmin-sync)
+  - Dependency Review / Dependency Review
   - Lint / actionlint
   - Lint / zizmor
   - Lint / semgrep
+  - Lint / shellcheck
+  - Lint / docs
   - PR Title / PR Title

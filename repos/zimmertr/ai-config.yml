@@ -4,4 +4,6 @@ required_checks:
   - Lint / actionlint
   - Lint / zizmor
   - Lint / semgrep
+  - Lint / shellcheck
+  - Lint / docs
   - pytest

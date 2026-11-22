@@ -15,12 +15,13 @@ topics:
   - virtualization
 has_discussions: true
 required_checks:
-  - shellcheck
   - talos-kubernetes
   - PR Title / PR Title
   - Lint / actionlint
   - Lint / zizmor
   - Lint / semgrep
+  - Lint / shellcheck
+  - Lint / docs
   - Terraform / fmt
   - Terraform / validate
   - Terraform / test

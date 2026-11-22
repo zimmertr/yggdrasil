@@ -19,9 +19,6 @@ name: lint
 # a `# nosemgrep` comment, a `# shellcheck disable=SCxxxx` directive, or a
 # `.lycheeignore`.
 on:
-# an inline `# zizmor: ignore[<audit>]`, the caller's own zizmor.yml, or a
-# `# nosemgrep` comment.
-on:
   workflow_call:
 
 permissions: {}

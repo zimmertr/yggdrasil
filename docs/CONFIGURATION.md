@@ -131,6 +131,21 @@ On a PR from the repo's own branches: the PR's head built for `linux/amd64` and 
 - The layer cache is scoped per PR, with the default scope read as a warm start.
 - The caller sees `<caller job> / Preview Image`.
 
+### `lighthouse.yml`
+
+Lighthouse CI against the image the `docker-build` module built for the PR. It loads the `<repo name>-image` artifact, runs the image as `<repo name>:pr-scan` with the port published on localhost, waits for the health path, and runs `treosh/lighthouse-ci-action` with the caller's config. Record: [0065](architectural-decision-records/0065-lighthouse-module.md)
+
+| Input | Default | Does |
+|---|---|---|
+| `config` | none, required | The Lighthouse CI config, from the repo root, such as `.github/lighthouserc.js`. It names the URLs on `http://localhost:<port>/` and holds the assertions |
+| `port` | none, required | The port the image listens on, published on the same port of the runner |
+| `health-path` | `/` | A path that answers 2xx once the app is up. curl retries it for up to 30 seconds before the audit |
+
+- The caller's `docker-build` job sets `upload-image: true`, and the lighthouse job `needs:` it and grants `contents: read`.
+- Lighthouse runs with the runner's own Chrome, which Lighthouse CI advises over its Docker image, because a container makes timings noisier. So there is no `make` target for it.
+- Every run's reports are uploaded as the run's artifacts. Nothing leaves GitHub.
+- The caller sees `<caller job> / Lighthouse`.
+
 ### `cache-cleanup.yml`
 
 When a PR closes, merged or not, deletes every Actions cache on its ref, `refs/pull/<number>/merge`, with `gh cache delete --all --ref`. GitHub would keep them until seven days unread or until the repo passed its 10 GB budget, and then evict the oldest read first, which can be main's layer cache. No inputs. Record: [0064](architectural-decision-records/0064-cache-cleanup-module.md)

@@ -33,16 +33,3 @@ jobs:
       directories: terraform/github terraform/cloudflare terraform/modules/repo terraform/modules/org
     permissions:
       contents: read
-
-  # The old docs check, which `Lint / docs` replaces. It stays one more PR,
-  # because protection required `Docs` until the merge that applied the
-  # change, so a PR without it could never merge (#133 step 3).
-  docs:
-    name: Docs
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - run: make docs

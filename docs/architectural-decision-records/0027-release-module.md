@@ -1,6 +1,6 @@
 # 0027. The release module runs GitVersion's image, previews each PR's version, and makes the tag and release in one `gh release create`
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0067
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, on #4's trimmed plan: "LGTM, continue." The preview replaced a test of GitVersion's rules: "Yup. Please try not to over engineer going forward."
 - Issues and PRs: #4, #28

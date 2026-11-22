@@ -1,6 +1,6 @@
 # 0033. The release module points each deploy repo at the release with `yq`, through one self-merging PR per file
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0067
 - Date: 2026-11-06
 - Decider: TJ, 2026-11-06, on #4 item 2.13: "yq, accept blank lines"
 - Issues and PRs: #4

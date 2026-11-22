@@ -7,7 +7,7 @@ name: release
 # main, and may run it on PRs with `dry-run`, where it says in the job summary
 # what the merge will release, builds the images without pushing them and
 # packages the charts. Each pushed image and chart gets GitHub's signed build
-# provenance. Decision records 0027, 0032, 0033, 0034, 0054 and 0066.
+# provenance. Decision records 0027, 0032, 0033, 0034, 0054, 0066 and 0067.
 #
 # The caller sets `concurrency` (one release at a time) and grants
 # `contents: write`, which only the Tag and Release job uses, and
@@ -60,6 +60,10 @@ on:
           writes the digest of `image` at this version there. Empty for none.
         type: string
         default: '[]'
+      paths:
+        description: Only a merge that touches one of these paths releases, space separated, such as `src Dockerfile`. Empty, every merge releases.
+        type: string
+        default: ''
     secrets:
       deploy-token:
         description: Token with contents and pull-requests write on every `deploys` repo. Needed when `deploys` isn't empty.
@@ -82,21 +86,12 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0  # GitVersion needs every commit and tag
+          fetch-depth: 0  # every commit and tag
           persist-credentials: false
-      # A caller with its own GitVersion.yml uses it. Otherwise the module's
-      # default, read at the commit the caller pinned (records 0006, 0022).
-      - if: hashFiles('GitVersion.yml') == ''
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          path: .yggdrasil
-          persist-credentials: false
-      # A PR's merge commit carries GitHub's message, not the PR title, so
-      # GitVersion would misread it. Build the squash commit the merge will
-      # make instead: the PR's changes on top of the base branch, titled with
-      # the PR title. Staged changes only, so .yggdrasil stays out of it.
+      # A PR's merge commit carries GitHub's message, not the PR title, so the
+      # version would misread it. Build the squash commit the merge will make
+      # instead: the PR's changes on top of the base branch, titled with the
+      # PR title.
       - if: github.event_name == 'pull_request'
         env:
           BASE: ${{ github.base_ref }}
@@ -106,23 +101,18 @@ jobs:
           git checkout -q -B "$BASE" "origin/$BASE"
           git merge -q --squash "$MERGE"
           git -c user.name=release -c user.email=release@localhost commit -q --allow-empty -m "$TITLE"
-      # GitVersion's image rather than gittools/actions, so it sees only the
-      # repo and none of the runner's GITHUB_* variables, which would make it
-      # read a PR as a branch build. Renovate doesn't see this pin: bump it
-      # by hand.
+      - id: next
+        uses: $/actions/version
+        with:
+          paths: ${{ inputs.paths }}
       - id: version
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.next.outputs.version }}
         run: |
-          CONFIG=GitVersion.yml
-          [ -f "$CONFIG" ] || CONFIG=.yggdrasil/defaults/GitVersion.yml
-          VERSION=$(docker run --rm -v "$PWD:/repo" \
-            gittools/gitversion:6.8.2@sha256:f10e8320b2cf86f879a9304e074ac11f16b897380e0e4a86dd39682b265da568 \
-            /repo /config "/repo/$CONFIG" /nocache /output json /format '{SemVer}' | tail -n 1)
-          echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::GitVersion gave '${VERSION}'"; exit 1; }
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          # A merge that touches nothing GitVersion counts gives back the last
-          # tagged version, which is how a settings-only merge releases nothing.
+          # A merge that touches none of `paths` gives back the last tagged
+          # version, which is how a settings-only merge releases nothing.
           # A run for a commit main has moved past releases nothing too, as
           # semantic-release refuses a branch behind its remote: the release
           # from main's newest commit counts this one's change, and an old run
@@ -171,27 +161,27 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # arm64 and any other platform the runner can't run natively.
-      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
-      # The docker-container driver, which the attestations need.
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      # Emulates arm64 and any other platform the runner can't run natively.
+      - env:
+          # renovate: datasource=docker depName=tonistiigi/binfmt
+          BINFMT: latest@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+        run: docker run --rm --privileged "tonistiigi/binfmt:${BINFMT}" --install all
+      # The docker-container builder, which the attestations need.
+      - run: docker buildx create --use
       - if: ${{ !inputs.dry-run }}
-        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-      # The tag and the OCI labels (version, revision, source, created and the
-      # rest). The version only, no `latest`: deploys pin the version, and a
-      # moving tag is one nothing should pull.
-      - id: meta
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
-        with:
-          # GHCR wants lowercase, which the action gives: Bluebird-Forecast's
-          # images go to ghcr.io/bluebird-forecast.
-          images: ghcr.io/${{ matrix.image }}
-          tags: type=raw,value=${{ needs.version.outputs.version }}
-          flavor: latest=false
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+      # GHCR wants lowercase: Bluebird-Forecast's images go to
+      # ghcr.io/bluebird-forecast.
+      - id: name
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: |
+          echo "name=ghcr.io/${IMAGE,,}" >> "$GITHUB_OUTPUT"
+          echo "created=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" >> "$GITHUB_OUTPUT"
+      # The version only, no `latest`: deploys pin the version, and a moving
+      # tag is one nothing should pull.
       - id: build
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -199,14 +189,22 @@ jobs:
           file: ${{ matrix.file || '' }}
           platforms: ${{ matrix.platforms || 'linux/amd64' }}
           push: ${{ !inputs.dry-run }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.name.outputs.name }}:${{ needs.version.outputs.version }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.version=${{ needs.version.outputs.version }}
+            org.opencontainers.image.created=${{ steps.name.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
           # The names hevy-trainer-sync and Bluebird read. An image that uses
           # none of them builds the same, with a warning.
           build-args: |
             APP_VERSION=${{ needs.version.outputs.version }}
             APP_COMMIT=${{ github.sha }}
-            APP_BUILT_AT=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            APP_BUILT_AT=${{ steps.name.outputs.created }}
           provenance: mode=max
           sbom: true
           cache-from: ${{ matrix.cache && 'type=gha' || '' }}
@@ -216,11 +214,6 @@ jobs:
       # cluster's admission policy can both find it. No storage record, which
       # would ask the caller for `artifact-metadata: write` too. Decision
       # record 0066.
-      - if: ${{ !inputs.dry-run }}
-        id: name
-        env:
-          IMAGE: ${{ matrix.image }}
-        run: echo "name=ghcr.io/${IMAGE,,}" >> "$GITHUB_OUTPUT"
       - if: ${{ !inputs.dry-run }}
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
@@ -320,25 +313,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
-        with:
-          # Exact: with no version the action installs whatever Helm is newest
-          # on the day. Renovate reads this input, and bumps it here and in
-          # chart.yml in one PR.
-          version: v4.3.2
-      # Before the check below, so it also sees a private package.
+      - uses: $/actions/setup-helm
+      # Before the check below, so it also sees a private package. Docker's
+      # too, since actions/attest pushes with Docker's credentials, which
+      # `helm registry login` doesn't write (docs/DATA.md).
       - if: ${{ !inputs.dry-run }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: echo "$GH_TOKEN" | helm registry login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-      # actions/attest pushes the attestation with Docker's credentials, which
-      # `helm registry login` doesn't write (docs/DATA.md).
-      - if: ${{ !inputs.dry-run }}
-        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
+        run: |
+          echo "$GH_TOKEN" | helm registry login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
       # The chart's name is its OCI path, so it comes from Chart.yaml.
       - id: chart
         env:
@@ -470,38 +454,36 @@ jobs:
           SET: ${{ matrix.digest-set }}
         with:
           cmd: yq -i "$SET = strenv(DIGEST)" "$FILE" && yq -e "($SET) == strenv(DIGEST)" "$FILE"
-      # Pushes the fixed branch fresh off the default branch, then opens the PR
-      # or edits the open one to this version. Does nothing when the file
-      # already holds it. zizmor would have `gh pr create` instead, which does
-      # only the last of those; the rest would be shell (record 0033).
-      - id: pr  # zizmor: ignore[superfluous-actions]
-        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
-        with:
+      # Does nothing when the file already holds this version.
+      - id: pr
+        uses: $/actions/open-pr
+        with: &open-pr
           token: ${{ secrets.deploy-token }}
+          repo: ${{ matrix.repo }}
           branch: ${{ matrix.branch }}
-          commit-message: ${{ matrix.title }} to ${{ needs.version.outputs.version }}
           title: ${{ matrix.title }} to ${{ needs.version.outputs.version }}
+          paths: ${{ matrix.file }}
           body: |
             Automated by the ${{ github.repository }} v${{ needs.version.outputs.version }} release.
 
             - Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.version.outputs.version }}
       # Every push to the branch disarms auto-merge, so arm it each time. The
       # plain merge covers checks already green, where --auto is refused.
-      - if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
+      - if: steps.pr.outputs.operation == 'created' || steps.pr.outputs.operation == 'updated'
         env:
           REPO: ${{ matrix.repo }}
-          PR: ${{ steps.pr.outputs.pull-request-number }}
+          PR: ${{ steps.pr.outputs.number }}
           GH_TOKEN: ${{ secrets.deploy-token }}
         run: &merge gh pr merge "$PR" --repo "$REPO" --auto --squash || gh pr merge "$PR" --repo "$REPO" --squash
       # Two releases minutes apart race (#123): this run's checkout can fetch
-      # main just before the previous bump merges, and create-pull-request
-      # commits on that fetch without fetching again, so the PR conflicts from
-      # the start. GitHub then runs none of its checks and auto-merge never
-      # fires, so nothing would report it. Asking whether main has moved since
+      # main just before the previous bump merges, and open-pr commits on that
+      # fetch without fetching again, so the PR conflicts from the start.
+      # GitHub then runs none of its checks and auto-merge never fires, so
+      # nothing would report it. Asking whether main has moved since
       # the checkout catches that at once, where GitHub's own `mergeable`
       # answer takes a while to settle. No maintained action does either.
       - id: check
-        if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
+        if: steps.pr.outputs.operation == 'created' || steps.pr.outputs.operation == 'updated'
         env:
           REPO: ${{ matrix.repo }}
           CHECKED_OUT: ${{ steps.checkout.outputs.commit }}
@@ -538,26 +520,18 @@ jobs:
           SET: ${{ matrix.digest-set }}
         with:
           cmd: yq -i "$SET = strenv(DIGEST)" "$FILE" && yq -e "($SET) == strenv(DIGEST)" "$FILE"
-      - id: retry  # zizmor: ignore[superfluous-actions]
+      - id: retry
         if: steps.check.outputs.moved == 'true'
-        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
-        with:
-          token: ${{ secrets.deploy-token }}
-          branch: ${{ matrix.branch }}
-          commit-message: ${{ matrix.title }} to ${{ needs.version.outputs.version }}
-          title: ${{ matrix.title }} to ${{ needs.version.outputs.version }}
-          body: |
-            Automated by the ${{ github.repository }} v${{ needs.version.outputs.version }} release.
-
-            - Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.version.outputs.version }}
-      - if: steps.retry.outputs.pull-request-operation == 'created' || steps.retry.outputs.pull-request-operation == 'updated'
+        uses: $/actions/open-pr
+        with: *open-pr
+      - if: steps.retry.outputs.operation == 'created' || steps.retry.outputs.operation == 'updated'
         env:
           REPO: ${{ matrix.repo }}
-          PR: ${{ steps.retry.outputs.pull-request-number }}
+          PR: ${{ steps.retry.outputs.number }}
           GH_TOKEN: ${{ secrets.deploy-token }}
         run: *merge
       - id: recheck
-        if: steps.retry.outputs.pull-request-operation == 'created' || steps.retry.outputs.pull-request-operation == 'updated'
+        if: steps.retry.outputs.operation == 'created' || steps.retry.outputs.operation == 'updated'
         env:
           REPO: ${{ matrix.repo }}
           CHECKED_OUT: ${{ steps.recheckout.outputs.commit }}
@@ -568,7 +542,7 @@ jobs:
       - if: steps.recheck.outputs.moved == 'true'
         env:
           REPO: ${{ matrix.repo }}
-          PR: ${{ steps.retry.outputs.pull-request-number }}
+          PR: ${{ steps.retry.outputs.number }}
         run: |
           echo "${REPO} main moved again while ${REPO}#${PR} was rebuilt, so it may conflict. Use Re-run failed jobs, unless a newer release has run since: its bump has already replaced this one." | tee -a "$GITHUB_STEP_SUMMARY"
           exit 1

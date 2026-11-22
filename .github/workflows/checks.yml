@@ -34,6 +34,19 @@ jobs:
     permissions:
       contents: read
 
+  # The tests of scripts/ and actions/ (record 0067).
+  bats:
+    name: Bats
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make bats
+
   # The dependency-review module on this repo's own PRs, from this PR's copy.
   # Not required yet: #133 step 10 adds it with the other repos' checks.
   dependency-review:

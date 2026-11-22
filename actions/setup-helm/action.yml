@@ -1,0 +1,19 @@
+name: setup-helm
+description: >-
+  Installs Helm, checked against the checksum Helm publishes beside each
+  release. The version is pinned here, once, for the chart and release
+  modules. Decision record 0067.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        # renovate: datasource=github-releases depName=helm/helm
+        HELM_VERSION: v4.3.2
+      run: |
+        cd "$RUNNER_TEMP"
+        tarball="helm-${HELM_VERSION}-linux-amd64.tar.gz"
+        curl -fsSLO "https://get.helm.sh/${tarball}"
+        curl -fsSL "https://get.helm.sh/${tarball}.sha256sum" | sha256sum --check --quiet
+        tar -xzf "$tarball" linux-amd64/helm
+        sudo install linux-amd64/helm /usr/local/bin/helm

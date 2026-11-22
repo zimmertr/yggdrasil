@@ -9,10 +9,10 @@ RUN := docker compose run --rm -T
 # CI passes --format=github, so findings show as annotations on the PR.
 ZIZMOR_ARGS ?=
 
-.PHONY: check actionlint zizmor semgrep shellcheck terraform fmt validate test tflint trivy docs links em-dash
+.PHONY: check actionlint zizmor semgrep shellcheck bats terraform fmt validate test tflint trivy docs links em-dash
 
 # Everything the PR checks run.
-check: actionlint zizmor semgrep shellcheck docs terraform
+check: actionlint zizmor semgrep shellcheck bats docs terraform
 
 # The actionlint job, over every workflow. The image bundles shellcheck, so
 # run: blocks are checked too.
@@ -34,6 +34,10 @@ semgrep:
 # service. actionlint covers the run: blocks.
 shellcheck:
 	$(RUN) shellcheck
+
+# The tests of scripts/ and actions/ (decision record 0067).
+bats:
+	$(RUN) bats tests/bats
 
 # The terraform module's five jobs, run on this repo's Terraform. Decision
 # record 0042.

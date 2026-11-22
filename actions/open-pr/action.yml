@@ -1,0 +1,44 @@
+name: open-pr
+description: >-
+  Commits the given paths on a branch fresh off the checked-out one,
+  force-pushes it, and opens a PR from it, or updates the one already open.
+  Does nothing when the paths hold no change. Decision record 0067.
+inputs:
+  token:
+    description: Pushes the branch and opens the PR. Not the job's own token, whose PRs start no workflows, so their required checks never report.
+    required: true
+  repo:
+    description: The checked-out repo, as owner/name.
+    default: ${{ github.repository }}
+  branch:
+    description: The PR's branch. A fixed name, so each run replaces the last run's PR rather than opening another.
+    required: true
+  title:
+    description: The commit's and the PR's title.
+    required: true
+  body:
+    description: The PR's description.
+    default: ''
+  paths:
+    description: The files to commit, one per line.
+    required: true
+outputs:
+  operation:
+    description: created, updated or none.
+    value: ${{ steps.pr.outputs.operation }}
+  number:
+    description: The PR's number, unless nothing changed.
+    value: ${{ steps.pr.outputs.number }}
+runs:
+  using: composite
+  steps:
+    - id: pr
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        BRANCH: ${{ inputs.branch }}
+        TITLE: ${{ inputs.title }}
+        BODY: ${{ inputs.body }}
+        PATHS: ${{ inputs.paths }}
+      run: bash "$GITHUB_ACTION_PATH/open-pr.sh"

@@ -1,8 +1,8 @@
 name: PR Title
 
 # The PR title becomes the squash commit's title, and that line alone picks the
-# release bump (GitVersion.yml). This refuses a title the release can't read,
-# before the merge rather than after it. Decision record 0020.
+# release bump (actions/version). This refuses a title the release can't
+# read, before the merge rather than after it. Decision records 0020 and 0067.
 #
 # A workflow of its own, because it must run when only the title changes
 # (`edited`). `synchronize` stays in the list because a check reports against
@@ -11,8 +11,8 @@ name: PR Title
 # Branch protection requires the job name `PR Title`; renaming it strands PRs
 # on a check that never reports.
 #
-# `pull_request`, not the `pull_request_target` the action's README suggests: a
-# fork's run gets a read-only token and no secrets, and this job needs neither.
+# `pull_request`, not `pull_request_target`: a fork's run gets a read-only
+# token and no secrets, and this job needs neither.
 #
 # Also the pr-title module: other repos call this file with `workflow_call`
 # from a job on the same four `pull_request` types, and see the check as
@@ -36,22 +36,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      pull-requests: read # the action reads the PR's current title from the API
+      pull-requests: read # the PR's current title
     steps:
-      # The types must match the three patterns in GitVersion.yml and
-      # defaults/GitVersion.yml exactly.
-      - uses: amannn/action-semantic-pull-request@2252a14e810aa9b85c2d560bd7070c802206ecf6 # v6.1.2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          types: |
-            feat
-            fix
-            perf
-            refactor
-            chore
-            docs
-            style
-            test
-            ci
-            build
+      - uses: $/actions/pr-title

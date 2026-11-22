@@ -30,7 +30,7 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0003](0003-dependency-config-stays-per-repo.md) | Dependency config stays in each repo, and only the auto-merge is shared | 2026-11-05 | Superseded by 0056 |
 | [0004](0004-one-version-for-every-module.md) | Every module shares one SemVer, released only when a module path changes, and callers pin the commit | 2026-11-05 | Accepted, except the breaking-change check (0025) |
 | [0005](0005-every-repo-is-production.md) | Every consumer is production: each takes a release the day it ships, and patch and minor bumps merge themselves | 2026-11-05 | Superseded by 0023 |
-| [0006](0006-shared-conventions-ship-as-defaults.md) | The versioning, PR title and scan conventions ship from yggdrasil as defaults a caller can override | 2026-11-05 | Accepted |
+| [0006](0006-shared-conventions-ship-as-defaults.md) | The versioning, PR title and scan conventions ship from yggdrasil as defaults a caller can override | 2026-11-05 | Accepted. Superseded in part by 0067 |
 | [0007](0007-one-bot-identity.md) | Automation writes as the GitHub App zimmertr-yggdrasil-bot, with a token minted per run, and yggdrasil has no PAT | 2026-11-05 | Accepted |
 | [0008](0008-terraform-plan-on-pr-apply-on-merge.md) | Terraform plans on every PR and applies on merge, with state in HCP Terraform org Yggdrasil-Org | 2026-11-05 | Accepted |
 | [0009](0009-providers-in-scope.md) | Terraform manages GitHub, Docker Hub and Cloudflare, and ArtifactHub is documented, not managed | 2026-11-05 | Superseded in part by 0040 |
@@ -44,21 +44,21 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0017](0017-docs-and-records.md) | Every change updates its docs page in the same PR, and every decision gets a record here | 2026-11-05 | Accepted, except a record for every decision (0036) |
 | [0018](0018-checks-run-through-make-in-pinned-containers.md) | Every check runs through a make target in a container pinned by digest, the same way locally and in CI | 2026-11-05 | Accepted, except the Terraform plan and apply (0044) |
 | [0019](0019-community-tools-hold-workflows-and-docs.md) | zizmor, lychee and a grep hold every workflow and doc to the repo's rules, instead of a custom check | 2026-11-05 | Accepted |
-| [0020](0020-pr-titles-checked-by-a-community-action.md) | PR titles are checked by action-semantic-pull-request, against the same types GitVersion reads | 2026-11-05 | Accepted |
+| [0020](0020-pr-titles-checked-by-a-community-action.md) | PR titles are checked by action-semantic-pull-request, against the same types GitVersion reads | 2026-11-05 | Superseded by 0067 |
 | [0021](0021-dependabot-with-app-auto-merge.md) | Dependabot updates actions and tool images weekly, and its patch and minor updates merge themselves as the App | 2026-11-05 | Superseded by 0056 |
 | [0022](0022-modules-load-their-own-files-from-the-job-context.md) | A module loads its own files by checking out `job.workflow_repository` at `job.workflow_sha` | 2026-11-05 | Accepted |
 | [0023](0023-releases-bake-three-days.md) | Every consumer is production: each takes a release once it is three days old, and patch and minor bumps merge themselves | 2026-11-05 | Accepted. Supersedes 0005. Superseded in part by 0056 |
 | [0024](0024-terraform-providers-and-new-repos.md) | Terraform creates each new repo from the template, protects it with a ruleset, and fills the GitHub provider's gaps with Mastercard/restapi | 2026-11-05 | Accepted |
 | [0025](0025-no-breaking-change-check.md) | No breaking-change check: each caller's own CI catches a breaking release | 2026-11-05 | Accepted |
 | [0026](0026-modules-carry-only-what-callers-use.md) | The modules carry only what hevy-trainer-sync and Bluebird use today, in shell, `jq` and `yq`, with no Python | 2026-11-05 | Superseded in part by 0037 |
-| [0027](0027-release-module.md) | The release module runs GitVersion's image, previews each PR's version, and makes the tag and release in one `gh release create` | 2026-11-05 | Accepted |
+| [0027](0027-release-module.md) | The release module runs GitVersion's image, previews each PR's version, and makes the tag and release in one `gh release create` | 2026-11-05 | Accepted. Superseded in part by 0067 |
 | [0028](0028-pr-title-module-is-yggdrasils-own-check.md) | The pr-title module is yggdrasil's own PR Title workflow, callable with `workflow_call` | 2026-11-05 | Accepted |
 | [0029](0029-auto-merge-module-takes-the-callers-token.md) | The auto-merge module takes each caller's own merge token, not the App's key | 2026-11-05 | Superseded by 0056 |
 | [0030](0030-docker-build-module.md) | The docker-build module builds `linux/amd64` only, takes the smoke test as a script, and is tested on an empty image | 2026-11-05 | Accepted, except parts 0034 replaces |
 | [0031](0031-image-scan-module.md) | The image-scan module takes a JSON list of images, scans each once, and converts the report to SARIF | 2026-11-05 | Accepted, except parts 0034 replaces |
 | [0032](0032-release-module-builds-the-images.md) | The release module builds every image from one JSON list, scans each platform by digest, and releases only after every scan | 2026-11-05 | Accepted, except parts 0034 replaces |
-| [0033](0033-release-module-bumps-deploys-with-yq.md) | The release module points each deploy repo at the release with `yq`, through one self-merging PR per file | 2026-11-06 | Accepted |
-| [0034](0034-community-actions-over-shell.md) | The modules use a maintained action or input wherever one does what a shell step did | 2026-11-06 | Accepted |
+| [0033](0033-release-module-bumps-deploys-with-yq.md) | The release module points each deploy repo at the release with `yq`, through one self-merging PR per file | 2026-11-06 | Accepted. Superseded in part by 0067 |
+| [0034](0034-community-actions-over-shell.md) | The modules use a maintained action or input wherever one does what a shell step did | 2026-11-06 | Accepted. Superseded in part by 0067 |
 | [0035](0035-terraform-guards-itself.md) | The github stack guards itself with typed variables, preconditions and `archive_on_destroy`, with no schema, profile files or destroy label | 2026-11-06 | Accepted, except the per-feature preconditions (0043) |
 | [0036](0036-records-only-for-system-decisions.md) | A decision record is written only for a decision that shapes the system | 2026-11-06 | Accepted |
 | [0037](0037-lint-module.md) | A lint module runs actionlint, zizmor and Semgrep in every repo, in the images `compose.yml` pins | 2026-11-06 | Accepted. Supersedes 0026 in part |
@@ -78,16 +78,17 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0051](0051-org-settings-in-terraform.md) | Terraform manages each org's settings, the same on every org, with security on for its new repos and no drift report | 2026-11-10 | Accepted |
 | [0052](0052-images-go-to-ghcr-pinned-by-digest.md) | The release module pushes to GHCR with the job's token, and deploys pin the digest | 2026-11-10 | Accepted |
 | [0053](0053-release-only-from-mains-newest-commit.md) | The release module releases only from main's newest commit | 2026-11-11 | Accepted |
-| [0054](0054-release-module-pushes-the-charts.md) | The release module pushes Helm charts after the tag and before the deploy bumps, and a chart module checks them on PRs | 2026-11-11 | Accepted |
+| [0054](0054-release-module-pushes-the-charts.md) | The release module pushes Helm charts after the tag and before the deploy bumps, and a chart module checks them on PRs | 2026-11-11 | Accepted. Superseded in part by 0067 |
 | [0055](0055-one-shared-contributing-guide.md) | One shared `CONTRIBUTING.md` for every repo without its own, and a repo with its own process keeps its own | 2026-11-11 | Accepted. Supersedes 0038 and 0041 in part |
 | [0056](0056-one-renovate-preset-for-every-repo.md) | One Renovate preset holds the dependency rules, and every repo extends it | 2026-11-11 | Accepted. Supersedes 0003 and 0021, and 0023 in part. Superseded in part by 0062 |
 | [0057](0057-sbom-stays-on-the-image.md) | An image's SBOM is the attestation BuildKit puts on it, and no release carries an SBOM file | 2026-11-11 | Accepted. Supersedes 0001 in part |
 | [0058](0058-a-repo-may-add-its-own-issue-forms.md) | A repo that needs its own issue form keeps copies of the shared templates beside it | 2026-11-12 | Accepted. Supersedes 0049 in part |
-| [0059](0059-pr-preview-module.md) | The pr-preview module builds each PR's preview image on `pull_request`, and Bluebird and hevy-garmin-sync both call it | 2026-11-13 | Accepted |
+| [0059](0059-pr-preview-module.md) | The pr-preview module builds each PR's preview image on `pull_request`, and Bluebird and hevy-garmin-sync both call it | 2026-11-13 | Accepted. Superseded in part by 0067 |
 | [0060](0060-standard-tools-test-charts-and-images.md) | A chart's checks are helm-unittest suites and an image's a container-structure-test file, never shell | 2026-11-13 | Accepted |
 | [0061](0061-private-repos-merge-updates-through-renovate.md) | A private repo's updates below a major merge themselves, through Renovate's own merge once every check passes | 2026-11-16 | Accepted. Supersedes 0039 in part |
-| [0062](0062-riskiest-upstreams-wait-30-days.md) | The riskiest upstreams wait 30 days, and Terraform provider updates merge themselves like every other update | 2026-11-21 | Accepted. Supersedes 0042 and 0056 in part |
+| [0062](0062-riskiest-upstreams-wait-30-days.md) | The riskiest upstreams wait 30 days, and Terraform provider updates merge themselves like every other update | 2026-11-21 | Accepted. Supersedes 0042 and 0056 in part. Superseded in part by 0067 |
 | [0063](0063-dependabot-security-updates-stay-on.md) | Dependabot security updates stay on beside Renovate's vulnerability PRs, because only Dependabot fixes an indirect dependency | 2026-11-21 | Accepted |
 | [0064](0064-cache-cleanup-module.md) | A cache-cleanup module deletes a PR's Actions caches when it closes, as a module of its own | 2026-11-21 | Accepted |
 | [0065](0065-lighthouse-module.md) | A lighthouse module audits the PR's image with treosh/lighthouse-ci-action and the runner's own Chrome | 2026-11-21 | Accepted. Superseded in part by 0066 |
-| [0066](0066-releases-attest-images-and-charts.md) | A release attests every image and chart it pushes, and docker-build takes the release's images list | 2026-11-21 | Accepted |
+| [0066](0066-releases-attest-images-and-charts.md) | A release attests every image and chart it pushes, and docker-build takes the release's images list | 2026-11-21 | Accepted. Superseded in part by 0067 |
+| [0067](0067-runner-tools-over-thin-actions.md) | A module uses the runner's own git, gh, docker and curl where a few lines do an upstream action's job | 2026-11-21 | Accepted. Supersedes 0020, and 0006, 0027, 0033, 0034, 0054, 0059, 0062 and 0066 in part |

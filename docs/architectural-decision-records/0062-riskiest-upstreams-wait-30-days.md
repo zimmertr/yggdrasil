@@ -1,6 +1,6 @@
 # 0062. The riskiest upstreams wait 30 days, and Terraform provider updates merge themselves like every other update
 
-- Status: Accepted. Supersedes 0042 in part (provider updates wait for TJ) and 0056 in part (every update waits seven days)
+- Status: Accepted. Supersedes 0042 in part (provider updates wait for TJ) and 0056 in part (every update waits seven days). Superseded in part by 0067
 - Date: 2026-11-21
 - Decider: TJ, 2026-11-21, in #133: "No fix adds recurring manual work. Risky upstreams wait 30 days instead of waiting for a review", and "Terraform provider minors and patches merge themselves like every other update". On the Trivy image, asked whether to move its pin from GHCR to Docker Hub so the wait can hold: "Move to Docker Hub".
 - Issues and PRs: #133, #131

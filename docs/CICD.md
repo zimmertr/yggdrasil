@@ -46,9 +46,9 @@ Branch protection requires `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep
 
 ## Renovate
 
-`.github/renovate.json` extends the shared preset, `defaults/renovate.json` ([CONFIGURATION.md](CONFIGURATION.md#shared-defaults)). Renovate updates the pinned actions, the providers each stack pins and the tool images in `compose.yml`, each version waiting seven days after its release. Security updates skip the wait, and so does an image whose registry gives no publish date. Titles are `chore(deps): ...` or `fix(deps): ...`, a patch. Record: [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md)
+`.github/renovate.json` extends the shared preset, `defaults/renovate.json` ([CONFIGURATION.md](CONFIGURATION.md#shared-defaults)). Renovate updates the pinned actions, the providers each stack pins and the tool images in `compose.yml`, each version waiting seven days after its release, or 30 for the upstreams that hold a write token or have one maintainer. Security updates skip the wait, and so does an image whose registry gives no publish date. Titles are `chore(deps): ...` or `fix(deps): ...`, a patch. Records: [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md), [0062](architectural-decision-records/0062-riskiest-upstreams-wait-30-days.md)
 
-Renovate arms squash auto-merge on everything below a major. Majors and every Terraform provider update wait for TJ: a merge applies a stack, so a provider bump changes what the next apply does. Record: [0042](architectural-decision-records/0042-terraform-module.md)
+Renovate arms squash auto-merge on everything below a major, Terraform providers included. A provider bump's PR plans like any other, and its merge applies the stack. Majors wait for TJ. Record: [0062](architectural-decision-records/0062-riskiest-upstreams-wait-30-days.md)
 
 ## Secrets
 

@@ -1,6 +1,6 @@
 # 0042. A terraform module runs fmt, validate, test, tflint and Trivy in every repo with Terraform, in the images `compose.yml` pins
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0062: provider updates merge themselves, and Trivy is pinned from Docker Hub
 - Date: 2026-11-06
 - Decider: TJ, 2026-11-06, in #8, asked whether step 6.2 should write the Terraform checks for yggdrasil alone or once, as a shared module that TJs-Kubernetes-Service switches to later: "Shared module". The same day, on YAGNI, KISS and DRY: "YAGNI YAGNI YAGNI KISS KISS KISS DRY DRY DRY!!!!!" On 2026-11-07, on the script that found the folders to check: "Delete it then. YAGNI YAGNI YAGNI!!!!!"
 - Issues and PRs: #8

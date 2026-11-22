@@ -9,10 +9,10 @@ RUN := docker compose run --rm -T
 # CI passes --format=github, so findings show as annotations on the PR.
 ZIZMOR_ARGS ?=
 
-.PHONY: check actionlint zizmor semgrep terraform fmt validate test tflint trivy docs links em-dash
+.PHONY: check actionlint zizmor semgrep shellcheck terraform fmt validate test tflint trivy docs links em-dash
 
 # Everything the PR checks run.
-check: actionlint zizmor semgrep terraform docs
+check: actionlint zizmor semgrep shellcheck docs terraform
 
 # The actionlint job, over every workflow. The image bundles shellcheck, so
 # run: blocks are checked too.
@@ -29,6 +29,11 @@ zizmor:
 # record 0037.
 semgrep:
 	$(RUN) semgrep semgrep scan --metrics=off --disable-version-check --error --config r/dockerfile.audit.dockerfile-source-not-pinned.dockerfile-source-not-pinned .
+
+# The shellcheck job: every script file, found by compose.yml's shellcheck
+# service. actionlint covers the run: blocks.
+shellcheck:
+	$(RUN) shellcheck
 
 # The terraform module's five jobs, run on this repo's Terraform. Decision
 # record 0042.
@@ -59,12 +64,12 @@ trivy:
 		$(RUN) trivy config --quiet --misconfig-scanners=terraform --exit-code=1 --config=defaults/trivy.yaml "$$dir"; \
 	done
 
-# The Docs job.
+# The lint module's docs job.
 docs: links em-dash
 
-# README.md and CLAUDE.md are named as well as globbed: a glob that matches
-# nothing passes with nothing checked, but a named file that's missing fails.
-DOCS_NAMED := README.md CLAUDE.md
+# README.md is named as well as globbed: a glob that matches nothing passes
+# with nothing checked, but a named file that's missing fails.
+DOCS_NAMED := README.md
 
 # Every relative link in the docs, and the heading it points at. Offline:
 # web links are not checked here.
@@ -76,4 +81,4 @@ links:
 # (exit 1) passes: a match (0) or a grep error (2) fails, so a broken grep
 # can't pass silently.
 em-dash:
-	$(RUN) shell sh -c 'grep -rn --include="*.md" --exclude-dir=.git "$$(printf "\342\200\224")" . $(DOCS_NAMED); test $$? -eq 1'
+	$(RUN) shell sh -c 'grep -rn --include="*.md" --exclude-dir=.git --exclude-dir=node_modules "$$(printf "\342\200\224")" .; test $$? -eq 1'

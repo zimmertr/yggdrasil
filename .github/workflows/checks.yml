@@ -4,9 +4,9 @@ name: checks
 # 0019). The lint module runs here on this repo, from this PR's own copy, so
 # every change to it is tested before it releases (record 0037).
 #
-# Branch protection requires `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, the five
-# `Terraform /` checks and `Docs`;
-# renaming a job strands PRs on a check that never reports.
+# Branch protection requires the five `Lint /` checks and the five
+# `Terraform /` checks; renaming a job strands PRs on a check that never
+# reports.
 on:
   pull_request:
 
@@ -34,6 +34,9 @@ jobs:
     permissions:
       contents: read
 
+  # The old docs check, which `Lint / docs` replaces. It stays one more PR,
+  # because protection required `Docs` until the merge that applied the
+  # change, so a PR without it could never merge (#133 step 3).
   docs:
     name: Docs
     runs-on: ubuntu-latest

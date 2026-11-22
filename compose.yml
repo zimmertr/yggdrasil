@@ -24,6 +24,28 @@ services:
       - .:/repo
     working_dir: /repo
 
+  # shellcheck over every script file: each *.sh and *.bash, and each
+  # executable whose shebang names sh, bash, dash or ksh. shellcheck can't read
+  # zsh, so a zsh script is never picked. The search lives here, once, so
+  # `make shellcheck` and the lint module's job run the same one. With no
+  # script found, nothing runs and it passes.
+  shellcheck:
+    image: koalaman/shellcheck-alpine:v0.11.0@sha256:9955be09ea7f0dbf7ae942ac1f2094355bb30d96fffba0ec09f5432207544002
+    volumes:
+      - .:/repo
+    working_dir: /repo
+    entrypoint:
+      - sh
+      - -c
+      - |
+        find . \( -name .git -o -name node_modules -o -name .terraform \) -prune -o -type f \( -name '*.sh' -o -name '*.bash' -o -perm -100 \) -print |
+        while IFS= read -r f; do
+          case "$$f" in
+            *.sh|*.bash) echo "$$f" ;;
+            *) head -n 1 "$$f" | grep -qE '^#!.*[/ ](ba|da|k)?sh( |$$)' && echo "$$f" ;;
+          esac
+        done | tr '\n' '\0' | xargs -0 -r shellcheck
+
   lychee:
     image: lycheeverse/lychee:0.24.2@sha256:e2d19e57cf6ab037026f20b8e449a1f30d9d7f81eef4194763aab2eab20bd28d
     volumes:

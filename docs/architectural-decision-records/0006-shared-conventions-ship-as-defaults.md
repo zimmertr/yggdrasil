@@ -1,6 +1,6 @@
 # 0006. The versioning, PR title and scan conventions ship from yggdrasil as defaults a caller can override
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0067
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05: "Sure… shared gitversion…"
 - Issues and PRs: #1, #4

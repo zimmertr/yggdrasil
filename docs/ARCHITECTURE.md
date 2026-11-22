@@ -12,8 +12,8 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 | Path | Holds | Built in |
 |---|---|---|
 | `.github/workflows/` | yggdrasil's own CI, and the reusable workflows (GitHub requires both here) | #2, #4 |
-| `actions/<name>/` | Composite actions, if a module ever needs a shared step. None yet (record 0026) | #4 |
-| `defaults/` | The shared conventions: `GitVersion.yml`, `trivy.yaml`, and the Renovate preset every repo extends (record 0056) | #4, #40 |
+| `actions/<name>/` | Composite actions, each with its script in a `.sh` file: the shell a module and other repos share (record 0067) | #4, #145 |
+| `defaults/` | The shared conventions: `trivy.yaml`, and the Renovate preset every repo extends (record 0056) | #4, #40 |
 | `community-health-files/` | The source of the issue templates, `SECURITY.md` and the generic `CONTRIBUTING.md`, and the `.github` repos' README, which Terraform writes into each owner's `.github` repo (records 0041, 0046, 0055) | #8, #44 |
 | `tests/<module>/` | What a module's test caller builds, such as `tests/docker-build/`'s empty image and `tests/chart/`'s one-ConfigMap chart | #4 |
 | `repos/<owner>/<name>.yml` | One file per managed repo, in its owner's folder: only what differs from the defaults, and never a security setting (record 0043) | #8 |
@@ -22,7 +22,6 @@ The full design is in [PRD.md](PRD.md). This page says what each part is, where 
 | `terraform/modules/repo/` | One repo and every setting `initialize-project` gives it, with each security feature always on where GitHub allows it | #8 |
 | `terraform/modules/org/` | One org's settings, the same on every org, with security on for its new repos | #8 |
 | `terraform/cloudflare/` | The stack moved from Kubernetes-Manifests, with its state | #10 |
-| `GitVersion.yml` | yggdrasil's own version and the PR title patterns that pick each bump | #2 |
 | `Makefile`, `compose.yml` | Every check as a `make` target, and the pinned images each one runs in | #2 |
 | `docs/` | These pages and the decision records | #2 |
 

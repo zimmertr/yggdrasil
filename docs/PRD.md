@@ -30,12 +30,12 @@ The release module puts an SBOM on every image it builds, so no SBOM module foll
 
 | Feature | What it does | Source |
 |---|---|---|
-| Release workflow | GitVersion, image build and push, a Trivy scan of each pushed platform, immutable GitHub release, deploy bump (`yq` sets a kustomization's `newTag`, a chart's `appVersion`, or both) | hevy-trainer-sync and Bluebird `release.yml` |
+| Release workflow | The next version from the commit titles, image build and push, a Trivy scan of each pushed platform, immutable GitHub release, deploy bump (`yq` sets a kustomization's `newTag`, a chart's `appVersion`, or both) | hevy-trainer-sync and Bluebird `release.yml` |
 | PR workflows | PR title check; image build with hadolint, the Trivy comment and a container-structure-test file | `pr-title.yml`, `pr.yml` |
 | PR previews | Each PR's image pushed under the tag the Argo CD pull request generator reads, the `create pr container` label and the preview's address, on `pull_request` (record 0059) | Bluebird `pr-preview.yml` |
 | Weekly image scan | Rescans the released image | `image-scan.yml` |
 | Dependency updates | One Renovate preset every repo extends: seven days' wait, 30 for the riskiest upstreams, and everything below a major merges itself | `defaults/renovate.json` |
-| Shared conventions | `GitVersion.yml` (SemVer and the bump patterns), the conventional PR title check that reads it, the release process, and `trivy.yaml`, read at the module's pinned ref; a caller can pass its own | today copied in each repo |
+| Shared conventions | SemVer and the bump rules in `actions/version/version.sh`, the conventional PR title check that reads them, the release process, and `trivy.yaml`, read at the module's pinned ref; a caller can pass its own `trivy.yaml` | today copied in each repo |
 | `github` stack | One YAML file per repo (`repos/<owner>/<name>.yml`) and per org (`orgs/<name>.yml`), read by Terraform: settings, rulesets, security features, merge settings, immutable releases, org settings | ai-config#3 |
 | Defaults | The `github` stack holds `initialize-project`'s standard settings as defaults, and a repo file sets only what differs, such as `archived: true` | new |
 | Template repo | Terraform creates each new repo from a template, `zimmertr/yggdrasil-repo-template`, that already holds the PR Title and Lint callers and `.github/renovate.json`, so its first PR runs the shared CI. `initialize-project` adds the `LICENSE`, `.gitignore` and README, which differ per repo | new |
@@ -48,7 +48,7 @@ The release module puts an SBOM on every image it builds, so no SBOM module foll
 ```
 .github/workflows/      yggdrasil's own CI, and the reusable workflows (GitHub requires them here)
 actions/<name>/         composite actions, if a module ever needs a shared step
-defaults/               GitVersion.yml, trivy.yaml
+defaults/               trivy.yaml
 repos/<owner>/<name>.yml  one file per managed repo
 orgs/<name>.yml         one file per managed org
 terraform/github/       reads repos/ and orgs/
@@ -75,7 +75,7 @@ Managed repos (17, all under `zimmertr`), every one of them both managed by Terr
 - HCP Terraform org `Yggdrasil-Org` (the `Kubernetes-Manifests` org, renamed on 2026-11-05; `yggdrasil` was taken) for state and locks, in local execution mode. Plans and applies run in Actions.
 - Maintained actions inside the modules, shell only where none fits, and no Python (records 0026, 0034).
 - `terraform test` with mock providers, tflint, actionlint, and the Trivy config scan.
-- GitVersion 6.8.2 and Trivy, the versions the consumers use today.
+- Trivy, the version the consumers use today.
 - Docker for every local command, through a `Makefile`.
 
 ## 7. Implementation plan

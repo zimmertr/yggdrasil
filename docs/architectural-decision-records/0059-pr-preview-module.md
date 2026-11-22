@@ -1,6 +1,6 @@
 # 0059. The pr-preview module builds each PR's preview image on `pull_request`, and Bluebird and hevy-garmin-sync both call it
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0067
 - Date: 2026-11-13
 - Decider: TJ, 2026-11-13, on hevy-garmin-sync#62: option A, "a yggdrasil module for the preview image", and "Yes, use pull_request."
 - Issues and PRs: hevy-garmin-sync#62, bluebird#936

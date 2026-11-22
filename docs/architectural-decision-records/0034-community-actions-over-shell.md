@@ -1,6 +1,6 @@
 # 0034. The modules use a maintained action or input wherever one does what a shell step did
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0067
 - Date: 2026-11-06
 - Decider: TJ, 2026-11-06: "Aren't we supposed to be using existing frameworks instead of rebuilding everything from scratch for this project?", then "Agree on all improvements"
 - Issues and PRs: #4

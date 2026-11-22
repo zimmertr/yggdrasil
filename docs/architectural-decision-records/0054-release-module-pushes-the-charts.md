@@ -1,6 +1,6 @@
 # 0054. The release module pushes Helm charts, and a chart module checks them on PRs
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0067
 - Date: 2026-11-11
 - Decider: TJ, 2026-11-10, on #9: "make sure an issue is filed to modularize this and incorporate bluebird-helm". Then 2026-11-11, asked how the bump is shared: "C", the release module pushing the chart itself.
 - Issues and PRs: #74, #82

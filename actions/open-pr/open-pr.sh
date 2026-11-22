@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-mapfile -t paths < <(sed '/^[[:space:]]*$/d' <<< "$PATHS")
-git add -- "${paths[@]}"
+mapfile -t files < <(sed '/^[[:space:]]*$/d' <<< "$PATHS")
+git add -- "${files[@]}"
 if git diff --cached --quiet; then
   echo "operation=none" >> "$GITHUB_OUTPUT"
   exit 0

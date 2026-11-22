@@ -1,6 +1,6 @@
 # 0020. PR titles are checked by action-semantic-pull-request, against the same types GitVersion reads
 
-- Status: Accepted
+- Status: Superseded by 0067
 - Date: 2026-11-05
 - Decider: TJ, 2026-11-05, choosing the action over a port of hevy-trainer-sync's `check_pr_title.py`: "Yes, I agree regarding the action."
 - Issues and PRs: #2, #19

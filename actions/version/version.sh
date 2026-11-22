@@ -39,12 +39,12 @@ next() {
     return
   fi
 
-  local bump=none title
+  local bump='none' title
   while IFS= read -r title; do
     case $(bump_for "$title") in
-      major) bump=major ;;
-      minor) [[ $bump == major ]] || bump=minor ;;
-      patch) [[ $bump != none ]] || bump=patch ;;
+      major) bump='major' ;;
+      minor) [[ $bump == major ]] || bump='minor' ;;
+      patch) [[ $bump != none ]] || bump='patch' ;;
     esac
   done < <(git log --format=%s "$tag..HEAD" -- "$@")
 

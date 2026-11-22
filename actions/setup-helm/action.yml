@@ -16,4 +16,4 @@ runs:
         curl -fsSLO "https://get.helm.sh/${tarball}"
         curl -fsSL "https://get.helm.sh/${tarball}.sha256sum" | sha256sum --check --quiet
         tar -xzf "$tarball" linux-amd64/helm
-        echo "$RUNNER_TEMP/linux-amd64" >> "$GITHUB_PATH"
+        sudo install linux-amd64/helm /usr/local/bin/helm

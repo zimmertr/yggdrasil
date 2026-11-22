@@ -1,6 +1,6 @@
 # 0066. A release attests every image and chart it pushes, and docker-build takes the release's images list
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0067
 - Date: 2026-11-21
 - Decider: TJ, 2026-11-21, in #133: "Breaking changes ship together. Step 8's three changes go in one PR and one major release", and "`docker-build` takes the release module's `images` list."
 - Issues and PRs: #133

@@ -1,34 +1,36 @@
 name: docker-build
 
-# The PR image module: hadolint, then the linux/amd64 image the release would
-# ship, built but not pushed, scanned by Trivy, tested with the caller's
-# container-structure-test file, and refused on any fixable Critical or High.
-# hevy-garmin-sync's, Bluebird's and Mountaineers-Activity-Scraper's Docker
-# Build job. Decision records 0030, 0034 and 0060.
+# The PR image module: for each image in the caller's list, hadolint, then the
+# linux/amd64 image the release would ship, built but not pushed, scanned by
+# Trivy, tested with its container-structure-test file, and refused on any
+# fixable Critical or High. One matrix job per image. The list is the release
+# module's `images`, so a caller can pass the same one to both: this module
+# reads `image`, `context`, `file`, `cache` and its own `structure-test`, and
+# ignores `platforms`, since a PR builds linux/amd64 only. Decision records
+# 0030, 0034, 0060 and 0066.
 #
 # The caller runs it on `pull_request` and grants `contents: read` and
-# `pull-requests: write`, for the sticky scan comment.
+# `pull-requests: write`, for the sticky scan comments.
 on:
   workflow_call:
     inputs:
-      context:
-        description: Build context, holding the Dockerfile.
+      images:
+        description: >-
+          A JSON list, one entry per image, as the release module takes it:
+          {"image": "zimmertr/trailhead-web", "context": ".", "file":
+          "web/Dockerfile", "cache": true, "structure-test":
+          "web/structure-test.yaml"}. Only `image` is required. `context`
+          defaults to the repo root, `file` (from the repo root) to the
+          context's Dockerfile, `cache` to false, and `structure-test`, a
+          container-structure-test file from the repo root, to none.
         type: string
-        default: .
+        required: true
       build-args:
         description: Build arguments, one KEY=value per line.
         type: string
         default: ''
-      structure-test:
-        description: A container-structure-test file, from the repo root, run against the built image. Any failing test fails the job.
-        type: string
-        default: ''
-      cache:
-        description: Use the GitHub Actions layer cache.
-        type: boolean
-        default: false
       upload-image:
-        description: Save the image as the artifact `<repo name>-image`, holding `<repo name>-image.tar`, for the caller's later jobs to load.
+        description: Save each image as the artifact `<name>-image`, holding `<name>-image.tar`, where `<name>` is the image's last path segment, lowercased (`trailhead-web` for `zimmertr/trailhead-web`), for the caller's later jobs to load.
         type: boolean
         default: false
 
@@ -36,12 +38,16 @@ permissions: {}
 
 jobs:
   docker-build:
-    name: Docker Build
+    name: Docker Build (${{ matrix.image }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
       pull-requests: write # the sticky scan comment
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(inputs.images) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -55,40 +61,45 @@ jobs:
           ref: ${{ job.workflow_sha }}
           path: .yggdrasil
           persist-credentials: false
-      # Docker tags must be lowercase; repo names needn't be.
+      # The image's last path segment, lowercased, names its local tag, its
+      # artifact and its scan comment: Docker tags must be lowercase.
       - id: names
+        env:
+          IMAGE: ${{ matrix.image }}
         run: |
-          REPO=${GITHUB_REPOSITORY#*/}
-          echo "image=${REPO,,}:pr-scan" >> "$GITHUB_OUTPUT"
+          NAME=${IMAGE##*/}
+          echo "name=${NAME,,}" >> "$GITHUB_OUTPUT"
+          echo "image=${NAME,,}:pr-scan" >> "$GITHUB_OUTPUT"
 
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
         with:
-          dockerfile: ${{ inputs.context }}/Dockerfile
+          dockerfile: ${{ matrix.file || format('{0}/Dockerfile', matrix.context || '.') }}
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       # The platform the cluster runs. Loaded into the runner's daemon so Trivy
       # can scan it and the smoke test can run it; nothing is pushed.
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ${{ inputs.context }}
+          context: ${{ matrix.context || '.' }}
+          file: ${{ matrix.file || '' }}
           platforms: linux/amd64
           push: false
           load: true
           tags: ${{ steps.names.outputs.image }}
           build-args: ${{ inputs.build-args }}
-          cache-from: ${{ inputs.cache && 'type=gha' || '' }}
-          cache-to: ${{ inputs.cache && 'type=gha,mode=max' || '' }}
+          cache-from: ${{ matrix.cache && 'type=gha' || '' }}
+          cache-to: ${{ matrix.cache && 'type=gha,mode=max' || '' }}
 
       - if: inputs.upload-image
         env:
           IMAGE: ${{ steps.names.outputs.image }}
-          REPO: ${{ github.event.repository.name }}
-        run: docker save "$IMAGE" -o "$RUNNER_TEMP/${REPO}-image.tar"
+          NAME: ${{ steps.names.outputs.name }}
+        run: docker save "$IMAGE" -o "$RUNNER_TEMP/${NAME}-image.tar"
       - if: inputs.upload-image
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ github.event.repository.name }}-image
-          path: ${{ runner.temp }}/${{ github.event.repository.name }}-image.tar
+          name: ${{ steps.names.outputs.name }}-image
+          path: ${{ runner.temp }}/${{ steps.names.outputs.name }}-image.tar
           retention-days: 1
           # The layers are already compressed.
           compression-level: 1
@@ -104,9 +115,10 @@ jobs:
           trivy-config: ${{ hashFiles('trivy.yaml') != '' && 'trivy.yaml' || '.yggdrasil/defaults/trivy.yaml' }}
       - env:
           PR_SHA: ${{ github.event.pull_request.head.sha }}
+          NAME: ${{ steps.names.outputs.name }}
         run: |
           {
-            echo "### Image vulnerability scan"
+            echo "### Image vulnerability scan: ${NAME}"
             echo ""
             echo "Trivy on this PR's image at \`${PR_SHA}\` (linux/amd64, fixable only). Critical and High fail this check, and the release would refuse them too."
             echo ""
@@ -120,18 +132,18 @@ jobs:
       - if: github.event.pull_request.user.login != 'dependabot[bot]'
         uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         with:
-          header: image-scan
+          header: image-scan-${{ steps.names.outputs.name }}
           path: scan-comment.md
 
       # The tool's own image, pinned by digest; Renovate moves it (record
       # 0060). The step gets the runner's Docker socket, so it finds the image
       # loaded above.
       - name: Test the built image (container-structure-test)
-        if: inputs.structure-test != ''
+        if: matrix.structure-test
         uses: docker://ghcr.io/googlecontainertools/container-structure-test:1.22.1@sha256:710da3ca8ed29a42423315592f74f02df4e3d2ba19f1df7257bd481ea75ba5aa
         with:
           entrypoint: /ko-app/container-structure-test
-          args: test --image ${{ steps.names.outputs.image }} --config ${{ inputs.structure-test }}
+          args: test --image ${{ steps.names.outputs.image }} --config ${{ matrix.structure-test }}
 
       # The gate, after the comment so a red run still explains itself. The
       # same scan again, from the first run's cache.

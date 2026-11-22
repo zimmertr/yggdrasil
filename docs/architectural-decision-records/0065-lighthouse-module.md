@@ -1,6 +1,6 @@
 # 0065. A lighthouse module audits the PR's image with treosh/lighthouse-ci-action and the runner's own Chrome
 
-- Status: Accepted
+- Status: Accepted. Superseded in part by 0066: the module takes an `image` input and loads that image's artifact
 - Date: 2026-11-21
 - Decider: TJ, 2026-11-21, in #133. Asked whether the module should run Lighthouse CI's own Docker image, as #133 step 5 planned, or treosh/lighthouse-ci-action with the runner's Chrome, after Lighthouse CI's advice against its image: "treosh action".
 - Issues and PRs: #133

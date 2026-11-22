@@ -6,12 +6,15 @@ name: release
 # deploy repo that points it at the release. A caller runs it on every push to
 # main, and may run it on PRs with `dry-run`, where it says in the job summary
 # what the merge will release, builds the images without pushing them and
-# packages the charts. Decision records 0027, 0032, 0033, 0034 and 0054.
+# packages the charts. Each pushed image and chart gets GitHub's signed build
+# provenance. Decision records 0027, 0032, 0033, 0034, 0054 and 0066.
 #
 # The caller sets `concurrency` (one release at a time) and grants
 # `contents: write`, which only the Tag and Release job uses, and
-# `packages: write`, which only Build & Push and Push Chart use. Images and
-# charts go to GHCR, pushed with the job's own token (decision record 0052).
+# `packages: write`, `attestations: write` and `id-token: write`, which only
+# Build & Push and Push Chart use, even in a dry run, which attests nothing.
+# Images and charts go to GHCR, pushed with the job's own token (decision
+# record 0052).
 on:
   workflow_call:
     inputs:
@@ -158,7 +161,9 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      packages: write  # the push to GHCR
+      packages: write  # the push to GHCR, and the attestation beside it
+      attestations: write  # the build provenance
+      id-token: write  # the OIDC token Sigstore signs the provenance with
     strategy:
       matrix:
         include: ${{ fromJSON(inputs.images) }}
@@ -187,7 +192,8 @@ jobs:
           images: ghcr.io/${{ matrix.image }}
           tags: type=raw,value=${{ needs.version.outputs.version }}
           flavor: latest=false
-      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      - id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ${{ matrix.context || '.' }}
           file: ${{ matrix.file || '' }}
@@ -205,6 +211,23 @@ jobs:
           sbom: true
           cache-from: ${{ matrix.cache && 'type=gha' || '' }}
           cache-to: ${{ matrix.cache && 'type=gha,mode=max' || '' }}
+      # GitHub's signed build provenance for the pushed index, kept by GitHub
+      # and pushed to GHCR beside the image, so `gh attestation verify` and a
+      # cluster's admission policy can both find it. No storage record, which
+      # would ask the caller for `artifact-metadata: write` too. Decision
+      # record 0066.
+      - if: ${{ !inputs.dry-run }}
+        id: name
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: echo "name=ghcr.io/${IMAGE,,}" >> "$GITHUB_OUTPUT"
+      - if: ${{ !inputs.dry-run }}
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ${{ steps.name.outputs.name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+          create-storage-record: false
 
   # What the registry holds, scanned before anything points at it: the PR scan
   # saw only an amd64 build of the PR branch. By the version tag: only a run
@@ -286,7 +309,9 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      packages: write  # the push to GHCR
+      packages: write  # the push to GHCR, and the attestation beside it
+      attestations: write  # the build provenance
+      id-token: write  # the OIDC token Sigstore signs the provenance with
     strategy:
       fail-fast: false
       matrix:
@@ -315,8 +340,11 @@ jobs:
         run: |
           NAME=$(helm show chart "$CHART" | sed -n 's/^name: //p')
           REGISTRY="oci://ghcr.io/${GITHUB_REPOSITORY_OWNER,,}"
-          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
-          echo "registry=${REGISTRY}" >> "$GITHUB_OUTPUT"
+          {
+            echo "name=${NAME}"
+            echo "registry=${REGISTRY}"
+            echo "ref=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${NAME}"
+          } >> "$GITHUB_OUTPUT"
           if [ "$DRY_RUN" = false ] && helm show chart "${REGISTRY}/${NAME}" --version "$VERSION" >/dev/null 2>&1; then
             echo "pushed=true" >> "$GITHUB_OUTPUT"
             echo "Pushes nothing: ${NAME} ${VERSION} is already in GHCR." | tee -a "$GITHUB_STEP_SUMMARY"
@@ -346,7 +374,8 @@ jobs:
       # with an image ships the app this release built, so its appVersion is
       # the version; one without keeps its Chart.yaml's, which the app's own
       # release bumps.
-      - if: steps.chart.outputs.pushed == 'false'
+      - id: push
+        if: steps.chart.outputs.pushed == 'false'
         env:
           CHART: ${{ matrix.chart }}
           VERSION: ${{ needs.version.outputs.version }}
@@ -361,9 +390,23 @@ jobs:
           if [ "$DRY_RUN" = true ]; then
             echo "Dry run: packaged ${NAME} ${VERSION} and pushed nothing." | tee -a "$GITHUB_STEP_SUMMARY"
           else
-            helm push "${NAME}-${VERSION}.tgz" "$REGISTRY"
+            # Helm prints the pushed manifest's digest as `Digest: sha256:...`,
+            # which the attestation below names.
+            set -o pipefail
+            helm push "${NAME}-${VERSION}.tgz" "$REGISTRY" 2>&1 | tee push.log
+            DIGEST=$(sed -n 's/^Digest: //p' push.log)
+            test -n "$DIGEST"
+            echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
             echo "Pushed ${REGISTRY}/${NAME} ${VERSION}." | tee -a "$GITHUB_STEP_SUMMARY"
           fi
+      # The chart's provenance, as for an image (decision record 0066).
+      - if: ${{ !inputs.dry-run && steps.chart.outputs.pushed == 'false' }}
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ${{ steps.chart.outputs.ref }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+          create-storage-record: false
 
   # One PR per deploy file, on a fixed branch, so quick releases leave one
   # up-to-date PR, not a pile. After the release, because a chart repo's own

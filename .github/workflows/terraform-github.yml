@@ -37,9 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # On a PR, only this repo's own branches: a fork's PR gets no secrets
-    # (record 0010). Dependabot's PRs plan too: a run Dependabot starts reads
-    # the Dependabot secrets of the same names instead (docs/CICD.md). An
-    # apply, pushed or started by hand, only ever from main.
+    # (record 0010). An apply, pushed or started by hand, only ever from main.
     if: >-
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')

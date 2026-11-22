@@ -12,11 +12,15 @@ required_checks:
   - Frontend Typecheck & Tests
   - Backend Tests
   - Browser Smoke & Axe
-  - Lighthouse Budgets
+  - Lighthouse / Lighthouse
   - Database Tests
   - Planet Fill
-  - Docker Build / Docker Build
+  - Docker Build / Docker Build (zimmertr/bluebird)
+  - Docker Build / Docker Build (zimmertr/bluebird-fill)
+  - Dependency Review / Dependency Review
   - PR Title / PR Title
   - Lint / actionlint
   - Lint / zizmor
   - Lint / semgrep
+  - Lint / shellcheck
+  - Lint / docs

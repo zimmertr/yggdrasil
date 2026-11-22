@@ -26,4 +26,7 @@ required_checks:
   - Lint / actionlint
   - Lint / zizmor
   - Lint / semgrep
-  - Docker Build / Docker Build
+  - Lint / shellcheck
+  - Lint / docs
+  - Docker Build / Docker Build (zimmertr/mountaineers-activity-scraper)
+  - Dependency Review / Dependency Review

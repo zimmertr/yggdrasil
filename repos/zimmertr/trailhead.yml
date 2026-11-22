@@ -3,14 +3,21 @@ required_checks:
   - Static Checks
   - Unit Tests
   - Database Tests
-  - Image (web)
-  - Image (api)
-  - Image (admin)
-  - Image (fetcher)
+  - Docker Build / Docker Build (zimmertr/trailhead-web)
+  - Docker Build / Docker Build (zimmertr/trailhead-api)
+  - Docker Build / Docker Build (zimmertr/trailhead-admin)
+  - Docker Build / Docker Build (zimmertr/trailhead-fetcher)
+  - Smoke (web)
+  - Smoke (api)
+  - Smoke (admin)
+  - Smoke (fetcher)
+  - Dependency Review / Dependency Review
   - Browser Smoke & Axe
-  - Lighthouse Budgets
+  - Lighthouse / Lighthouse
   - Compose
   - PR Title / PR Title
   - Lint / actionlint
   - Lint / zizmor
   - Lint / semgrep
+  - Lint / shellcheck
+  - Lint / docs

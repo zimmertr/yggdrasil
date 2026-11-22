@@ -32,6 +32,30 @@
       "minimumReleaseAge": null
     },
     {
+      "description": "These upstreams wait 30 days, not seven (record 0062). Each holds a write token or a deploy credential when it runs, or is thinly maintained, and the March 2026 trivy-action compromise showed what one bad tag can reach. A month leaves time for a compromise to be found and pulled. Trivy is pinned from Docker Hub, because a GHCR image has no publish date and would skip the wait.",
+      "matchPackageNames": [
+        "dflook/terraform-plan",
+        "dflook/terraform-apply",
+        "aquasecurity/trivy-action",
+        "aquasec/trivy",
+        "ghcr.io/aquasecurity/trivy",
+        "peter-evans/create-pull-request",
+        "docker/build-push-action",
+        "docker/login-action",
+        "docker/metadata-action",
+        "docker/setup-buildx-action",
+        "docker/setup-qemu-action",
+        "mikefarah/yq",
+        "marocchino/sticky-pull-request-comment",
+        "dagandersen/argocd-diff-preview",
+        "xu-cheng/latex-action",
+        "softprops/action-gh-release",
+        "Mastercard/restapi",
+        "integrations/github"
+      ],
+      "minimumReleaseAge": "30 days"
+    },
+    {
       "description": "A Terraform provider is pinned twice: a range in the .tf files and an exact version in .terraform.lock.hcl. update-lockfile moves the lock file when a release fits the range. Without it Renovate proposes only a release outside the range.",
       "matchManagers": [
         "terraform"

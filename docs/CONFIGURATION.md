@@ -151,7 +151,7 @@ No module reads `defaults/renovate.json`. Renovate reads it from yggdrasil's mai
 | The preset sets | To |
 |---|---|
 | `extends` | `config:recommended`, `helpers:pinGitHubActionDigests` and `:semanticCommits`, so titles are `chore(deps): ...` or `fix(deps): ...` |
-| `minimumReleaseAge` | `7 days` for every update. `zimmertr/yggdrasil` has none |
+| `minimumReleaseAge` | `7 days` for every update. `zimmertr/yggdrasil` has none. `30 days` for the upstreams that hold a write token or have one maintainer: `dflook/terraform-plan` and `/terraform-apply`, `aquasecurity/trivy-action`, `aquasec/trivy` and `ghcr.io/aquasecurity/trivy`, `peter-evans/create-pull-request`, the five `docker/*` actions, `mikefarah/yq`, `marocchino/sticky-pull-request-comment`, `dagandersen/argocd-diff-preview`, `xu-cheng/latex-action`, `softprops/action-gh-release`, and the `Mastercard/restapi` and `integrations/github` providers. A GHCR image has no publish date, so Trivy's wait holds only on the Docker Hub image (record [0062](architectural-decision-records/0062-riskiest-upstreams-wait-30-days.md)) |
 | `minimumReleaseAgeBehaviour` | `timestamp-optional`: an update with no publish date doesn't wait. Renovate's default would hold it forever |
 | `automerge` | On for `minor`, `patch`, `digest`, `pin` and `pinDigest`. A major waits for TJ. So does a minor of `python` (the image, or the version `actions/setup-python` installs), because Python's minors are its breaking releases |
 | `rangeStrategy` | `update-lockfile` for Terraform, so a provider release inside the `.tf` range moves `.terraform.lock.hcl`. By default Renovate proposes only a release outside the range |

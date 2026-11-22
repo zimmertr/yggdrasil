@@ -1,6 +1,6 @@
 # 0056. One Renovate preset holds the dependency rules, and every repo extends it
 
-- Status: Accepted. Supersedes 0003 and 0021, and 0023 in part: the three-day wait
+- Status: Accepted. Supersedes 0003 and 0021, and 0023 in part: the three-day wait. Superseded in part by 0062: the riskiest upstreams wait 30 days
 - Date: 2026-11-11
 - Decider: TJ, 2026-11-11. On the wait: "Lets make sure everything has at least a 1-week cooldown then." On the tool: "I am tempted to switch everything and just define it in yggdrasil and import it into the child repos", then "I agree, lets do it." On yggdrasil's own modules: "Those can go immediately". On an image that can't be aged: "I need auto-merging as much as possible. It's too much work for one person to maintain this."
 - Issues and PRs: #40

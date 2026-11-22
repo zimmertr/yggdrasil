@@ -34,7 +34,7 @@ The release module puts an SBOM on every image it builds, so no SBOM module foll
 | PR workflows | PR title check; image build with hadolint, the Trivy comment and a container-structure-test file | `pr-title.yml`, `pr.yml` |
 | PR previews | Each PR's image pushed under the tag the Argo CD pull request generator reads, the `create pr container` label and the preview's address, on `pull_request` (record 0059) | Bluebird `pr-preview.yml` |
 | Weekly image scan | Rescans the released image | `image-scan.yml` |
-| Dependency updates | One Renovate preset every repo extends: seven days' wait, and everything below a major merges itself | `defaults/renovate.json` |
+| Dependency updates | One Renovate preset every repo extends: seven days' wait, 30 for the riskiest upstreams, and everything below a major merges itself | `defaults/renovate.json` |
 | Shared conventions | `GitVersion.yml` (SemVer and the bump patterns), the conventional PR title check that reads it, the release process, and `trivy.yaml`, read at the module's pinned ref; a caller can pass its own | today copied in each repo |
 | `github` stack | One YAML file per repo (`repos/<owner>/<name>.yml`) and per org (`orgs/<name>.yml`), read by Terraform: settings, rulesets, security features, merge settings, immutable releases, org settings | ai-config#3 |
 | Defaults | The `github` stack holds `initialize-project`'s standard settings as defaults, and a repo file sets only what differs, such as `archived: true` | new |

@@ -1,0 +1,51 @@
+name: Scorecard
+
+# OpenSSF Scorecard: ossf/scorecard-action scores the repo against its
+# supply-chain checks (pinned dependencies, token permissions, branch
+# protection, dangerous workflows and the rest), and its findings go to the
+# Security tab as code scanning alerts. No badge, so nothing is published to
+# scorecard.dev and no `id-token` is needed.
+#
+# Also the scorecard module: other repos call this file with `workflow_call`
+# from a job on `schedule` and on `push` to main, grant `contents: read` and
+# `security-events: write`, and see `<caller job> / Scorecard`. GitHub Free
+# runs it only on a public repo: a private one needs Advanced Security
+# (docs/DATA.md). yggdrasil runs it weekly, on push to main, and on PRs that
+# change this file, so a change is tested before it releases.
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - .github/workflows/scorecard.yml
+  workflow_call:
+
+concurrency:
+  group: scorecard-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  scorecard:
+    name: Scorecard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write # the SARIF upload to code scanning
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: scorecard.sarif
+          results_format: sarif
+          publish_results: false
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: scorecard.sarif
+          category: scorecard

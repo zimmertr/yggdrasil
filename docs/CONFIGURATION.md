@@ -140,6 +140,15 @@ GitHub's dependency review on each PR, through `actions/dependency-review-action
 - A Moderate or Low vulnerability shows in the job's summary without failing it.
 - The caller sees `<caller job> / Dependency Review`.
 
+### `scorecard.yml`
+
+OpenSSF Scorecard, through `ossf/scorecard-action`: it scores the repo against its supply-chain checks, such as pinned dependencies, token permissions, branch protection and dangerous workflow patterns, and uploads the findings to the Security tab as code scanning alerts under the category `scorecard`. No badge, so nothing is published to scorecard.dev. No inputs.
+
+- The caller runs it on a `schedule` and on `push` to main, and grants `contents: read` and `security-events: write`.
+- GitHub Free runs it only on a public repo. A private repo needs Advanced Security, so a private repo doesn't call it ([DATA.md](DATA.md#github)).
+- It runs with the job's token, which can't read the repo's rulesets, so the Branch-Protection check can't score them.
+- The caller sees `<caller job> / Scorecard`.
+
 ### `lighthouse.yml`
 
 Lighthouse CI against the image the `docker-build` module built for the PR. It loads the `<repo name>-image` artifact, runs the image as `<repo name>:pr-scan` with the port published on localhost, waits for the health path, and runs `treosh/lighthouse-ci-action` with the caller's config. Record: [0065](architectural-decision-records/0065-lighthouse-module.md)

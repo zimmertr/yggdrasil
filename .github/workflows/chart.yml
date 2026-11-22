@@ -30,14 +30,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          path: .yggdrasil
-          sparse-checkout: actions
-          persist-credentials: false
-      - uses: ./.yggdrasil/actions/setup-helm
+      - uses: $/actions/setup-helm
       # From the repositories the chart's Chart.yaml names, with no
       # `helm repo add`. Does nothing for a chart with no dependencies.
       - name: Fetch the chart's dependencies

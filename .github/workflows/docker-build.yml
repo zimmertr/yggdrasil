@@ -52,6 +52,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # A caller with its own trivy.yaml uses it. Otherwise the module's
+      # default, read at the commit the caller pinned (records 0006, 0022).
+      - if: hashFiles('trivy.yaml') == ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          persist-credentials: false
       # The image's last path segment, lowercased, names its local tag, its
       # artifact and its scan comment: Docker tags must be lowercase.
       - id: names
@@ -95,16 +104,6 @@ jobs:
           # The layers are already compressed.
           compression-level: 1
 
-      # The module's trivy.yaml default and its sticky-comment action, at the
-      # commit the caller pinned (records 0006, 0022). After the build, so none
-      # of it lands in the build context.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          path: .yggdrasil
-          persist-credentials: false
-
       # Fixable only: distributions ship CVEs upstream hasn't patched, which
       # nobody can act on. Every severity, for the comment.
       - name: Scan image (Trivy)
@@ -131,7 +130,7 @@ jobs:
       # Edited in place on every push. Skipped for Dependabot: its runs get a
       # read-only token, so the step summary above is its only surface.
       - if: github.event.pull_request.user.login != 'dependabot[bot]'
-        uses: ./.yggdrasil/actions/sticky-comment
+        uses: $/actions/sticky-comment
         with:
           header: image-scan-${{ steps.names.outputs.name }}
           path: scan-comment.md

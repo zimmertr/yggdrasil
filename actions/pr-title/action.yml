@@ -1,0 +1,16 @@
+name: pr-title
+description: >-
+  Fails unless the PR's title is one the release can read, against the same
+  list of types the version action bumps by. Reads the title from the API, not
+  the event, so a re-run checks it as it is now. Needs `pull-requests: read`.
+  Decision records 0020 and 0067.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR: ${{ github.event.pull_request.number }}
+      run: |
+        title=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .title)
+        bash "$GITHUB_ACTION_PATH/../version/version.sh" check "$title"

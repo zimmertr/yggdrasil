@@ -1,7 +1,7 @@
 name: PR Title
 
 # The PR title becomes the squash commit's title, and that line alone picks the
-# release bump (scripts/version.sh). This refuses a title the release can't
+# release bump (actions/version). This refuses a title the release can't
 # read, before the merge rather than after it. Decision records 0020 and 0067.
 #
 # A workflow of its own, because it must run when only the title changes
@@ -38,19 +38,4 @@ jobs:
     permissions:
       pull-requests: read # the PR's current title
     steps:
-      # The script that reads the title at release, at the commit the caller
-      # pinned (record 0022).
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          path: .yggdrasil
-          sparse-checkout: scripts
-          persist-credentials: false
-      # From the API, not the event, so a re-run checks the title as it is now.
-      - env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-        run: |
-          title=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .title)
-          .yggdrasil/scripts/version.sh check "$title"
+      - uses: $/actions/pr-title

@@ -8,7 +8,7 @@ setup() {
 }
 
 version() {
-  "$BATS_TEST_DIRNAME/../../scripts/version.sh" "$@"
+  "$BATS_TEST_DIRNAME/../../actions/version/version.sh" "$@"
 }
 
 # commit TITLE [FILE]

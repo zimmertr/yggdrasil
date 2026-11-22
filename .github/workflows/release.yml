@@ -88,18 +88,10 @@ jobs:
         with:
           fetch-depth: 0  # every commit and tag
           persist-credentials: false
-      # The version script, at the commit the caller pinned (record 0022).
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          path: .yggdrasil
-          sparse-checkout: scripts
-          persist-credentials: false
       # A PR's merge commit carries GitHub's message, not the PR title, so the
-      # script would misread it. Build the squash commit the merge will make
+      # version would misread it. Build the squash commit the merge will make
       # instead: the PR's changes on top of the base branch, titled with the
-      # PR title. Staged changes only, so .yggdrasil stays out of it.
+      # PR title.
       - if: github.event_name == 'pull_request'
         env:
           BASE: ${{ github.base_ref }}
@@ -109,13 +101,15 @@ jobs:
           git checkout -q -B "$BASE" "origin/$BASE"
           git merge -q --squash "$MERGE"
           git -c user.name=release -c user.email=release@localhost commit -q --allow-empty -m "$TITLE"
+      - id: next
+        uses: $/actions/version
+        with:
+          paths: ${{ inputs.paths }}
       - id: version
         env:
           GH_TOKEN: ${{ github.token }}
-          PATHS: ${{ inputs.paths }}
+          VERSION: ${{ steps.next.outputs.version }}
         run: |
-          read -ra paths <<< "$PATHS"
-          VERSION=$(.yggdrasil/scripts/version.sh next "${paths[@]}")
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           # A merge that touches none of `paths` gives back the last tagged
           # version, which is how a settings-only merge releases nothing.
@@ -319,14 +313,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          path: .yggdrasil
-          sparse-checkout: actions
-          persist-credentials: false
-      - uses: ./.yggdrasil/actions/setup-helm
+      - uses: $/actions/setup-helm
       # Before the check below, so it also sees a private package. Docker's
       # too, since actions/attest pushes with Docker's credentials, which
       # `helm registry login` doesn't write (docs/DATA.md).
@@ -440,13 +427,6 @@ jobs:
           repository: ${{ matrix.repo }}
           token: ${{ secrets.deploy-token }}
           persist-credentials: false
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          path: .yggdrasil
-          sparse-checkout: actions
-          persist-credentials: false
       # yq's own action, its image pinned by digest. -e fails the step when the
       # path matches nothing, which would otherwise pass for a deploy already
       # at this version.
@@ -476,7 +456,7 @@ jobs:
           cmd: yq -i "$SET = strenv(DIGEST)" "$FILE" && yq -e "($SET) == strenv(DIGEST)" "$FILE"
       # Does nothing when the file already holds this version.
       - id: pr
-        uses: ./.yggdrasil/actions/open-pr
+        uses: $/actions/open-pr
         with: &open-pr
           token: ${{ secrets.deploy-token }}
           repo: ${{ matrix.repo }}
@@ -524,7 +504,6 @@ jobs:
           repository: ${{ matrix.repo }}
           token: ${{ secrets.deploy-token }}
           persist-credentials: false
-          clean: false  # keeps .yggdrasil
       - if: steps.check.outputs.moved == 'true'
         uses: mikefarah/yq@f2944b823f84906a127dbd29e4c2a3e60c4e550e # v4.54.3
         env:
@@ -543,7 +522,7 @@ jobs:
           cmd: yq -i "$SET = strenv(DIGEST)" "$FILE" && yq -e "($SET) == strenv(DIGEST)" "$FILE"
       - id: retry
         if: steps.check.outputs.moved == 'true'
-        uses: ./.yggdrasil/actions/open-pr
+        uses: $/actions/open-pr
         with: *open-pr
       - if: steps.retry.outputs.operation == 'created' || steps.retry.outputs.operation == 'updated'
         env:

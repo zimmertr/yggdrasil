@@ -1,0 +1,23 @@
+name: version
+description: >-
+  Works out the next version from the commit titles since the last tag. Needs
+  a checkout with every commit and tag. Decision record 0067.
+inputs:
+  paths:
+    description: Only commits that touch one of these paths count, space separated. Empty, every commit counts.
+    default: ''
+outputs:
+  version:
+    description: The next version, as X.Y.Z. The last tag's version when no commit counts.
+    value: ${{ steps.next.outputs.version }}
+runs:
+  using: composite
+  steps:
+    - id: next
+      shell: bash
+      env:
+        PATHS: ${{ inputs.paths }}
+      run: |
+        read -ra paths <<< "$PATHS"
+        version=$(bash "$GITHUB_ACTION_PATH/version.sh" next "${paths[@]}")
+        echo "version=$version" >> "$GITHUB_OUTPUT"

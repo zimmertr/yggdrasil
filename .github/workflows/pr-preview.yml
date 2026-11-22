@@ -117,17 +117,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=pr-${{ github.event.pull_request.number }},ignore-error=true
 
       # Only a labelled PR gets a preview, so only the owner's get the comment.
-      # yggdrasil after the build, so none of it lands in the build context.
       - if: github.event.pull_request.user.login == github.repository_owner
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          path: .yggdrasil
-          sparse-checkout: actions
-          persist-credentials: false
-      - if: github.event.pull_request.user.login == github.repository_owner
-        uses: ./.yggdrasil/actions/sticky-comment
+        uses: $/actions/sticky-comment
         with:
           header: pr-preview
           message: |

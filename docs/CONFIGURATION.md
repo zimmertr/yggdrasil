@@ -131,6 +131,15 @@ On a PR from the repo's own branches: the PR's head built for `linux/amd64` and 
 - The layer cache is scoped per PR, with the default scope read as a warm start.
 - The caller sees `<caller job> / Preview Image`.
 
+### `dependency-review.yml`
+
+GitHub's dependency review on each PR, through `actions/dependency-review-action`. It reads the dependency graph's diff between the PR's base and head, and fails when the PR adds a package version with a known High or Critical vulnerability. No license policy. No inputs.
+
+- The caller runs it on `pull_request` and grants `contents: read`. It needs no checkout.
+- GitHub Free runs it only on a public repo. A private repo needs GitHub Code Security, so a private repo doesn't call it ([DATA.md](DATA.md#github)).
+- A Moderate or Low vulnerability shows in the job's summary without failing it.
+- The caller sees `<caller job> / Dependency Review`.
+
 ### `lighthouse.yml`
 
 Lighthouse CI against the image the `docker-build` module built for the PR. It loads the `<repo name>-image` artifact, runs the image as `<repo name>:pr-scan` with the port published on localhost, waits for the health path, and runs `treosh/lighthouse-ci-action` with the caller's config. Record: [0065](architectural-decision-records/0065-lighthouse-module.md)

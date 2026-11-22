@@ -1,0 +1,27 @@
+name: dependency-review
+
+# The dependency-review module: GitHub's dependency review on each PR, which
+# fails when the PR adds or moves to a package version with a known High or
+# Critical vulnerability. It reads the dependency graph's diff between the
+# PR's base and head, so it catches a vulnerable package before it merges,
+# where a Dependabot alert only follows after. No license policy.
+#
+# GitHub Free runs it only on a public repo: a private one needs GitHub Code
+# Security (docs/DATA.md). The caller runs it on `pull_request`, grants
+# `contents: read`, and sees `<caller job> / Dependency Review`.
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high

@@ -33,3 +33,11 @@ jobs:
       directories: terraform/github terraform/cloudflare terraform/modules/repo terraform/modules/org
     permissions:
       contents: read
+
+  # The dependency-review module on this repo's own PRs, from this PR's copy.
+  # Not required yet: #133 step 10 adds it with the other repos' checks.
+  dependency-review:
+    name: Dependency Review
+    uses: $/.github/workflows/dependency-review.yml
+    permissions:
+      contents: read

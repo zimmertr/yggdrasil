@@ -6,11 +6,12 @@ topics:
   - reusable-workflows
   - terraform
 required_checks:
-  - Docs
   - PR Title
   - Lint / actionlint
   - Lint / zizmor
   - Lint / semgrep
+  - Lint / shellcheck
+  - Lint / docs
   - Terraform / fmt
   - Terraform / validate
   - Terraform / test

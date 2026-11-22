@@ -27,13 +27,14 @@ Every job runs in the same pinned container a local `make` run uses. Record: [00
 | `checks.yml` | `Lint / actionlint` | The lint module on this repo, from this PR's copy: actionlint, with shellcheck on every `run:`. Record: [0037](architectural-decision-records/0037-lint-module.md) | Any finding in `.github/workflows/` |
 | `checks.yml` | `Lint / zizmor` | The lint module: zizmor's pedantic audits, online with the job's read-only token, findings as PR annotations | Any finding: an unpinned action or a version comment that is missing or wrong, `${{ }}` inside `run:`, a checkout that keeps credentials, `pull_request_target`, broad permissions and the rest |
 | `checks.yml` | `Lint / semgrep` | The lint module: Semgrep's registry rule `dockerfile-source-not-pinned` | A Dockerfile `FROM` with a tag but no `@sha256:` digest, outside test folders |
+| `checks.yml` | `Lint / shellcheck` | The lint module: shellcheck over every script file. This repo has none, so it checks nothing yet | Any finding |
+| `checks.yml` | `Lint / docs` | The lint module: lychee over every relative link and heading anchor, and a grep for em dashes | A broken link or anchor, or an em dash |
 | `checks.yml` | `Terraform / fmt` | The terraform module on this repo, from this PR's copy: `terraform fmt -recursive -check`. Record: [0042](architectural-decision-records/0042-terraform-module.md) | A file `terraform fmt` would change |
 | `checks.yml` | `Terraform / validate` | The terraform module: `terraform validate` in each folder `checks.yml` lists | Invalid Terraform |
 | `checks.yml` | `Terraform / test` | The terraform module: `terraform test` with mock providers, in each listed folder | A failing test |
 | `checks.yml` | `Terraform / tflint` | The terraform module: tflint's bundled recommended rules | Any finding, such as an unused variable |
 | `checks.yml` | `Terraform / trivy` | The terraform module: Trivy's misconfiguration scan of each listed folder, with `defaults/trivy.yaml` | Any finding |
 | `pr-title.yml` | `PR Title` | `amannn/action-semantic-pull-request` on the title, on every edit and push | A title that isn't `type(scope): summary` with a type from `GitVersion.yml`'s patterns. Record: [0020](architectural-decision-records/0020-pr-titles-checked-by-a-community-action.md) |
-| `checks.yml` | `Docs` | `make docs`: lychee over every relative link and heading anchor, and a grep for em dashes | A broken link or anchor, or an em dash |
 | `ci-docker-build.yml` | `Docker Build Test / Docker Build` | The docker-build module on `tests/docker-build/`. Only on PRs that touch the module, its test or `defaults/trivy.yaml`, so it isn't required | Any failure of the module |
 | `ci-chart.yml` | `Chart Test / Chart` | The chart module on `tests/chart/`. Only on PRs that touch the module or its test, so it isn't required. Record: [0054](architectural-decision-records/0054-release-module-pushes-the-charts.md) | Any failure of the module |
 | `terraform-github.yml` | `Plan github` | `dflook/terraform-plan` on the github stack, with write tokens from `zimmertr-yggdrasil-bot`, one per owner, the same as the apply's: a read-only token can't see a repo's merge settings. Posts the plan as one PR comment that each run updates. Only on PRs from this repo's own branches, Dependabot's included, that touch `terraform/`, `repos/` or `orgs/`, so it isn't required. Records: [0044](architectural-decision-records/0044-pr-plans-run-through-dflook-with-read-only-tokens.md), [0047](architectural-decision-records/0047-pr-plans-use-the-applys-write-tokens.md) | A plan that errors, such as a precondition refusing an unknown key. A plan with changes passes: TJ reads it before merging |
@@ -42,7 +43,7 @@ Every job runs in the same pinned container a local `make` run uses. Record: [00
 | `ci-release.yml` | `Release / Build & Push (zimmertr/yggdrasil-test)` | The same dry run building `tests/docker-build/` for `linux/amd64` and `linux/arm64`, pushing nothing | A build that fails |
 | `ci-release.yml` | `Release / Push Chart (tests/chart)` | The same dry run packaging `tests/chart/` at the version, pushing nothing | A chart that doesn't package |
 
-Branch protection requires `Lint / actionlint`, `Lint / zizmor`, `Lint / semgrep`, the five `Terraform /` checks, `Docs` and `PR Title` (logged below). A check joins it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR. CodeQL's default setup scans the workflows too.
+Branch protection requires the five `Lint /` checks, the five `Terraform /` checks and `PR Title`. A check joins it only after it has reported once, because a required check that never reports blocks every PR. Renaming one of these jobs means updating protection in the same PR. CodeQL's default setup scans the workflows too.
 
 ## Renovate
 

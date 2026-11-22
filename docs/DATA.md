@@ -55,6 +55,7 @@ Terraform, run in a workflow with an installation token for `zimmertr`, with `in
 - 2026-11-10: with merge commits off, GitHub accepts but doesn't save a change to `merge_commit_title` or `merge_commit_message`. Bootstrap-Proxmox, imported with `PR_TITLE` and `BLANK`, kept them through #60's apply, and #61's plan showed the same change again. The repo module ignores both.
 - 2026-11-10: on GitHub Free, a private repo accepts but doesn't save `allow_auto_merge = true`. Resume still read `false` after #61's apply. The repo module turns auto-merge on for public repos only.
 - 2026-11-21: on a GitHub-hosted runner, `docker run -p` publishes the port at once, and Docker's proxy accepts a connection and resets it until the app inside listens. curl's `--retry-connrefused` doesn't retry that (exit 56, "Connection reset by peer"), so the lighthouse module's health wait failed on trailhead's web image (zimmertr/trailhead#58, twice) and on Bluebird's (zimmertr/bluebird#988). `--retry-all-errors` retries it.
+- 2026-11-21: `actions/attest` 4.2.2 with `push-to-registry` reads only Docker's credentials, so after a chart pushed through `helm registry login` it failed with "No credentials found for registry ghcr.io", in the first chart releases of zimmertr/bluebird-helm and zimmertr/trailhead-helm. The chart and the tag were already out. The release module logs Docker in too.
 
 ## GHCR
 

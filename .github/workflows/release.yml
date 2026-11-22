@@ -331,6 +331,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: echo "$GH_TOKEN" | helm registry login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+      # actions/attest pushes the attestation with Docker's credentials, which
+      # `helm registry login` doesn't write (docs/DATA.md).
+      - if: ${{ !inputs.dry-run }}
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
       # The chart's name is its OCI path, so it comes from Chart.yaml.
       - id: chart
         env:

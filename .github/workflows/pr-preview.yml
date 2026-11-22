@@ -4,8 +4,8 @@ name: pr-preview
 # `<image>:pr-<N>-<head sha>`, the tag the Argo CD pull request generator
 # looks for. The owner's own PRs also get the `create pr container` label,
 # which turns that generator on, and one comment naming the preview's address.
-# Bluebird's pr-preview.yml, moved here for hevy-garmin-sync. Decision record
-# 0059.
+# Bluebird's pr-preview.yml, moved here for hevy-garmin-sync. Decision records
+# 0059 and 0067.
 #
 # The caller runs it on `pull_request` (types opened, synchronize, reopened),
 # never `pull_request_target` (record 0010), and grants `contents: read`,
@@ -69,12 +69,10 @@ jobs:
               labels: ['create pr container'],
             })
 
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
+      - run: docker buildx create --use
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
       # A re-run or a reopen on the same commit asks for a tag already pushed,
       # from the same source. A rebuild would put a new digest (the build time
       # differs) under it, so the image already pushed stays.
@@ -86,28 +84,31 @@ jobs:
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
-      # The OCI labels, and the build time the release module passes too.
-      - id: meta
+      - id: created
         if: steps.pushed.outputs.exists == 'false'
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
-        with:
-          images: ${{ inputs.image }}
-          tags: type=raw,value=${{ env.TAG }}
-          flavor: latest=false
+        run: echo "created=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" >> "$GITHUB_OUTPUT"
       - if: steps.pushed.outputs.exists == 'false'
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.IMAGE }}:${{ env.TAG }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.version=${{ env.TAG }}
+            org.opencontainers.image.created=${{ steps.created.outputs.created }}
+            org.opencontainers.image.revision=${{ github.event.pull_request.head.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
           # The names the release module passes. A preview has no SemVer, so
           # its version names the PR it came from.
           build-args: |
             APP_VERSION=pr-${{ github.event.pull_request.number }}
             APP_COMMIT=${{ github.event.pull_request.head.sha }}
-            APP_BUILT_AT=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            APP_BUILT_AT=${{ steps.created.outputs.created }}
           # Every PR's cache in its own scope, with the default scope as a
           # warm start. A failed cache export never fails a pushed image.
           cache-from: |
@@ -116,8 +117,17 @@ jobs:
           cache-to: type=gha,mode=max,scope=pr-${{ github.event.pull_request.number }},ignore-error=true
 
       # Only a labelled PR gets a preview, so only the owner's get the comment.
+      # yggdrasil after the build, so none of it lands in the build context.
       - if: github.event.pull_request.user.login == github.repository_owner
-        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          sparse-checkout: actions
+          persist-credentials: false
+      - if: github.event.pull_request.user.login == github.repository_owner
+        uses: ./.yggdrasil/actions/sticky-comment
         with:
           header: pr-preview
           message: |

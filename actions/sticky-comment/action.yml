@@ -1,0 +1,26 @@
+name: sticky-comment
+description: >-
+  Posts a comment on the PR, then edits that same comment on every later run,
+  so the PR keeps one up-to-date copy. Posts with the job's own token, which
+  needs `pull-requests: write`. Decision record 0067.
+inputs:
+  header:
+    description: Names the comment, so a job can keep several apart.
+    required: true
+  path:
+    description: A file holding the comment's Markdown. Give this or `message`.
+    default: ''
+  message:
+    description: The comment's Markdown. Give this or `path`.
+    default: ''
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR: ${{ github.event.pull_request.number }}
+        HEADER: ${{ inputs.header }}
+        BODY_FILE: ${{ inputs.path }}
+        MESSAGE: ${{ inputs.message }}
+      run: bash "$GITHUB_ACTION_PATH/sticky-comment.sh"

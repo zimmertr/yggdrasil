@@ -34,6 +34,9 @@ jobs:
       id-token: write  # and the token Sigstore signs it with
     with:
       dry-run: ${{ github.event_name == 'pull_request' }}
+      # What callers run. A merge that touches nothing else, such as a repo
+      # setting, releases nothing.
+      paths: .github/workflows actions defaults scripts compose.yml
       images: >-
         ${{ github.event_name == 'pull_request'
             && '[{"image": "zimmertr/yggdrasil-test", "context": "tests/docker-build", "platforms": "linux/amd64,linux/arm64"}]'

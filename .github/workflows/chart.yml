@@ -4,7 +4,7 @@ name: chart
 # with the chart's defaults, then the chart's helm-unittest suites from its
 # `tests/` folder. hevy-garmin-sync's and bluebird-helm's chart check. The
 # release module pushes the chart, as it does the images this module's
-# neighbour docker-build checks. Decision records 0054 and 0060.
+# neighbour docker-build checks. Decision records 0054, 0060 and 0067.
 #
 # The caller runs it on `pull_request` and grants `contents: read`.
 on:
@@ -30,12 +30,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # Exact: with no version the action installs whatever Helm is newest
-          # on the day. Renovate reads this input, and bumps it here and in
-          # release.yml in one PR.
-          version: v4.3.2
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .yggdrasil
+          sparse-checkout: actions
+          persist-credentials: false
+      - uses: ./.yggdrasil/actions/setup-helm
       # From the repositories the chart's Chart.yaml names, with no
       # `helm repo add`. Does nothing for a chart with no dependencies.
       - name: Fetch the chart's dependencies

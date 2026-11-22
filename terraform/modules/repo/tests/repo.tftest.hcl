@@ -55,10 +55,9 @@ run "public_repo_gets_everything" {
       length(restapi_object.immutable_releases) == 1 &&
       length(github_repository_vulnerability_alerts.this) == 1 &&
       length(github_repository_dependabot_security_updates.this) == 1 &&
-      !github_repository_dependabot_security_updates.this[0].enabled &&
       github_actions_repository_permissions.this[0].sha_pinning_required
     )
-    error_message = "A public repo gets every security setting, with Dependabot's security update PRs off (Renovate opens them)."
+    error_message = "A public repo gets every security setting."
   }
 
   assert {
@@ -187,10 +186,9 @@ run "private_repo_skips_what_github_free_cannot_do" {
       length(restapi_object.immutable_releases) == 1 &&
       length(github_repository_vulnerability_alerts.this) == 1 &&
       length(github_repository_dependabot_security_updates.this) == 1 &&
-      !github_repository_dependabot_security_updates.this[0].enabled &&
       length(github_actions_repository_permissions.this) == 1
     )
-    error_message = "A private repo still gets immutable releases, Dependabot alerts and SHA pinning, with Dependabot's security update PRs off."
+    error_message = "A private repo still gets immutable releases, Dependabot and SHA pinning."
   }
 }
 

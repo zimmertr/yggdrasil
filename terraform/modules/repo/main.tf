@@ -202,14 +202,11 @@ resource "github_repository_vulnerability_alerts" "this" {
   enabled    = true
 }
 
-# Off: Renovate opens the same fix from the same alert, so Dependabot's PR
-# was a duplicate to close by hand. The alerts above stay on, because
-# Renovate reads them (decision record 0063).
 resource "github_repository_dependabot_security_updates" "this" {
   count = local.active ? 1 : 0
 
   repository = github_repository.this.name
-  enabled    = false
+  enabled    = true
 
   depends_on = [github_repository_vulnerability_alerts.this]
 }

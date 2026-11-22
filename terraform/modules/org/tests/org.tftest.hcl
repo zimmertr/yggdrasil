@@ -35,7 +35,7 @@ run "new_repos_start_secure" {
     condition = (
       github_organization_settings.this.dependency_graph_enabled_for_new_repositories &&
       github_organization_settings.this.dependabot_alerts_enabled_for_new_repositories &&
-      !github_organization_settings.this.dependabot_security_updates_enabled_for_new_repositories &&
+      github_organization_settings.this.dependabot_security_updates_enabled_for_new_repositories &&
       github_organization_settings.this.secret_scanning_enabled_for_new_repositories &&
       github_organization_settings.this.secret_scanning_push_protection_enabled_for_new_repositories &&
       !github_organization_settings.this.advanced_security_enabled_for_new_repositories

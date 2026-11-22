@@ -12,11 +12,10 @@ resource "github_organization_settings" "this" {
   twitter_username = var.settings.twitter_username
 
   # A repo made by hand, before its import, starts with the security settings
-  # the repo module would give it, Dependabot's security update PRs off
-  # included (decision record 0063). Advanced Security isn't on GitHub Free.
+  # the repo module would give it. Advanced Security isn't on GitHub Free.
   dependency_graph_enabled_for_new_repositories                = true
   dependabot_alerts_enabled_for_new_repositories               = true
-  dependabot_security_updates_enabled_for_new_repositories     = false
+  dependabot_security_updates_enabled_for_new_repositories     = true
   secret_scanning_enabled_for_new_repositories                 = true
   secret_scanning_push_protection_enabled_for_new_repositories = true
   advanced_security_enabled_for_new_repositories               = false

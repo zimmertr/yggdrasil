@@ -84,7 +84,7 @@ On a PR: hadolint, then the `linux/amd64` image built and loaded but not pushed,
 
 - The caller runs it on `pull_request` and grants `contents: read` and `pull-requests: write`.
 - A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`.
-- `marocchino/sticky-pull-request-comment` keeps one scan comment per PR (header `image-scan`).
+- `marocchino/sticky-pull-request-comment` keeps one scan comment per PR (header `image-scan`). Dependabot's PRs get the step summary instead, since their token is read-only.
 - container-structure-test can't run a container read-only or with no network, or wait on a running process. A check that needs one goes to TJ before any shell is written for it.
 - The caller sees `<caller job> / Docker Build`.
 
@@ -199,7 +199,7 @@ The cloudflare stack's hostnames are public by design. Its tunnel sends them to 
 | `name` | none | The display name |
 | `description`, `blog`, `email`, `location`, `company`, `twitter_username` | none | The rest of the profile |
 
-The org module sets, on every org: the dependency graph and Dependabot alerts on and Dependabot security updates off (record [0063](architectural-decision-records/0063-renovate-alone-opens-vulnerability-fixes.md)), secret scanning and push protection on for new repos, so a repo made by hand starts with them before its import; Advanced Security off (GitHub Free); and GitHub's defaults for the rest (members read by default, may create repos and Pages sites, may not fork private repos, no commit sign-off, projects on). A key not in the table fails the plan, and so does a file for an org the stack doesn't manage.
+The org module sets, on every org: the dependency graph, Dependabot alerts and security updates, secret scanning and push protection on for new repos, so a repo made by hand starts with them before its import; Advanced Security off (GitHub Free); and GitHub's defaults for the rest (members read by default, may create repos and Pages sites, may not fork private repos, no commit sign-off, projects on). A key not in the table fails the plan, and so does a file for an org the stack doesn't manage.
 
 ### A repo's file
 
@@ -217,7 +217,7 @@ The org module sets, on every org: the dependency graph and Dependabot alerts on
 | `required_checks` | `[]` | The checks main requires, by name, each pinned to GitHub Actions. A public repo needs at least one, except a `.github` repo |
 
 - A key that isn't in this table fails the plan, and so does a folder for an owner the stack doesn't manage. Terraform would otherwise drop an unknown key without a word.
-- No security setting is a key. The repo module turns every one in the table below on for every repo GitHub allows it on, except Dependabot's security update PRs, which it turns off. Changing that means changing `terraform/modules/repo/`.
+- No security setting is a key. The repo module turns every one in the table below on for every repo GitHub allows it on. Changing that means changing `terraform/modules/repo/`.
 - Labels aren't managed: `create-issue` makes them as it needs them.
 - Each owner has its own `github` and `restapi` provider and module block, because a token reaches one owner only. The workflow mints one token per owner from `zimmertr-yggdrasil-bot` and passes them as the sensitive map `github_tokens` (#8 step 6.5).
 
@@ -232,7 +232,7 @@ Each setting `initialize-project` gives a new repo (its `repo.md` and `security.
 | Auto-merge, branch deletion, update branch, no wiki (repo.md 10) | `github_repository`: `allow_auto_merge`, `delete_branch_on_merge`, `allow_update_branch`, `has_wiki`, `has_projects` | yes |
 | A PR for every change, 0 approvals, stale reviews dismissed, conversations resolved, required checks, no force-push or deletion (security.md 1 to 4) | `github_repository_ruleset` on `~DEFAULT_BRANCH`: `pull_request` (`required_approving_review_count = 0`, `dismiss_stale_reviews_on_push`, `required_review_thread_resolution`, `allowed_merge_methods = ["squash"]`), `required_status_checks` (`required_check` with `context` and `integration_id`, `strict_required_status_checks_policy = false`), `deletion`, `non_fast_forward`. No bypass actors, so admins are held too | yes |
 | No Copilot review (security.md 5) | No `copilot_code_review` rule | n/a |
-| Dependabot alerts on, and Dependabot security updates off, since Renovate opens the same fixes from the alerts and skips its waits for them (security.md 6, record [0063](architectural-decision-records/0063-renovate-alone-opens-vulnerability-fixes.md)) | `github_repository_vulnerability_alerts`, `github_repository_dependabot_security_updates` with `enabled = false` | Alerts yes. Updates off from 2026-11-21 |
+| Dependabot alerts and security updates (security.md 6) | `github_repository_vulnerability_alerts`, `github_repository_dependabot_security_updates` | yes |
 | Dependency updates and their auto-merge (security.md 7 to 9) | `.github/renovate.json`, which the template seeds and which extends the shared preset (0056). TJ's Renovate installation covers every repo of the account | n/a |
 | CodeQL default setup (security.md 13) | `restapi_object`: `PATCH /repos/{owner}/{repo}/code-scanning/default-setup` | yes |
 | Secret scanning and push protection (security.md 14) | `github_repository`: `security_and_analysis` | yes |

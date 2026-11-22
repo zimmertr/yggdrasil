@@ -115,8 +115,10 @@ jobs:
             echo '```'
           } > scan-comment.md
           cat scan-comment.md >> "$GITHUB_STEP_SUMMARY"
-      # Edited in place on every push.
-      - uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+      # Edited in place on every push. Skipped for Dependabot: its runs get a
+      # read-only token, so the step summary above is its only surface.
+      - if: github.event.pull_request.user.login != 'dependabot[bot]'
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         with:
           header: image-scan
           path: scan-comment.md

@@ -8,13 +8,13 @@ A caller passes all of its configuration as inputs. Record: [0002](architectural
 
 ### `release.yml`
 
-Works out the next version, builds and pushes the caller's images under it and scans each, then tags the commit and publishes the GitHub release once every scan passes, then pushes the caller's Helm charts under the same version, then opens a PR in each deploy repo that points it at the release. Records: [0027](architectural-decision-records/0027-release-module.md), [0032](architectural-decision-records/0032-release-module-builds-the-images.md), [0033](architectural-decision-records/0033-release-module-bumps-deploys-with-yq.md), [0034](architectural-decision-records/0034-community-actions-over-shell.md), [0052](architectural-decision-records/0052-images-go-to-ghcr-pinned-by-digest.md), [0054](architectural-decision-records/0054-release-module-pushes-the-charts.md)
+Works out the next version, builds and pushes the caller's images under it and scans each, then tags the commit and publishes the GitHub release once every scan passes, then pushes the caller's Helm charts under the same version, then opens a PR in each deploy repo that points it at the release. Records: [0027](architectural-decision-records/0027-release-module.md), [0032](architectural-decision-records/0032-release-module-builds-the-images.md), [0033](architectural-decision-records/0033-release-module-bumps-deploys-with-yq.md), [0034](architectural-decision-records/0034-community-actions-over-shell.md), [0052](architectural-decision-records/0052-images-go-to-ghcr-pinned-by-digest.md), [0054](architectural-decision-records/0054-release-module-pushes-the-charts.md), [0066](architectural-decision-records/0066-releases-attest-images-and-charts.md)
 
 | Input | Default | Does |
 |---|---|---|
 | `environment` | `''` | The GitHub environment the `Tag and Release` job runs in, for its protection rules. Empty runs it in none |
 | `dry-run` | `false` | Works out the version and says it in the job summary, builds every image without pushing it, and packages every chart without pushing it. Scans, tags and releases nothing. On a PR, the version is the one the squash merge will get |
-| `images` | `[]` | A JSON list, one entry per image: `{"image": "zimmertr/bluebird", "context": ".", "file": "fill/Dockerfile", "platforms": "linux/amd64,linux/arm64", "cache": true}`. Each is pushed to `ghcr.io/<image>`, lowercased. Only `image` is required. `context` defaults to the repo root, `file` (a path from the repo root) to the context's `Dockerfile`, `platforms` to `linux/amd64`, `cache` to `false` |
+| `images` | `[]` | A JSON list, one entry per image: `{"image": "zimmertr/bluebird", "context": ".", "file": "fill/Dockerfile", "platforms": "linux/amd64,linux/arm64", "cache": true}`. Each is pushed to `ghcr.io/<image>`, lowercased. Only `image` is required. `context` defaults to the repo root, `file` (a path from the repo root) to the context's `Dockerfile`, `platforms` to `linux/amd64`, `cache` to `false`. The `docker-build` module takes the same list, so a caller can define it once; a `structure-test` field is read only there |
 | `charts` | `[]` | A JSON list, one entry per Helm chart: `{"chart": "charts/hevy-garmin-sync-helm", "image": "ghcr.io/zimmertr/hevy-garmin-sync", "digest-set": ".image.digest"}`. Each is packaged at the version and pushed to `oci://ghcr.io/<owner>`, lowercased, under the name in its `Chart.yaml`. Only `chart`, the chart's folder, is required. `image` and `digest-set` go together, for a chart that ships the app the same release built: the chart's `appVersion` becomes the version, and the digest of `image` (its full name) at the release is written into the chart's `values.yaml` at the `yq` path `digest-set`. Without them the chart keeps its `Chart.yaml`'s `appVersion` |
 | `deploys` | `[]` | A JSON list, one entry per file to point at the release: `{"repo": "zimmertr/bluebird-helm", "file": "charts/bluebird/Chart.yaml", "set": ".appVersion", "branch": "chore/bump-appversion", "title": "chore(release): bump chart appVersion"}`. `set` is a `yq` path; for a kustomization, `(.images[] \| select(.name == "zimmertr/personal-website")).newTag`, its quotes escaped inside the JSON. The PR title is `title` plus ` to X.Y.Z`. `image` and `digest-set` are optional: with them, the PR also writes the digest of `image` (its full name, such as `ghcr.io/zimmertr/personal-website`) at the release, at the `yq` path `digest-set`, such as `(.images[] \| select(.name == "ghcr.io/zimmertr/personal-website")).digest`. Every other field is required |
 
@@ -22,7 +22,7 @@ Works out the next version, builds and pushes the caller's images under it and s
 |---|---|
 | `deploy-token` | A token with contents and pull-requests write on every `deploys` repo, such as the caller's `GH_PAT`. Needed when `deploys` isn't empty |
 
-- The caller runs it on every push to main. It grants `contents: write` and `packages: write`, and sets a `concurrency` group so releases run one at a time. A dry run on PRs is optional: it previews the version, but it also builds every image on every platform and packages every chart.
+- The caller runs it on every push to main. It grants `contents: write`, `packages: write`, `attestations: write` and `id-token: write`, and sets a `concurrency` group so releases run one at a time. GitHub refuses the run if any is missing, even in a dry run. A dry run on PRs is optional: it previews the version, but it also builds every image on every platform and packages every chart.
 - A `GitVersion.yml` and a `trivy.yaml` at the caller's root are used. Without them, the module reads its `defaults/`.
 - Every image is built with `APP_VERSION`, `APP_COMMIT` and `APP_BUILT_AT` as build arguments and the OCI version, revision and source labels, tagged with the version only, with an SBOM and `provenance: mode=max`. The SBOM is BuildKit's SPDX attestation, one per platform, read with `docker buildx imagetools inspect <image>:<version> --format '{{ json .SBOM }}'`. The GitHub release carries no SBOM file (record 0057).
 - `docker/metadata-action` makes the tag and the OCI labels, and lowercases the name. Only a version with no git tag yet is built, so a re-run of a released version builds nothing. Each scan reads the image by its version tag.
@@ -30,7 +30,17 @@ Works out the next version, builds and pushes the caller's images under it and s
 - GHCR has no immutable tags. A deploy that sets `digest-set` runs the digest it was given, even if someone moves the tag by hand.
 - A new package from a public repo starts public, and links to the repo that pushed it.
 - A fixable Critical or High on any image or platform stops the tag and release. The image stays pushed; the fix is the next release.
-- A chart is pushed after the tag, by Helm v4.3.0 with `--dependency-update`, which fetches its dependencies from the repositories its `Chart.yaml` names. A version already in GHCR is never pushed again, because Argo CD pins a chart by version and GHCR would replace it. A deploy for a chart sets its version: `(.helmCharts[] \| select(.name == "hevy-garmin-sync-helm")).version`.
+- A chart is pushed after the tag, by the official Helm that `azure/setup-helm` installs, with `--dependency-update`, which fetches its dependencies from the repositories its `Chart.yaml` names. A version already in GHCR is never pushed again, because Argo CD pins a chart by version and GHCR would replace it. A deploy for a chart sets its version: `(.helmCharts[] \| select(.name == "hevy-garmin-sync-helm")).version`.
+- Every pushed image and chart gets GitHub's signed SLSA build provenance from `actions/attest`, naming the index or chart digest. GitHub keeps it, and it is also pushed to GHCR beside the artifact, for a cluster's admission policy to read. A dry run attests nothing. A private repo on GitHub Free can't attest ([DATA.md](DATA.md#github)).
+- To check that an image or chart came from a release here, verify it with the GitHub CLI. `--owner` is the account or org that owns the repo, and `--signer-workflow` refuses anything not signed by this module:
+
+  ```sh
+  gh attestation verify oci://ghcr.io/zimmertr/bluebird:1.2.3 \
+    --owner zimmertr \
+    --signer-workflow zimmertr/yggdrasil/.github/workflows/release.yml
+  ```
+
+  A chart takes the same command with its OCI path, such as `oci://ghcr.io/zimmertr/hevy-garmin-sync-helm:1.2.3`.
 - When a chart's push fails, "Re-run failed jobs" finishes the release, while it is still main's newest commit. "Re-run all jobs" finds the tag and pushes nothing.
 - After the release and the charts, `peter-evans/create-pull-request` gives each deploy file one PR on its fixed `branch`, rebuilt off the repo's default branch each release, and squash auto-merge is armed (or a plain squash merge when the checks are already green). A PR still open from an earlier release is moved to the newest.
 - After the push, the job checks whether the deploy repo's main has moved since its checkout, as it does when the previous release's bump merges in between and leaves this PR conflicting. If it has, the job builds the bump again on the new main and pushes it to the same PR. If main moves again during that, the job fails.
@@ -74,21 +84,19 @@ actionlint, with shellcheck on every `run:`; zizmor's pedantic audits over the c
 
 ### `docker-build.yml`
 
-On a PR: hadolint, then the `linux/amd64` image built and loaded but not pushed, scanned by Trivy (fixable only), a sticky scan comment, the caller's container-structure-test file, and a failure on any fixable Critical or High. Records: [0030](architectural-decision-records/0030-docker-build-module.md), [0060](architectural-decision-records/0060-standard-tools-test-charts-and-images.md)
+On a PR, for each image in the list, one matrix job: hadolint, then the `linux/amd64` image built and loaded but not pushed, scanned by Trivy (fixable only), a sticky scan comment, its container-structure-test file, and a failure on any fixable Critical or High. Records: [0030](architectural-decision-records/0030-docker-build-module.md), [0060](architectural-decision-records/0060-standard-tools-test-charts-and-images.md), [0066](architectural-decision-records/0066-releases-attest-images-and-charts.md)
 
 | Input | Default | Does |
 |---|---|---|
-| `context` | `.` | The build context, which holds the `Dockerfile` |
-| `build-args` | `''` | Build arguments, one `KEY=value` per line |
-| `structure-test` | `''` | A [container-structure-test](https://github.com/GoogleContainerTools/container-structure-test) file, from the repo root, run against the built image: commands and their output, files, metadata. Any failing test fails the job |
-| `cache` | `false` | Uses the GitHub Actions layer cache |
-| `upload-image` | `false` | Saves the image as the artifact `<repo name>-image`, holding `<repo name>-image.tar`, for later jobs to `docker load` |
+| `images` | none, required | The release module's `images` list, such as `[{"image": "zimmertr/trailhead-web", "file": "web/Dockerfile", "structure-test": "web/structure-test.yaml"}]`. It reads `image`, `context`, `file` and `cache` as the release does, and `structure-test`, a [container-structure-test](https://github.com/GoogleContainerTools/container-structure-test) file from the repo root, run against that image: commands and their output, files, metadata. `platforms` is ignored, since a PR builds `linux/amd64` only |
+| `build-args` | `''` | Build arguments for every image, one `KEY=value` per line |
+| `upload-image` | `false` | Saves each image as the artifact `<name>-image`, holding `<name>-image.tar`, for later jobs to `docker load`. `<name>` is the image's last path segment, lowercased: `trailhead-web` for `zimmertr/trailhead-web`. Loaded, the image is `<name>:pr-scan` |
 
 - The caller runs it on `pull_request` and grants `contents: read` and `pull-requests: write`.
 - A `trivy.yaml` at the caller's root is used. Without one, the module reads `defaults/trivy.yaml`.
-- `marocchino/sticky-pull-request-comment` keeps one scan comment per PR (header `image-scan`). Dependabot's PRs get the step summary instead, since their token is read-only.
+- `marocchino/sticky-pull-request-comment` keeps one scan comment per image per PR (header `image-scan-<name>`). Dependabot's PRs get the step summary instead, since their token is read-only.
 - container-structure-test can't run a container read-only or with no network, or wait on a running process. A check that needs one goes to TJ before any shell is written for it.
-- The caller sees `<caller job> / Docker Build`.
+- The caller sees `<caller job> / Docker Build (<image>)`, one check per image.
 
 ### `chart.yml`
 
@@ -151,10 +159,11 @@ OpenSSF Scorecard, through `ossf/scorecard-action`: it scores the repo against i
 
 ### `lighthouse.yml`
 
-Lighthouse CI against the image the `docker-build` module built for the PR. It loads the `<repo name>-image` artifact, runs the image as `<repo name>:pr-scan` with the port published on localhost, waits for the health path, and runs `treosh/lighthouse-ci-action` with the caller's config. Record: [0065](architectural-decision-records/0065-lighthouse-module.md)
+Lighthouse CI against an image the `docker-build` module built for the PR. It loads the image's `<name>-image` artifact, runs it as `<name>:pr-scan` with the port published on localhost, waits for the health path, and runs `treosh/lighthouse-ci-action` with the caller's config. Record: [0065](architectural-decision-records/0065-lighthouse-module.md)
 
 | Input | Default | Does |
 |---|---|---|
+| `image` | none, required | The image to audit, as the `docker-build` list names it, such as `zimmertr/trailhead-web` |
 | `config` | none, required | The Lighthouse CI config, from the repo root, such as `.github/lighthouserc.js`. It names the URLs on `http://localhost:<port>/` and holds the assertions |
 | `port` | none, required | The port the image listens on, published on the same port of the runner |
 | `health-path` | `/` | A path that answers 2xx once the app is up. curl retries it for up to 30 seconds before the audit |
@@ -177,7 +186,7 @@ When a PR closes, merged or not, deletes every Actions cache on its ref, `refs/p
 zimmertr/hevy-garmin-sync calls every module but `terraform.yml`, and is the example to copy. Its callers at `a80486f`: [`release.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/release.yml) (an image, a chart that pins it, and the chart's deploy), [`pr.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr.yml), [`pr-title.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr-title.yml), [`lint.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/lint.yml) and [`image-scan.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/image-scan.yml). It keeps no `GitVersion.yml` or `trivy.yaml`, so the defaults below apply.
 
 - Pin every module to a release's commit SHA, with the version in a comment, so Renovate can move it. The shared preset below takes a yggdrasil release as soon as it ships (record [0056](architectural-decision-records/0056-one-renovate-preset-for-every-repo.md)).
-- A caller job's `name` comes first in each check's name: `Docker Build / Docker Build`. Rename the required checks in the same step as the switch.
+- A caller job's `name` comes first in each check's name: `Docker Build / Docker Build (zimmertr/hevy-garmin-sync)`. Rename the required checks in the same step as the switch.
 - Don't give the `pr-title.yml` caller a `concurrency` group that cancels runs. Renovate never merges a PR whose head commit has a cancelled run ([DATA.md](DATA.md#github)).
 
 ## Shared defaults

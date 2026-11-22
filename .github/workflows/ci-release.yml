@@ -30,6 +30,8 @@ jobs:
       # runs. yggdrasil pushes no image or chart: the dry run builds and
       # packages without pushing.
       packages: write  # the module's Build & Push and Push Chart ask for it
+      attestations: write  # the same two jobs' provenance
+      id-token: write  # and the token Sigstore signs it with
     with:
       dry-run: ${{ github.event_name == 'pull_request' }}
       images: >-

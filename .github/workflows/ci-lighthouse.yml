@@ -26,7 +26,7 @@ jobs:
       contents: read
       pull-requests: write # the module's sticky scan comment
     with:
-      context: tests/lighthouse
+      images: '[{"image": "zimmertr/yggdrasil-lighthouse-test", "context": "tests/lighthouse"}]'
       upload-image: true
 
   lighthouse:
@@ -36,5 +36,6 @@ jobs:
     permissions:
       contents: read
     with:
+      image: zimmertr/yggdrasil-lighthouse-test
       config: tests/lighthouse/lighthouserc.json
       port: 8080

@@ -131,6 +131,14 @@ On a PR from the repo's own branches: the PR's head built for `linux/amd64` and 
 - The layer cache is scoped per PR, with the default scope read as a warm start.
 - The caller sees `<caller job> / Preview Image`.
 
+### `cache-cleanup.yml`
+
+When a PR closes, merged or not, deletes every Actions cache on its ref, `refs/pull/<number>/merge`, with `gh cache delete --all --ref`. GitHub would keep them until seven days unread or until the repo passed its 10 GB budget, and then evict the oldest read first, which can be main's layer cache. No inputs. Record: [0064](architectural-decision-records/0064-cache-cleanup-module.md)
+
+- The caller runs it on `pull_request` with `types: [closed]`, and grants `actions: write`.
+- A repo with no caches on the ref passes.
+- The caller sees `<caller job> / Delete caches`.
+
 ## An example caller
 
 zimmertr/hevy-garmin-sync calls every module but `terraform.yml`, and is the example to copy. Its callers at `a80486f`: [`release.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/release.yml) (an image, a chart that pins it, and the chart's deploy), [`pr.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr.yml), [`pr-title.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/pr-title.yml), [`lint.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/lint.yml) and [`image-scan.yml`](https://github.com/zimmertr/hevy-garmin-sync/blob/a80486fb804b15f3490f8a9caf1992c3574d5dcb/.github/workflows/image-scan.yml). It keeps no `GitVersion.yml` or `trivy.yaml`, so the defaults below apply.

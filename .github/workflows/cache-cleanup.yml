@@ -1,0 +1,40 @@
+name: Cache Cleanup
+
+# Deletes a closed PR's Actions caches. GitHub scopes a cache to the ref that
+# wrote it, `refs/pull/<number>/merge` for a PR, and only evicts it after
+# seven days unread or when the repo passes its 10 GB budget, oldest read
+# first. So a closed PR's caches crowd out main's, such as the docker-build
+# layer cache a release reads. Bluebird measured 3.40 GB of closed PRs'
+# caches on 2026-09-15 (its #368). This removes them the day the PR closes.
+#
+# Also the cache-cleanup module: other repos call this file with
+# `workflow_call` from a job on `pull_request: types: [closed]`, grant
+# `actions: write`, and see `<caller job> / Delete caches`. yggdrasil runs it
+# on its own PRs, whose release dry run leaves a cache of the QEMU image each.
+on:
+  pull_request:
+    types: [closed]
+  workflow_call:
+
+# One run per PR: a close, reopen and close again needs only the last.
+concurrency:
+  group: cache-cleanup-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  cleanup:
+    name: Delete caches
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write # gh cache delete
+    steps:
+      # gh deletes every cache on the ref itself, paging as it goes, and exits
+      # 0 when there are none.
+      - run: gh cache delete --all --ref "refs/pull/${PR_NUMBER}/merge" --succeed-on-no-caches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}

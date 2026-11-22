@@ -88,3 +88,4 @@ A new record that reverses an old one says `Supersedes NNNN` in its status line.
 | [0061](0061-private-repos-merge-updates-through-renovate.md) | A private repo's updates below a major merge themselves, through Renovate's own merge once every check passes | 2026-11-16 | Accepted. Supersedes 0039 in part |
 | [0062](0062-riskiest-upstreams-wait-30-days.md) | The riskiest upstreams wait 30 days, and Terraform provider updates merge themselves like every other update | 2026-11-21 | Accepted. Supersedes 0042 and 0056 in part |
 | [0063](0063-dependabot-security-updates-stay-on.md) | Dependabot security updates stay on beside Renovate's vulnerability PRs, because only Dependabot fixes an indirect dependency | 2026-11-21 | Accepted |
+| [0064](0064-cache-cleanup-module.md) | A cache-cleanup module deletes a PR's Actions caches when it closes, as a module of its own | 2026-11-21 | Accepted |

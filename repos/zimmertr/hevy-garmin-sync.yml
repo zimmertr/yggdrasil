@@ -1,4 +1,4 @@
-description: Sync Hevy routines to a Garmin watch as custom strength workouts
+description: Sync Hevy routines to a Garmin watch as custom strength workouts.
 required_checks:
   - test
   - Python Lint

@@ -61,7 +61,7 @@ jobs:
       # a secret.
       - name: Token for zimmertr
         id: zimmertr
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
@@ -72,7 +72,7 @@ jobs:
 
       - name: Token for Bluebird-Forecast
         id: bluebird-forecast
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
@@ -84,7 +84,7 @@ jobs:
 
       - name: Token for Fellfield-Game
         id: fellfield-game
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
@@ -96,7 +96,7 @@ jobs:
 
       - name: Token for GPX-Search
         id: gpx-search
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
@@ -108,7 +108,7 @@ jobs:
 
       - name: Token for TJs-Kubernetes-Service
         id: tjs-kubernetes-service
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
@@ -120,7 +120,7 @@ jobs:
 
       - name: Token for Lakebagger
         id: lakebagger
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: Iv23liwzT6dq3xtbxm5P
           private-key: ${{ secrets.YGGDRASIL_BOT_PRIVATE_KEY }}
